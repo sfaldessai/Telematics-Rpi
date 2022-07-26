@@ -28,8 +28,8 @@ struct gps_data_struct
 	float latitude;
 	float longitude;
 	char *gps_time;
-	char *lat_cardinal_sign;
-	char *long_cardinal_sign;
+	char lat_cardinal_sign;
+	char long_cardinal_sign;
 };
 
 int uart_start(struct uart_device_struct *dev, bool canonic);
