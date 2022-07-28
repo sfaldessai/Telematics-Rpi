@@ -12,7 +12,7 @@
 pthread_mutex_t cloud_data_mutex;
 
 #define MAX_READ_SIZE 1
-#define MAXSIZE 100 /* set to 100 for temporary. TBD: size */
+#define MAXSIZE 100 /* set to 100 for temporary. TBD: message format & size */
 
 void *read_from_stm32(void *arg)
 {

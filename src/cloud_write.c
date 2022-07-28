@@ -1,5 +1,5 @@
 /*
- * created at 2022-07-26 09:00.
+ * created at 2022-07-27 12:00.
  *
  * Company: HashedIn By Deloitte.
  * Copyright (C) 2022 HashedIn By Deloitte
@@ -19,6 +19,5 @@ void *write_to_cloud(void *arg)
         printf("\nLat: %.4f %c", cloud_data->gps_data.latitude, cloud_data->gps_data.lat_cardinal_sign);
         printf("\t Long: %.4f %c\n", cloud_data->gps_data.longitude, cloud_data->gps_data.long_cardinal_sign);
         printf("\nPDOP:%.2f\tHDOP:%.2f\tVDOP:%.2f\n", cloud_data->gps_data.pdop, cloud_data->gps_data.hdop, cloud_data->gps_data.vdop);
-        printf("\n###################### NEXT DATA ######################\n");
     }
 }
