@@ -10,9 +10,16 @@ extern "C"
 #include "src/uart.h"
 }
 
+bool functionToBeTested(void) {
+    struct uart_device_struct device; // = malloc(sizeof(device));
+    device.file_name = (char*)"filename";
+    device.baud_rate = 9600;
+    return uart_start(&device, false);
+}
+
 int uart_start(struct uart_device_struct *device, bool canonical)
 {
-    return mock().actualCall("uart_start").withParameterOfType("uartDeviceStruct", "device", &device).withParameter("canonical", canonical).returnIntValueOrDefault(-1);
+    return mock().actualCall("uart_start").withParameterOfType("uartDeviceStruct", "device", (const void*)device).withParameter("canonical", canonical).returnIntValue();
 }
 
 int uart_writen(struct uart_device_struct *dev, char *buf, size_t buf_len)
@@ -38,9 +45,7 @@ void uart_stop(struct uart_device_struct *dev)
 TEST_GROUP(UartTestGroup)
 {
     void setup()
-    {
-        mock().strictOrder();
-    };
+    {};
     void teardown()
     {
         // Call check expectations here, and also clear all comparators after that
@@ -53,14 +58,14 @@ TEST_GROUP(UartTestGroup)
 TEST(UartTestGroup, BlackBoxTest)
 {
     /*arrange*/
-    struct uart_device_struct device;
+    struct uart_device_struct device; // = malloc(sizeof(device));
     device.file_name = (char*)"filename";
     device.baud_rate = 9600;
-    mock().expectOneCall("uart_start").withParameterOfType("uartDeviceStruct", "device", &device).withParameter("canonical", false).andReturnValue(0);
+    mock().expectOneCall("uart_start").withParameterOfType("uartDeviceStruct", "device", (void*)&device).withParameter("canonical", false).andReturnValue(0);
 
     /*act*/
     int fd = uart_start(&device, false);
-    
+
     /*assert*/
     CHECK_EQUAL(0, fd);
 }
