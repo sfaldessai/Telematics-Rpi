@@ -24,6 +24,26 @@
 		 iiii		: Deferential station's ID
 		 *CC		: checksum for the sentence
 
+         $GPGSA GPS DOP and active satellites
+
+		 $GPGSA,A,3,17,02,30,04,05,10,09,06,31,12,,,1.2,0.8,0.9*2B
+		 |      | |                                  |   |   |  | 
+		 0      2 2        3-14                      15  16  17 18 
+
+		 where
+		1   = Mode:
+			M=Manual, forced to operate in 2D or 3D
+			A=Automatic, 3D/2D
+		2   = Mode:
+			1=Fix not available
+			2=2D
+			3=3D
+		3-14 = IDs of SVs used in position fix (null for unused fields)
+		15   = PDOP
+		16   = HDOP
+		17   = VDOP
+		18   = Check sum
+
 # CPPUTEST setup steps.
    step 1:
    To install cpputest on windows follow : https://github.com/miguelmoraperea/guide_setup_cpputest_eclipse_win_7 till 13th step.
