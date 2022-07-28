@@ -61,6 +61,6 @@ void uart_stop(struct uart_device_struct *dev);
 void *read_from_stm32(void *); /* pthread to handle stm32 read */
 void *read_from_gps(void *);   /* pthread to handle gps read */
 
-void *write_to_cloud(void *);
+void *write_to_cloud(void *); /* pthread to display all serial data */
 
 #endif

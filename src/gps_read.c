@@ -11,7 +11,6 @@
 #include <string.h>
 #include <fcntl.h>
 #include <termios.h>
-#include <errno.h>
 #include <pthread.h>
 #include "uart.h"
 
@@ -41,18 +40,6 @@ void get_dops(char **gsa_data, char *nmea_data)
         *gsa_data = strchr(*gsa_data + 1, COMMA);
         k++;
     }
-}
-
-char *str_reverse(char *str, int len)
-{
-    int i;
-    for (i = len / 2 - 1; i >= 0; --i)
-    {
-        char c = str[i];
-        str[i] = str[len - i - 1];
-        str[len - i - 1] = c;
-    }
-    return str;
 }
 
 void *read_from_gps(void *arg)

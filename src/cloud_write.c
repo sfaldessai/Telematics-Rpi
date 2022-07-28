@@ -13,7 +13,7 @@ void *write_to_cloud(void *arg)
     struct cloud_data_struct *cloud_data = (struct cloud_data_struct *)arg;
     while (1)
     {
-        sleep(2);
+        sleep(2); /* Display data every 2 sec*/
 
         printf("\nSTM32 Data : %s\n", cloud_data->stm32_data.sensor_data);
         printf("\nLat: %.4f %c", cloud_data->gps_data.latitude, cloud_data->gps_data.lat_cardinal_sign);

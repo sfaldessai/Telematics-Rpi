@@ -57,8 +57,6 @@ void *read_from_stm32(void *arg)
                 stem32_serial_data[i + 1] = '\0';
                 stm32_data.sensor_data = stem32_serial_data;
 
-                sleep(1);
-
                 pthread_mutex_lock(&cloud_data_mutex);
                 cloud_data->stm32_data = stm32_data;
                 pthread_mutex_unlock(&cloud_data_mutex);
