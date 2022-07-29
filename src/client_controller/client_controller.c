@@ -7,7 +7,9 @@
 
 #include <stdio.h>
 #include <pthread.h>
-#include "uart.h"
+#include "client_controller.h"
+#include "../serial_interface/serial_config.h"
+#include "../main.h"
 
 pthread_mutex_t cloud_data_mutex;
 

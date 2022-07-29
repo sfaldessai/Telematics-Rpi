@@ -10,7 +10,7 @@
 #include <termios.h>
 #include <string.h>
 #include <pthread.h>
-#include "uart.h"
+#include "main.h"
 
 #define MAX_READ_SIZE 1
 

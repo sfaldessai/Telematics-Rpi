@@ -13,7 +13,7 @@
 #include <errno.h>
 #include <limits.h>
 
-#include "uart.h"
+#include "serial_config.h"
 
 int uart_start(struct uart_device_struct *device, bool canonical)
 {

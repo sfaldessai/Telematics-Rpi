@@ -6,7 +6,8 @@
  */
 
 #include <stdio.h>
-#include "uart.h"
+#include <unistd.h>
+#include "cloud_server.h"
 
 void *write_to_cloud(void *arg)
 {

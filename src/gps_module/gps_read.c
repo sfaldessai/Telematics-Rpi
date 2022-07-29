@@ -12,7 +12,9 @@
 #include <fcntl.h>
 #include <termios.h>
 #include <pthread.h>
-#include "uart.h"
+#include "gps_module.h"
+#include "../serial_interface/serial_config.h"
+#include "../main.h"
 
 #define MAX_READ_SIZE 1
 #define COMMA 0x2C
