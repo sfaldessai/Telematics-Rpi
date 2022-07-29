@@ -8,8 +8,8 @@
 #include "../gps_module/gps_module.h"
 #include "../client_controller/client_controller.h"
 
-#ifndef CLOUD_WRITE_H_
-#define CLOUD_WRITE_H_
+#ifndef CLOUD_SERVER_H_
+#define CLOUD_SERVER_H_
 
 #define DEBUG
 

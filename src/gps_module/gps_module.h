@@ -5,8 +5,8 @@
  * Copyright (C) 2022 HashedIn By Deloitte
  */
 
-#ifndef GPS_H_
-#define GPS_H_
+#ifndef GPS_MODULE_H_
+#define GPS_MODULE_H_
 
 #define DEBUG
 

@@ -5,8 +5,8 @@
  * Copyright (C) 2022 HashedIn By Deloitte
  */
 
-#ifndef CLOUD_WRITE_H_
-#define CLOUD_WRITE_H_
+#ifndef CAN_BUS_H_
+#define CAN_BUS_H_
 
 #define DEBUG
 

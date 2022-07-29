@@ -9,8 +9,8 @@
 #include <unistd.h>
 #include <stdbool.h>
 
-#ifndef UART_H_
-#define UART_H_
+#ifndef SERIAL_CONFIG_H
+#define SERIAL_CONFIG_H
 
 #define DEBUG
 

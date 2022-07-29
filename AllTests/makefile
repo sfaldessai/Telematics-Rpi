@@ -19,8 +19,7 @@ CPP_PLATFORM = Gcc
 
 SRC_DIRS = ./src
 
-TEST_SRC_DIRS = \
-	AllTests
+TEST_SRC_DIRS = ./
 
 INCLUDE_DIRS =\
   .\
