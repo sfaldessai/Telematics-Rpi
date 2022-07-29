@@ -1,31 +1,23 @@
-#---------
-#
-# CppUTest Examples Makefile
-#
-#----------
+# Makefile
 
-#Set this to @ to keep the makefile quiet
-ifndef SILENCE
-	SILENCE = @
-endif
+SRC_DIR=./src
 
-#--- Inputs ----#
-COMPONENT_NAME = CustomTests
-CPPUTEST_HOME = cpputest
+OUT=telematic
 
-CPPUTEST_USE_EXTENSIONS = Y
-CPP_PLATFORM = Gcc
+gps_read.o:
+	gcc -c -I$(SRC_DIR) $(SRC_DIR)/gps_read.c -o $(SRC_DIR)/gps_read.o
 
+stm32_read.o:
+	gcc -c -I$(SRC_DIR) $(SRC_DIR)/stm32_read.c -o $(SRC_DIR)/stm32_read.o
 
-SRC_DIRS = 
+uart.o:
+	gcc -c -I$(SRC_DIR) $(SRC_DIR)/uart.c -o $(SRC_DIR)/uart.o
 
-TEST_SRC_DIRS = \
-	AllTests
+cloud_write.o:
+	gcc -c -I$(SRC_DIR) $(SRC_DIR)/cloud_write.c -o $(SRC_DIR)/cloud_write.o
 
-INCLUDE_DIRS =\
-  .\
-  $(CPPUTEST_HOME)/include\
+main: gps_read.o stm32_read.o uart.o cloud_write.o
+	gcc -I$(SRC_DIR) $(SRC_DIR)/*.o $(SRC_DIR)/main.c -o $(OUT) -lpthread
 
-include $(CPPUTEST_HOME)/build/MakefileWorker.mk
-
-
+clean:
+	rm $(SRC_DIR)/*.o $(OUT)
