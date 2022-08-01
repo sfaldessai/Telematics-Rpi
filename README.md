@@ -53,14 +53,14 @@
    			The CppUTest repository provides a file called “MakefileWorker.mk”. It provides a lot of functionality which makes building with CppUTest simple. The file lives under the “build” directory in the git repository. For this tutorial we’re going to assume it’s been copied to the ‘AllTests/’ directory.
 
    step 3:  Inside cygwin console
-			sopujari@USBLRSOPUJARI2 /cygdrive/c/Users/sopujari/gitcode/telematics/Telematics-Microprocessor-Rapi/AllTests
+			sopujari@USBLRSOPUJARI2 /cygdrive/c/Users/sopujari/gitcode/telematics/Telematics-Rpi/tests
 			$ ls
-				AllTests.cpp  cpputest  lib  makefile  objs
+				alltests.cpp  cpputest  lib  makefile  objs
 
-			sopujari@USBLRSOPUJARI2 /cygdrive/c/Users/sopujari/gitcode/telematics/Telematics-Microprocessor-Rapi/AllTests
+			sopujari@USBLRSOPUJARI2 /cygdrive/c/Users/sopujari/gitcode/telematics/Telematics-Rpi/tests
 			$ cd cpputest/
 
-			sopujari@USBLRSOPUJARI2 /cygdrive/c/Users/sopujari/gitcode/telematics/Telematics-Microprocessor-Rapi/cpputest
+			sopujari@USBLRSOPUJARI2 /cygdrive/c/Users/sopujari/gitcode/telematics/Telematics-Rpi/tests/cpputest
 			$ ls
 				AUTHORS         CppUTest.mak                     Doxyfile                       README                           autogen.sh      config.h.in             depcomp     ltmain.sh       platforms
 				CMakeLists.txt  CppUTest.sln                     INSTALL                        README.md                        build           config.sub              docs        m4              platforms_examples
@@ -70,21 +70,21 @@
 				CppUTest.dsp    CppUTestConfig.cmake.install.in  Makefile_using_MakefileWorker  aclocal.m4                       config.guess    cpputest_build          install-sh  makeVc6.bat     tests
 				CppUTest.dsw    CppUTest_VS201x.sln              NEWS                           appveyor.yml                     config.h.cmake  cpputest_doxy_gen.conf  lib         missing         valgrind.suppressions
 
-			sopujari@USBLRSOPUJARI2 /cygdrive/c/Users/sopujari/gitcode/telematics/Telematics-Microprocessor-Rapi/cpputest
+			sopujari@USBLRSOPUJARI2 /cygdrive/c/Users/sopujari/gitcode/telematics/Telematics-Rpi/tests/cpputest
 			$ autoreconf -fi
 
-			sopujari@USBLRSOPUJARI2 /cygdrive/c/Users/sopujari/gitcode/telematics/Telematics-Microprocessor-Rapi/cpputest
+			sopujari@USBLRSOPUJARI2 /cygdrive/c/Users/sopujari/gitcode/telematics/Telematics-Rpi/tests/cpputest
 			$ ./configure
 
-			sopujari@USBLRSOPUJARI2 /cygdrive/c/Users/sopujari/gitcode/telematics/Telematics-Microprocessor-Rapi/cpputest
+			sopujari@USBLRSOPUJARI2 /cygdrive/c/Users/sopujari/gitcode/telematics/Telematics-Rpi/tests/cpputest
 			$ make tdd
 
-			sopujari@USBLRSOPUJARI2 /cygdrive/c/Users/sopujari/gitcode/telematics/Telematics-Microprocessor-Rapi/cpputest
+			sopujari@USBLRSOPUJARI2 /cygdrive/c/Users/sopujari/gitcode/telematics/Telematics-Rpi/tests/cpputest
 			$ cd ..
 
-			sopujari@USBLRSOPUJARI2 /cygdrive/c/Users/sopujari/gitcode/telematics/Telematics-Microprocessor-Rapi
+			sopujari@USBLRSOPUJARI2 /cygdrive/c/Users/sopujari/gitcode/telematics/Telematics-Rpi/tests
 			$ make
-				compiling AllTests.cpp
+				compiling alltests.cpp
 				Linking CustomTests_tests
 				Running CustomTests_tests
 				.
