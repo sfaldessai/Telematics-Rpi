@@ -14,9 +14,7 @@ extern "C"
 TEST_GROUP(GPSTestGroup)
 {
     void setup(){};
-    void teardown()
-    {
-    }
+    void teardown(){};
 };
 
 TEST(GPSTestGroup, getLatLongTest)
