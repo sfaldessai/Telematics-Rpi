@@ -1,8 +1,3 @@
-#---------
-#
-# CppUTest Examples Makefile
-#
-#----------
 
 #Set this to @ to keep the makefile quiet
 ifndef SILENCE
@@ -10,7 +5,7 @@ ifndef SILENCE
 endif
 
 #--- Inputs ----#
-COMPONENT_NAME = CustomTests
+COMPONENT_NAME = Rpi_Test_cases
 CPPUTEST_HOME = cpputest
 
 CPPUTEST_USE_EXTENSIONS = Y
