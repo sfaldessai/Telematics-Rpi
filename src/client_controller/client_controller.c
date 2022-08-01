@@ -19,9 +19,9 @@ pthread_mutex_t cloud_data_mutex;
 void *read_from_stm32(void *arg)
 {
     char read_data;
-    size_t read_data_len;
+    int read_data_len;
     unsigned int i;
-    unsigned char stem32_serial_data[MAXSIZE];
+    char stem32_serial_data[MAXSIZE];
 
     struct arg_struct *args = (struct arg_struct *)arg;
     struct uart_device_struct stm32_device = args->uart_device;

@@ -11,4 +11,6 @@
 void *read_from_can(void *arg)
 {
     /* TODO */
+    printf("%p", arg);
+    return 0;
 }

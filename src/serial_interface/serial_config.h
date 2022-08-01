@@ -17,7 +17,7 @@
 struct uart_device_struct
 {
 	char *file_name;
-	int baud_rate;
+	unsigned int baud_rate;
 
 	int fd;
 	struct termios *tty;

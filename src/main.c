@@ -14,7 +14,7 @@
 
 #define MAX_READ_SIZE 1
 
-int main()
+int main(void)
 {
     struct uart_device_struct stm32_device, gps_device;
     struct cloud_data_struct cloud_data;
@@ -26,24 +26,24 @@ int main()
     stm32_device.baud_rate = B9600;
     gps_device.baud_rate = B9600;
 
+    /* Pointer char initializing to null*/
+    cloud_data.stm32_data.sensor_data = NULL;
+
     uart_start(&stm32_device, false);
     uart_start(&gps_device, false);
-
-    char read_data;
-    size_t read_data_len;
 
     /* STM32 Microcontroller Read Thread */
     stm32_args.uart_device = stm32_device;
     stm32_args.cloud_data = &cloud_data;
-    pthread_create(&stm32_read_thread, NULL, (void *)&read_from_stm32, &stm32_args);
+    pthread_create(&stm32_read_thread, NULL, &read_from_stm32, &stm32_args);
 
     /* NEO GPS Module Read Thread */
     gps_args.uart_device = gps_device;
     gps_args.cloud_data = &cloud_data;
-    pthread_create(&gps_read_thread, NULL, (void *)&read_from_gps, &gps_args);
+    pthread_create(&gps_read_thread, NULL, &read_from_gps, &gps_args);
 
     /* NEO GPS Module Read Thread */
-    pthread_create(&serial_write_thread, NULL, (void *)&write_to_cloud, &cloud_data);
+    pthread_create(&serial_write_thread, NULL, &write_to_cloud, &cloud_data);
 
     pthread_join(stm32_read_thread, NULL);
     pthread_join(gps_read_thread, NULL);
