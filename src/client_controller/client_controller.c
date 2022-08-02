@@ -11,7 +11,7 @@
 #include "../serial_interface/serial_config.h"
 #include "../main.h"
 
-pthread_mutex_t cloud_data_mutex;
+pthread_mutex_t cloud_data_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 #define MAX_READ_SIZE 1
 #define MAXSIZE 100 /* set to 100 for temporary. TBD: message format & size */

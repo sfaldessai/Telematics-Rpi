@@ -21,7 +21,7 @@
 #define MAXSIZE 100 /* GPS at most, sends 80 or so chars per message string.*/
 #define CR 0x0d
 
-pthread_mutex_t cloud_data_mutex;
+pthread_mutex_t cloud_data_gps_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void get_lat_log(double *latitude)
 {
@@ -125,9 +125,9 @@ void *read_from_gps(void *arg)
             get_gps_data(nmea_data, &gps_data);
 
             /* update gps_data to cloud_data struct */
-            pthread_mutex_lock(&cloud_data_mutex);
+            pthread_mutex_lock(&cloud_data_gps_mutex);
             cloud_data->gps_data = gps_data;
-            pthread_mutex_unlock(&cloud_data_mutex);
+            pthread_mutex_unlock(&cloud_data_gps_mutex);
         }
     } while (1);
     uart_stop(&gps_device);
