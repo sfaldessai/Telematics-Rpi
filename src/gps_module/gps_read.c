@@ -16,9 +16,8 @@
 #include "../serial_interface/serial_config.h"
 #include "../main.h"
 
-#define MAX_READ_SIZE 1
+#define MAX_READ_SIZE 80 /* GPS at most, sends 80 or so chars per message string.*/
 #define COMMA 0x2C
-#define MAXSIZE 100 /* GPS at most, sends 80 or so chars per message string.*/
 #define CR 0x0d
 
 pthread_mutex_t cloud_data_gps_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -91,10 +90,8 @@ void get_gps_data(char *nmea_data, struct gps_data_struct *gps_data)
 
 void *read_from_gps(void *arg)
 {
-    char read_data;
-    int read_data_len;
-    unsigned int i;
-    char nmea_data[MAXSIZE];
+    char *read_data = NULL;
+    int read_data_len = 0;
 
     struct arg_struct *args = (struct arg_struct *)arg;
     struct uart_device_struct gps_device = args->uart_device;
@@ -103,32 +100,18 @@ void *read_from_gps(void *arg)
 
     do
     {
-        read_data_len = uart_reads(&gps_device, &read_data, MAX_READ_SIZE); /* read char from serial port */
+        read_data_len = uart_reads_chunk(&gps_device, &read_data, MAX_READ_SIZE); /* read char from serial port */
 
-        if (read_data == '$')
+        if (read_data_len > 0)
         {
-            /* GPS messages start with $ char */
-            i = 0;
-            nmea_data[i] = read_data;
-            do
-            {
-                read_data_len = uart_reads(&gps_device, &read_data, MAX_READ_SIZE);
-                if ((read_data_len > 0) && (isalnum(read_data) || isspace(read_data) || ispunct(read_data)))
-                {
-                    i++;
-                    nmea_data[i] = read_data;
-                }
-            } while (read_data != CR);
-
-            nmea_data[i + 1] = '\0';
-
-            get_gps_data(nmea_data, &gps_data);
+            get_gps_data(read_data, &gps_data);
 
             /* update gps_data to cloud_data struct */
             pthread_mutex_lock(&cloud_data_gps_mutex);
             cloud_data->gps_data = gps_data;
             pthread_mutex_unlock(&cloud_data_gps_mutex);
         }
+
     } while (1);
     uart_stop(&gps_device);
 }

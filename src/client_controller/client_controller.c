@@ -13,15 +13,12 @@
 
 pthread_mutex_t cloud_data_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-#define MAX_READ_SIZE 1
-#define MAXSIZE 100 /* set to 100 for temporary. TBD: message format & size */
+#define MAX_READ_SIZE 80 /* set to 80 for temporary. TBD: message format & size */
 
 void *read_from_stm32(void *arg)
 {
-    char read_data;
+    char *read_data = NULL;
     int read_data_len;
-    unsigned int i;
-    char stem32_serial_data[MAXSIZE];
 
     struct arg_struct *args = (struct arg_struct *)arg;
     struct uart_device_struct stm32_device = args->uart_device;
@@ -30,11 +27,13 @@ void *read_from_stm32(void *arg)
 
     while (1)
     {
+
         /* Reading data byte by byte */
-        read_data_len = uart_reads(&stm32_device, &read_data, MAX_READ_SIZE);
+        read_data_len = uart_reads_chunk(&stm32_device, &read_data, MAX_READ_SIZE);
 
         if (read_data_len > 0)
         {
+            printf("\n STM32 DATA: %s\n", read_data);
             /*
              * Message protocol used in microcontroller:
              * *<SERIALNO><LOCATION><VIN><BATTERY><SPEED><IDLETIME><SERVICE>$""
@@ -42,22 +41,9 @@ void *read_from_stm32(void *arg)
              * microcontroller will send new data in every 2 sec
              */
 
-            if (read_data == '*')
+            if (read_data[0] == '*')
             {
-                i = 0;
-                stem32_serial_data[i] = read_data;
-                do
-                {
-                    read_data_len = uart_reads(&stm32_device, &read_data, MAX_READ_SIZE);
-                    if (read_data_len > 0)
-                    {
-                        i++;
-                        stem32_serial_data[i] = read_data;
-                    }
-                } while (read_data != '$');
-
-                stem32_serial_data[i + 1] = '\0';
-                stm32_data.sensor_data = stem32_serial_data;
+                stm32_data.sensor_data = read_data;
 
                 pthread_mutex_lock(&cloud_data_mutex);
                 cloud_data->stm32_data = stm32_data;

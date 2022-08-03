@@ -23,30 +23,41 @@ int main(void)
 
     stm32_device.file_name = "/dev/ttyACM0";
     gps_device.file_name = "/dev/ttyUSB0"; /* connected neo gps module to rapi using UART to USB converter */
-    stm32_device.baud_rate = B9600;
+    stm32_device.baud_rate = B115200;
     gps_device.baud_rate = B9600;
 
     /* Pointer char initializing to null*/
     cloud_data.stm32_data.sensor_data = "";
 
-    uart_start(&stm32_device, false);
-    uart_start(&gps_device, false);
+    uart_start(&stm32_device, true);
+    uart_start(&gps_device, true);
 
-    /* STM32 Microcontroller Read Thread */
-    stm32_args.uart_device = stm32_device;
-    stm32_args.cloud_data = &cloud_data;
-    pthread_create(&stm32_read_thread, NULL, &read_from_stm32, &stm32_args);
+    if (stm32_device.fd > 0)
+    {
+        /* STM32 Microcontroller Read Thread */
+        stm32_args.uart_device = stm32_device;
+        stm32_args.cloud_data = &cloud_data;
+        pthread_create(&stm32_read_thread, NULL, &read_from_stm32, &stm32_args);
+    }
+    if (gps_device.fd > 0)
+    {
+        /* NEO GPS Module Read Thread */
+        gps_args.uart_device = gps_device;
+        gps_args.cloud_data = &cloud_data;
+        pthread_create(&gps_read_thread, NULL, &read_from_gps, &gps_args);
+    }
 
-    /* NEO GPS Module Read Thread */
-    gps_args.uart_device = gps_device;
-    gps_args.cloud_data = &cloud_data;
-    pthread_create(&gps_read_thread, NULL, &read_from_gps, &gps_args);
-
-    /* NEO GPS Module Read Thread */
+    /* Cloud Write Thread */
     pthread_create(&serial_write_thread, NULL, &write_to_cloud, &cloud_data);
 
-    pthread_join(stm32_read_thread, NULL);
-    pthread_join(gps_read_thread, NULL);
+    if (stm32_device.fd > 0)
+    {
+        pthread_join(stm32_read_thread, NULL);
+    }
+    if (gps_device.fd > 0)
+    {
+        pthread_join(gps_read_thread, NULL);
+    }
     pthread_join(serial_write_thread, NULL);
 
     return 0;
