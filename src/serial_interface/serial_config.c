@@ -25,6 +25,7 @@ int uart_start(struct uart_device_struct *device, bool canonical)
 	if (fd < 0)
 	{
 		printf("%s: failed to open UART device\r\n", __func__);
+		device->fd = fd;
 		return fd;
 	}
 
