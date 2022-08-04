@@ -21,4 +21,6 @@ struct cloud_data_struct
 
 void *write_to_cloud(void *); /* pthread to display all serial data */
 
+void initialize_cloud_data(struct cloud_data_struct *);
+
 #endif

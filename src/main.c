@@ -27,7 +27,7 @@ int main(void)
     gps_device.baud_rate = B9600;
 
     /* Pointer char initializing to null*/
-    cloud_data.stm32_data.sensor_data = "";
+    initialize_cloud_data(&cloud_data);
 
     uart_start(&stm32_device, true);
     uart_start(&gps_device, true);

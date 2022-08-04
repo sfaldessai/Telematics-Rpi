@@ -22,3 +22,23 @@ void *write_to_cloud(void *arg)
         printf("\nPDOP:%.2f\tHDOP:%.2f\tVDOP:%.2f\n", cloud_data->gps_data.pdop, cloud_data->gps_data.hdop, cloud_data->gps_data.vdop);
     }
 }
+
+void initialize_cloud_data(struct cloud_data_struct *cloud_data)
+{
+    struct gps_data_struct gps_data;
+    struct stm32_data_struct stm32_data;
+
+    gps_data.gps_time = "";
+    gps_data.latitude = 0.0;
+    gps_data.lat_cardinal_sign = 'N';
+    gps_data.longitude = 0.0;
+    gps_data.long_cardinal_sign = 'E';
+    gps_data.hdop = 0.0;
+    gps_data.pdop = 0.0;
+    gps_data.vdop = 0.0;
+
+    stm32_data.sensor_data = "";
+
+    cloud_data->gps_data = gps_data;
+    cloud_data->stm32_data = stm32_data;
+}
