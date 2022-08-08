@@ -10,6 +10,7 @@
 
 #define DEBUG
 
+/* gps_data_struct struct to holds GPS data*/
 struct gps_data_struct
 {
 	double latitude;

@@ -13,10 +13,11 @@
 
 #define DEBUG
 
+/* cloud_data_struct struct to holds STM32, GPS, and CAN bus data*/
 struct cloud_data_struct
 {
 	struct gps_data_struct gps_data;
-	struct stm32_data_struct stm32_data;
+	struct client_controller_data_struct client_controller_data;
 };
 
 void *write_to_cloud(void *); /* pthread to display all serial data */
