@@ -12,16 +12,20 @@
 
 struct gps_data_struct
 {
-	float latitude;
-	float longitude;
+	double latitude;
+	double longitude;
 	char *gps_time;
 	char lat_cardinal_sign;
 	char long_cardinal_sign;
-	float pdop;
-	float vdop;
-	float hdop;
+	double pdop;
+	double vdop;
+	double hdop;
 };
 
 void *read_from_gps(void *); /* pthread to handle gps read */
+
+void get_lat_log(double *);
+void get_dops(char **, char *);
+void get_gps_data(char *, struct gps_data_struct *);
 
 #endif

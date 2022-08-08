@@ -25,6 +25,7 @@ int uart_start(struct uart_device_struct *device, bool canonical)
 	if (fd < 0)
 	{
 		printf("%s: failed to open UART device\r\n", __func__);
+		device->fd = fd;
 		return fd;
 	}
 
@@ -55,7 +56,6 @@ int uart_start(struct uart_device_struct *device, bool canonical)
 		 * Enable canonical mode.
 		 * Input is made available line by line.
 		 */
-		printf("cononical");
 		tty->c_lflag |= ICANON;
 	}
 	else
@@ -94,6 +94,34 @@ int uart_reads(struct uart_device_struct *device, char *buf, size_t buf_len)
 	}
 
 	buf[rc] = '\0';
+	return rc;
+}
+
+int uart_reads_chunk(struct uart_device_struct *device, char **buf, size_t buf_len)
+{
+	int rc;
+	char chunk_data[buf_len];
+	rc = read(device->fd, chunk_data, buf_len);
+
+	if (rc < 0)
+	{
+		printf("%s: failed to read uart data\r\n", __func__);
+		return rc;
+	}
+
+	chunk_data[rc] = '\0';
+
+	free(*buf);
+	*buf = (char *)malloc(rc + 1); /* strcpy adds a null terminator character '\0' */
+
+	if (!*buf)
+	{
+		printf("%s: failed to allocate UART TTY instance\r\n", __func__);
+		return -ENOMEM;
+	}
+
+	strncpy(*buf, chunk_data, rc);
+
 	return rc;
 }
 
