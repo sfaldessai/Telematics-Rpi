@@ -94,7 +94,6 @@ static const char* slog_get_indent(slog_flag_t eFlag)
     {
     case SLOG_NOTAG:
         return SLOG_INDENT;
-    case SLOG_NOTE:
     case SLOG_INFO:
     case SLOG_WARN:
         return SLOG_SPACE;
