@@ -8,14 +8,45 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <string.h>
 #include "client_controller.h"
 #include "../serial_interface/serial_config.h"
 #include "../main.h"
 
+#define COMMA 0x2C
+
 /* mutex to lock cloud_data struct for wirte */
 pthread_mutex_t cloud_data_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-#define MAX_READ_SIZE 80 /* set to 80 for temporary. TBD: message format & size */
+#define MAX_READ_SIZE 32 /* set to 80 for temporary. TBD: message format & size */
+
+/*
+ * Name : get_clinet_controller_data
+ * Descriptoin: The get_clinet_controller_data function is for processing vehicle motion, PTO,
+ *              and batter voltage data from the STM32 microcontroller.
+ * Input parameters:
+ *                  char * (stm32 raw data)
+ *                  client_controller_data_struct * (reference type to update stm32 data)
+ * Output parameters: void
+ */
+void get_clinet_controller_data(char *read_data, struct client_controller_data_struct *client_controller_data)
+{
+    char *stmc_data = (char *)malloc(sizeof(read_data));
+printf("\n test 1 : %s \n ", read_data);
+    /* Get UTC Time from GGA message */
+    stmc_data = strchr(read_data, COMMA);
+    client_controller_data->motion = atof(stmc_data + 1);
+
+    stmc_data = strchr(stmc_data + 1, COMMA);
+    client_controller_data->voltage = atof(stmc_data + 1);
+
+    stmc_data = strchr(stmc_data + 1, COMMA);
+    client_controller_data->pto = atof(stmc_data + 1);
+
+    printf("\n test 1 : %s \n ", read_data);
+
+    free(stmc_data);
+}
 
 /*
  * Name : read_from_clinet_controller
@@ -43,7 +74,9 @@ void *read_from_clinet_controller(void *arg)
 
         if (read_data_len > 0)
         {
-            printf("\n client_controller DATA: %s\n", read_data);
+            // stm_data = strchr(read_data, COMMA);
+            // printf("\n client_controller DATA test: %s\n", stm_data); //,1,11.3,1,#
+
             /*
              * Message protocol used in microcontroller:
              * *<SERIALNO><LOCATION><VIN><BATTERY><SPEED><IDLETIME><SERVICE>$""
@@ -51,9 +84,9 @@ void *read_from_clinet_controller(void *arg)
              * microcontroller will send new data in every 2 sec
              */
 
-            if (read_data[0] == '*')
+            if (read_data[1] == 'S' && read_data[2] == 'T' && read_data[3] == 'M' && read_data[4] == 'C')
             {
-                client_controller_data.sensor_data = read_data;
+                get_clinet_controller_data(read_data, &client_controller_data);
 
                 pthread_mutex_lock(&cloud_data_mutex);
                 cloud_data->client_controller_data = client_controller_data;
