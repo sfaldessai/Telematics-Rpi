@@ -54,7 +54,7 @@ void *read_from_client_controller(void *arg)
             {
                 client_controller_data.sensor_data = read_data;
 
-               printf("\nclient_controller Sensor: %s\n", client_controller_data.sensor_data);
+                printf("\nclient_controller Sensor: %s\n", client_controller_data.sensor_data);
 
                 pthread_mutex_lock(&cloud_data_mutex);
                 cloud_data->client_controller_data = client_controller_data;
