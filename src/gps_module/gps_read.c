@@ -19,6 +19,7 @@
 #define MAX_READ_SIZE 80 /* GPS at most, sends 80 or so chars per message string.*/
 #define COMMA 0x2C
 #define CR 0x0d
+#define GPS_LOG_MODULE_ID 2
 
 pthread_mutex_t cloud_data_gps_mutex = PTHREAD_MUTEX_INITIALIZER;
 

@@ -15,6 +15,9 @@
 
 #include "serial_config.h"
 
+#define SERIAL_LOG_MODULE_ID 3
+
+
 int uart_start(struct uart_device_struct *device, bool canonical)
 {
 	struct termios *tty;
@@ -31,11 +34,13 @@ int uart_start(struct uart_device_struct *device, bool canonical)
 	/* Enable all logging flags */
     slog_enable(SLOG_FLAGS_ALL);
 
+
+
 	fd = open(device->file_name, O_RDWR | O_NOCTTY);
 	if (fd < 0)
 	{
 		/* Error message with errno string (in this case must be 'Success')*/
-    	slog_error("Error: failed to open UART device - %s\r\n", __func__);
+    	slog_error("Error: failed to open UART device - %s\r\n", SERIAL_LOG_MODULE_ID, __func__);
 		device->fd = fd;
 		return fd;
 	}

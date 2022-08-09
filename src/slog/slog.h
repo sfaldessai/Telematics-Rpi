@@ -67,13 +67,10 @@ extern "C" {
     /* Log level flags */
     typedef enum
     {
-        SLOG_NOTAG = (1 << 1),
-        SLOG_INFO = (1 << 2),
-        SLOG_WARN = (1 << 3),
-        SLOG_DEBUG = (1 << 4),
-        SLOG_TRACE = (1 << 5),
-        SLOG_ERROR = (1 << 6),
-        SLOG_FATAL = (1 << 7)
+        SLOG_INFO = (1 << 1),
+        SLOG_WARN = (1 << 2),
+        SLOG_DEBUG = (1 << 3),
+        SLOG_ERROR = (1 << 4),
     } slog_flag_t;
 
     typedef int(*slog_cb_t)(const char* pLog, size_t nLength, slog_flag_t eFlag, void* pCtx);
@@ -93,37 +90,24 @@ extern "C" {
         SLOG_DATE_FULL
     } slog_date_ctrl_t;
 
-#define slog(...) \
-    slog_display(SLOG_NOTAG, 1, __VA_ARGS__)
-
-#define slogwn(...) \
-    slog_display(SLOG_NOTAG, 0, __VA_ARGS__)
-
 #define slog_info(...) \
-    slog_display(SLOG_INFO, 1, __VA_ARGS__)
+    slog_display(SLOG_INFO, 1,uint16_t, __VA_ARGS__)
 
 #define slog_warn(...) \
-    slog_display(SLOG_WARN, 1, __VA_ARGS__)
+    slog_display(SLOG_WARN, 1,uint16_t, __VA_ARGS__)
 
 #define slog_debug(...) \
-    slog_display(SLOG_DEBUG, 1, __VA_ARGS__)
+    slog_display(SLOG_DEBUG, 1,uint16_t, __VA_ARGS__)
 
 #define slog_error(...) \
-    slog_display(SLOG_ERROR, 1, __VA_ARGS__)
+    slog_display(SLOG_ERROR, 1,uint16_t, __VA_ARGS__)
 
-#define slog_trace(...) \
-    slog_display(SLOG_TRACE, 1, SLOG_THROW_LOCATION __VA_ARGS__)
-
-#define slog_fatal(...) \
-    slog_display(SLOG_FATAL, 1, SLOG_THROW_LOCATION __VA_ARGS__)
 
     /* Short name definitions */
 #define slogi(...) slog_info(__VA_ARGS__)
 #define slogw(...) slog_warn(__VA_ARGS__)
 #define slogd(...) slog_debug( __VA_ARGS__)
 #define sloge(...) slog_error( __VA_ARGS__)
-#define slogt(...) slog_trace(__VA_ARGS__)
-#define slogf(...) slog_fatal(__VA_ARGS__)
 
     typedef struct SLogConfig {
         slog_date_ctrl_t eDateControl;     // Display output with date format
@@ -138,6 +122,7 @@ extern "C" {
         uint8_t nIndent;                   // Enable indentations
         uint8_t nFlush;                    // Flush stdout after screen log
         uint16_t nFlags;                   // Allowed log level flags
+        uint16_t log_module;               // Filter to select module wise logs
 
         char sSeparator[SLOG_NAME_MAX];     // Separator between info and log
         char sFileName[SLOG_NAME_MAX];      // Output file name for logs
@@ -156,7 +141,7 @@ extern "C" {
     void slog_disable(slog_flag_t eFlag);
 
     void slog_init(const char* pName, uint16_t nFlags, uint8_t nTdSafe);
-    void slog_display(slog_flag_t eFlag, uint8_t nNewLine, const char* pFormat, ...);
+    void slog_display(slog_flag_t eFlag, uint8_t nNewLine,uint16_t inLogModule, const char* pFormat, ...);
     void slog_destroy(); // Needed only if the slog_init() function argument nTdSafe > 0
 
 #ifdef __cplusplus

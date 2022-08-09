@@ -20,9 +20,7 @@
 #include <time.h>
 #include "slog.h"
 
-#if !defined(__APPLE__) && !defined(DARWIN) && !defined(WIN32)
 #include <syscall.h>
-#endif
 #include <sys/time.h>
 
 
@@ -92,14 +90,10 @@ static const char* slog_get_indent(slog_flag_t eFlag)
 
     switch (eFlag)
     {
-    case SLOG_NOTAG:
-        return SLOG_INDENT;
     case SLOG_INFO:
     case SLOG_WARN:
         return SLOG_SPACE;
     case SLOG_DEBUG:
-    case SLOG_TRACE:
-    case SLOG_FATAL:
     case SLOG_ERROR:
     default: break;
     }
@@ -115,8 +109,6 @@ static const char* slog_get_tag(slog_flag_t eFlag)
     case SLOG_WARN: return "warn";
     case SLOG_DEBUG: return "debug";
     case SLOG_ERROR: return "error";
-    case SLOG_TRACE: return "trace";
-    case SLOG_FATAL: return "fatal";
     default: break;
     }
 
@@ -127,13 +119,10 @@ static const char* slog_get_color(slog_flag_t eFlag)
 {
     switch (eFlag)
     {
-    case SLOG_NOTAG:
     case SLOG_INFO: return SLOG_COLOR_GREEN;
     case SLOG_WARN: return SLOG_COLOR_YELLOW;
     case SLOG_DEBUG: return SLOG_COLOR_BLUE;
     case SLOG_ERROR: return SLOG_COLOR_RED;
-    case SLOG_TRACE: return SLOG_COLOR_CYAN;
-    case SLOG_FATAL: return SLOG_COLOR_MAGENTA;
     default: break;
     }
 
@@ -295,13 +284,14 @@ static void slog_display_stack(const slog_context_t* pCtx, va_list args)
     slog_display_message(pCtx, sLogInfo, nLength, sMessage);
 }
 
-void slog_display(slog_flag_t eFlag, uint8_t nNewLine, const char* pFormat, ...)
+void slog_display(slog_flag_t eFlag, uint8_t nNewLine,uint16_t inLogModule, const char* pFormat, ...)
 {
     slog_lock(&g_slog);
     slog_config_t* pCfg = &g_slog.config;
 
     if ((SLOG_FLAGS_CHECK(g_slog.config.nFlags, eFlag)) &&
-        (g_slog.config.nToScreen || g_slog.config.nToFile))
+        (g_slog.config.nToScreen || g_slog.config.nToFile) && 
+        (g_slog.config.log_module == 0 || g_slog.config.log_module == inLogModule))
     {
         slog_context_t ctx;
         slog_get_date(&ctx.date);
@@ -347,6 +337,8 @@ void slog_enable(slog_flag_t eFlag)
     slog_unlock(&g_slog);
 }
 
+//flag for selecting module
+
 void slog_disable(slog_flag_t eFlag)
 {
     slog_lock(&g_slog);
@@ -382,7 +374,7 @@ void slog_indent(uint8_t nEnable)
     slog_unlock(&g_slog);
 }
 
-void slog_callback_set(slog_cb_t callback, void* pContext)
+void slog_callback_set(slog_cb_t callback, void* pContext) //
 {
     slog_lock(&g_slog);
     slog_config_t* pCfg = &g_slog.config;
@@ -411,8 +403,8 @@ void slog_init(const char* pName, uint16_t nFlags, uint8_t nTdSafe)
     pCfg->nFlush = 0;
     pCfg->nFlags = nFlags;
 
-    const char* pFileName = (pName != NULL) ? pName : SLOG_NAME_DEFAULT;
-    snprintf(pCfg->sFileName, sizeof(pCfg->sFileName), "%s", pFileName);
+   // const char* pFileName = (pName != NULL) ? pName : SLOG_NAME_DEFAULT;
+   // snprintf(pCfg->sFileName, sizeof(pCfg->sFileName), "%s", pFileName);
 
     /* Initialize mutex */
     g_slog.nTdSafe = nTdSafe;
