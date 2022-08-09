@@ -10,11 +10,12 @@
 
 #define DEBUG
 
-struct stm32_data_struct
+/* client_controller_data_struct struct to hold STM32 data*/
+struct client_controller_data_struct
 {
 	char *sensor_data;
 };
 
-void *read_from_stm32(void *); /* pthread to handle stm32 read */
+void *read_from_clinet_controller(void *); /* pthread to handle client_controller read */
 
 #endif
