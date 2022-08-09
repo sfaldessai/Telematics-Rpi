@@ -18,14 +18,14 @@ pthread_mutex_t cloud_data_mutex = PTHREAD_MUTEX_INITIALIZER;
 #define MAX_READ_SIZE 80 /* set to 80 for temporary. TBD: message format & size */
 
 /*
- * Name : read_from_clinet_controller
- * Descriptoin: The read_from_clinet_controller function is for reading vehicle motion, PTO,
+ * Name : read_from_client_controller
+ * Descriptoin: The read_from_client_controller function is for reading vehicle motion, PTO,
  *              and batter voltage data from the STM32 microcontroller over the UART protocol.
  * Input parameters: struct arg_struct
  * Output parameters: void
  * Notes: cloud_data_struct *cloud_data will update with STM32 data.
  */
-void *read_from_clinet_controller(void *arg)
+void *read_from_client_controller(void *arg)
 {
     char *read_data = NULL;
     int read_data_len = 0;
@@ -43,17 +43,18 @@ void *read_from_clinet_controller(void *arg)
 
         if (read_data_len > 0)
         {
-            printf("\n client_controller DATA: %s\n", read_data);
             /*
              * Message protocol used in microcontroller:
-             * *<SERIALNO><LOCATION><VIN><BATTERY><SPEED><IDLETIME><SERVICE>$""
-             * '*' & '$' used to identify starting and ending.
+             * "*STMC,<MOTION>,<VOLT>,<PTO>,#""
+             * '$' & '#' used to identify starting and ending.
              * microcontroller will send new data in every 2 sec
              */
 
             if (read_data[0] == '*')
             {
                 client_controller_data.sensor_data = read_data;
+
+                printf("\nclient_controller Sensor: %s\n", client_controller_data.sensor_data);
 
                 pthread_mutex_lock(&cloud_data_mutex);
                 cloud_data->client_controller_data = client_controller_data;

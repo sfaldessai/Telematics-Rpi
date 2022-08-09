@@ -12,30 +12,30 @@
 #include <pthread.h>
 #include "main.h"
 
-#define CLINT_CONTROLLER "/dev/ttyACM0"
+#define CLIENT_CONTROLLER "/dev/ttyACM0"
 #define GPS_MODULE "/dev/ttyUSB0"
 
 int main(void)
 {
-    struct uart_device_struct clinet_controller_device, gps_device;
+    struct uart_device_struct client_controller_device, gps_device;
     struct cloud_data_struct cloud_data;
-    struct arg_struct clinet_controller_args, gps_args;
-    pthread_t clinet_controller_read_thread, gps_read_thread, serial_write_thread;
+    struct arg_struct client_controller_args, gps_args;
+    pthread_t client_controller_read_thread, gps_read_thread, serial_write_thread;
 
     /* uart set-up*/
-    uart_setup(&clinet_controller_device, CLINT_CONTROLLER, B115200, true);
+    uart_setup(&client_controller_device, CLIENT_CONTROLLER, B115200, true);
     uart_setup(&gps_device, GPS_MODULE, B9600, true);
 
     /* Pointer char initializing to null*/
     initialize_cloud_data(&cloud_data);
 
     /* Thread Creation */
-    if (clinet_controller_device.fd > 0)
+    if (client_controller_device.fd > 0)
     {
-        clinet_controller_args.uart_device = clinet_controller_device;
-        clinet_controller_args.cloud_data = &cloud_data;
-        /* clinet_controller Microcontroller Read Thread */
-        pthread_create(&clinet_controller_read_thread, NULL, &read_from_clinet_controller, &clinet_controller_args);
+        client_controller_args.uart_device = client_controller_device;
+        client_controller_args.cloud_data = &cloud_data;
+        /* client_controller Microcontroller Read Thread */
+        pthread_create(&client_controller_read_thread, NULL, &read_from_client_controller, &client_controller_args);
     }
     if (gps_device.fd > 0)
     {
@@ -49,9 +49,9 @@ int main(void)
     /* Thread End */
 
     /* Join Thread */
-    if (clinet_controller_device.fd > 0)
+    if (client_controller_device.fd > 0)
     {
-        pthread_join(clinet_controller_read_thread, NULL);
+        pthread_join(client_controller_read_thread, NULL);
     }
     if (gps_device.fd > 0)
     {

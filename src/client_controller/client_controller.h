@@ -16,6 +16,6 @@ struct client_controller_data_struct
 	char *sensor_data;
 };
 
-void *read_from_clinet_controller(void *); /* pthread to handle client_controller read */
+void *read_from_client_controller(void *); /* pthread to handle client_controller read */
 
 #endif
