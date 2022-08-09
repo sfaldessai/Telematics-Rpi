@@ -45,12 +45,12 @@ void *read_from_client_controller(void *arg)
         {
             /*
              * Message protocol used in microcontroller:
-             * "*STMC,<MOTION>,<VOLT>,<PTO>,#""
+             * "$STMC,<MOTION>,<VOLT>,<PTO>,#""
              * '$' & '#' used to identify starting and ending.
              * microcontroller will send new data in every 2 sec
              */
 
-            if (read_data[0] == '*')
+            if (read_data[0] == '$')
             {
                 client_controller_data.sensor_data = read_data;
 
