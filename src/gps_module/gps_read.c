@@ -17,7 +17,7 @@
 #include "../main.h"
 
 #define MAX_READ_SIZE 80 /* GPS at most, sends 80 or so chars per message string.*/
-#define HUNDRADE 100
+#define HUNDRED 100
 #define SIXTY 60
 #define COMMA 0x2C
 #define CR 0x0d
@@ -36,8 +36,8 @@ void get_lat_log(double *latitude)
 {
     int degrees;
 
-    degrees = (int)(*latitude / HUNDRADE);
-    *latitude = degrees + (*latitude - degrees * HUNDRADE) / SIXTY;
+    degrees = (int)(*latitude / HUNDRED);
+    *latitude = degrees + (*latitude - degrees * HUNDRED) / SIXTY;
 }
 
 /*
