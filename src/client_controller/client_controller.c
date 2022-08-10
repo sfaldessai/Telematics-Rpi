@@ -21,27 +21,27 @@ pthread_mutex_t cloud_data_mutex = PTHREAD_MUTEX_INITIALIZER;
 #define MAX_READ_SIZE 32 /* max stm32 data length is 32 */
 
 /*
- * Name : get_clinet_controller_data
- * Descriptoin: The get_clinet_controller_data function is for processing vehicle motion, PTO,
+ * Name : get_client_controller_data
+ * Descriptoin: The get_client_controller_data function is for processing vehicle motion, PTO,
  *              and batter voltage data from the STM32 microcontroller.
  * Input parameters:
  *                  char * (stm32 raw data)
  *                  client_controller_data_struct * (reference type to update stm32 data)
  * Output parameters: void
  */
-void get_clinet_controller_data(char *read_data, struct client_controller_data_struct *client_controller_data)
+void get_client_controller_data(char *read_data, struct client_controller_data_struct *client_controller_data)
 {
     char *stmc_data = NULL;
 
     /* Get UTC Time from GGA message */
     stmc_data = strchr(read_data, COMMA);
-    client_controller_data->motion = atof(stmc_data + 1);
+    client_controller_data->motion = (uint8_t) atoi(stmc_data + 1);
 
     stmc_data = strchr(stmc_data + 1, COMMA);
-    client_controller_data->voltage = atof(stmc_data + 1);
+    client_controller_data->voltage = (float) atof(stmc_data + 1);
 
     stmc_data = strchr(stmc_data + 1, COMMA);
-    client_controller_data->pto = atof(stmc_data + 1);
+    client_controller_data->pto = (uint8_t) atoi(stmc_data + 1);
 
 }
 
@@ -75,12 +75,11 @@ void *read_from_client_controller(void *arg)
              * Message protocol used in microcontroller:
              * "$STMC,<MOTION>,<VOLT>,<PTO>,#""
              * '$' & '#' used to identify starting and ending.
-             * microcontroller will send new data in every 2 sec
              */
 
             if (read_data[1] == 'S' && read_data[2] == 'T' && read_data[3] == 'M' && read_data[4] == 'C')
             {
-                get_clinet_controller_data(read_data, &client_controller_data);
+                get_client_controller_data(read_data, &client_controller_data);
 
                 pthread_mutex_lock(&cloud_data_mutex);
                 cloud_data->client_controller_data = client_controller_data;
