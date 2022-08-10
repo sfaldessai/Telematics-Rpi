@@ -2,8 +2,6 @@
 #include "CppUTestExt/MockSupportPlugin.h"
 #include "CppUTest/TestHarness.h"
 #include "CppUTestExt/MockSupport.h"
-#include <string.h>
-#include <stdio.h>
 
 extern "C"
 {

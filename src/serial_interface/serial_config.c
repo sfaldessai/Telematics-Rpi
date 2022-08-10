@@ -168,6 +168,7 @@ int uart_reads_chunk(struct uart_device_struct *device, char **buf, size_t buf_l
 
 	if (!*buf)
 	{
+		/* TODO: replace printf with logger */
 		printf("%s: failed to allocate buf memory\r\n", __func__);
 		return -ENOMEM;
 	}

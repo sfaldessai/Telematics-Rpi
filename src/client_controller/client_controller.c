@@ -22,8 +22,8 @@ pthread_mutex_t cloud_data_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /*
  * Name : get_client_controller_data
- * Descriptoin: The get_client_controller_data function is for processing vehicle motion, PTO,
- *              and batter voltage data from the STM32 microcontroller.
+ * Descriptoin: The get_client_controller_data function is for extracting vehicle motion, PTO,
+ *              and batter voltage data from the STM32 microcontroller sentence.
  * Input parameters:
  *                  char * (stm32 raw data)
  *                  client_controller_data_struct * (reference type to update stm32 data)
@@ -33,7 +33,7 @@ void get_client_controller_data(char *read_data, struct client_controller_data_s
 {
     char *stmc_data = NULL;
 
-    /* Get UTC Time from GGA message */
+    /* extracting required data from stm32 data sentence */
     stmc_data = strchr(read_data, COMMA);
     client_controller_data->motion = (uint8_t) atoi(stmc_data + 1);
 
@@ -81,6 +81,7 @@ void *read_from_client_controller(void *arg)
             {
                 get_client_controller_data(read_data, &client_controller_data);
 
+                /* update stm32 data to cloud_data struct which is used to combile all module data and send to cloud */
                 pthread_mutex_lock(&cloud_data_mutex);
                 cloud_data->client_controller_data = client_controller_data;
                 pthread_mutex_unlock(&cloud_data_mutex);
