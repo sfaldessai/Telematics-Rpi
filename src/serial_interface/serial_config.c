@@ -26,7 +26,7 @@ int uart_start(struct uart_device_struct *device, bool canonical)
 
 	/* Used variables */
     slog_config_t cfg;
-	uint16_t nLogFlags = SLOG_ERROR | SLOG_NOTAG;
+	// uint16_t nLogFlags = SLOG_ERROR;
 
 	/* Initialize slog and allow only error and not tagged output */
     slog_config_get(&cfg);
@@ -40,7 +40,7 @@ int uart_start(struct uart_device_struct *device, bool canonical)
 	if (fd < 0)
 	{
 		/* Error message with errno string (in this case must be 'Success')*/
-    	slog_error("Error: failed to open UART device - %s\r\n", SERIAL_LOG_MODULE_ID, __func__);
+    	slog_error(SERIAL_LOG_MODULE_ID,"Error: failed to open UART device - %s\r\n", __func__);
 		device->fd = fd;
 		return fd;
 	}

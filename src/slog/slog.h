@@ -99,8 +99,8 @@ extern "C" {
 #define slog_debug(...) \
     slog_display(SLOG_DEBUG, 1,uint16_t, __VA_ARGS__)
 
-#define slog_error(...) \
-    slog_display(SLOG_ERROR, 1,uint16_t, __VA_ARGS__)
+#define slog_error(int, ...) \
+    slog_display(SLOG_ERROR, 1,int, __VA_ARGS__)
 
 
     /* Short name definitions */
@@ -141,7 +141,7 @@ extern "C" {
     void slog_disable(slog_flag_t eFlag);
 
     void slog_init(const char* pName, uint16_t nFlags, uint8_t nTdSafe);
-    void slog_display(slog_flag_t eFlag, uint8_t nNewLine,uint16_t inLogModule, const char* pFormat, ...);
+    void slog_display(slog_flag_t eFlag, uint8_t nNewLine, int test, const char* pFormat, ...);
     void slog_destroy(); // Needed only if the slog_init() function argument nTdSafe > 0
 
 #ifdef __cplusplus
