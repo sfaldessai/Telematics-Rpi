@@ -25,22 +25,19 @@ int uart_start(struct uart_device_struct *device, bool canonical)
 	int rc;
 
 	/* Used variables */
-    slog_config_t cfg;
-	// uint16_t nLogFlags = SLOG_ERROR;
+    logger_config_t cfg;
 
-	/* Initialize slog and allow only error and not tagged output */
-    slog_config_get(&cfg);
+	/* Initialize logger and allow only error and not tagged output */
+    logger_config_get(&cfg);
 
 	/* Enable all logging flags */
-    slog_enable(SLOG_FLAGS_ALL);
-
-
+    logger_enable(LOGGER_FLAGS_ALL);
 
 	fd = open(device->file_name, O_RDWR | O_NOCTTY);
 	if (fd < 0)
 	{
 		/* Error message with errno string (in this case must be 'Success')*/
-    	slog_error(SERIAL_LOG_MODULE_ID,"Error: failed to open UART device - %s\r\n", __func__);
+        logger_error(SERIAL_LOG_MODULE_ID,"Error: failed to open UART device - %s\r\n", __func__);
 		device->fd = fd;
 		return fd;
 	}

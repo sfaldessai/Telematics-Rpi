@@ -14,12 +14,24 @@
 #include "main.h"
 #include <getopt.h>
 
-/* Flag set by ‘--verbose’. */
-static int verbose_flag;
-
-int module_flag = 0;
-
 #define MAX_READ_SIZE 1
+int module_flag = 1;
+
+bool isNumber(char number[])
+{
+    int i = 0;
+
+    //checking for negative numbers
+    if (number[0] == '-')
+        i = 1;
+    for (; number[i] != 0; i++)
+    {
+        //if (number[i] > '7' || number[i] < '0')
+        if (!isdigit(number[i]))
+            return false;
+    }
+    return true;
+}
 
 int main(int argc, char *argv[])
 {
@@ -28,96 +40,21 @@ int main(int argc, char *argv[])
     struct arg_struct stm32_args, gps_args;
     pthread_t stm32_read_thread, gps_read_thread, serial_write_thread;
 
-    int opt;
-    struct SLogConfig sLogConfig;
-    sLogConfig.log_module = 7; //argv[1];
-    int option_index = 0;
-    int verbose_flag = 0;
 
     stm32_device.file_name = "/dev/ttyACM0";
     gps_device.file_name = "/dev/ttyUSB0"; /* connected neo gps module to rapi using UART to USB converter */
     stm32_device.baud_rate = B115200;
     gps_device.baud_rate = B9600;
-    static bool keepRunning = true;
 
-    /* Used variables */
-    slog_config_t cfg;
-
-    slog_config_get(&cfg);
 
     if( argc == 2 ) {
-      cfg.log_module = 6; //
-      module_flag = atoi(argv[1]);
+        if (isdigit(atoi(argv[1]))) {
+            module_flag = atoi(argv[1]);
+        }
+        else {
+            module_flag = 1;
+        }
    }
-
-    static struct option long_options[] =
-        {
-            {"verbose", no_argument, 0, 1},
-            {"help", no_argument, 0, 'h'},
-            {"module", required_argument, 0, 'm'},
-            {0, 0, 0, 0}};
-
-    while ((opt = getopt_long(argc, argv, "h:m", long_options, &option_index)) != -1)
-    {
-        switch (opt)
-        {
-        case 0:
-        {
-            printf("The following long option was set: %s\n", long_options[option_index].name);
-            break;
-        }
-        case 'h':
-        {
-            printf("Allowed options:");
-            printf("  -h [ --help ]          : produce help message");
-            printf("  -m [ --log module ] arg   : filter the module to display only its logs");
-            printf("  -m [ --log module ] arg => 0 : All Modules, 1 => CAN, 2 => GPS, 3 => Serial_Interface");
-            keepRunning = false;
-            break;
-        }
-        case 'm':
-        {
-            // cfg.log_module = optarg;
-            printf("The hmi display config path was set to: ");
-            break;
-        }
-        case '?':
-        {
-            printf("Got unknown option.");
-            keepRunning = false;
-            break;
-        }
-        default:
-        {
-            printf("Got unknown parse returns: ", opt);
-            keepRunning = false;
-            break;
-        }
-        }
-    }
-
-    if (!keepRunning)
-    {
-        return 1;
-    }
-
-    uint16_t nLogFlags;
-    if (verbose_flag == 1)
-    {
-        uint16_t nLogFlags = SLOG_INFO | SLOG_WARN | SLOG_DEBUG | SLOG_ERROR;
-    }
-    else
-    {
-        uint16_t nLogFlags = SLOG_ERROR;
-    }
-
-    slog_init("", nLogFlags, 0);
-
-    /* Initialize slog and allow only error and not tagged output */
-    slog_config_get(&cfg);
-
-    /* Enable all logging flags */
-    // slog_enable(SLOG_FLAGS_ALL);
 
     /* Pointer char initializing to null*/
     initialize_cloud_data(&cloud_data);
