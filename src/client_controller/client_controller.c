@@ -31,8 +31,8 @@ pthread_mutex_t cloud_data_mutex = PTHREAD_MUTEX_INITIALIZER;
  */
 void get_clinet_controller_data(char *read_data, struct client_controller_data_struct *client_controller_data)
 {
-    char *stmc_data = (char *)malloc(sizeof(read_data));
-printf("\n test 1 : %s \n ", read_data);
+    char *stmc_data = NULL;
+
     /* Get UTC Time from GGA message */
     stmc_data = strchr(read_data, COMMA);
     client_controller_data->motion = atof(stmc_data + 1);
@@ -43,20 +43,18 @@ printf("\n test 1 : %s \n ", read_data);
     stmc_data = strchr(stmc_data + 1, COMMA);
     client_controller_data->pto = atof(stmc_data + 1);
 
-    printf("\n test 1 : %s \n ", read_data);
-
     free(stmc_data);
 }
 
 /*
- * Name : read_from_clinet_controller
- * Descriptoin: The read_from_clinet_controller function is for reading vehicle motion, PTO,
+ * Name : read_from_client_controller
+ * Descriptoin: The read_from_client_controller function is for reading vehicle motion, PTO,
  *              and batter voltage data from the STM32 microcontroller over the UART protocol.
  * Input parameters: struct arg_struct
  * Output parameters: void
  * Notes: cloud_data_struct *cloud_data will update with STM32 data.
  */
-void *read_from_clinet_controller(void *arg)
+void *read_from_client_controller(void *arg)
 {
     char *read_data = NULL;
     int read_data_len = 0;
@@ -74,13 +72,10 @@ void *read_from_clinet_controller(void *arg)
 
         if (read_data_len > 0)
         {
-            // stm_data = strchr(read_data, COMMA);
-            // printf("\n client_controller DATA test: %s\n", stm_data); //,1,11.3,1,#
-
             /*
              * Message protocol used in microcontroller:
-             * *<SERIALNO><LOCATION><VIN><BATTERY><SPEED><IDLETIME><SERVICE>$""
-             * '*' & '$' used to identify starting and ending.
+             * "$STMC,<MOTION>,<VOLT>,<PTO>,#""
+             * '$' & '#' used to identify starting and ending.
              * microcontroller will send new data in every 2 sec
              */
 

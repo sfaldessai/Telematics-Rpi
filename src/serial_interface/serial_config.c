@@ -27,9 +27,9 @@
 void uart_setup(struct uart_device_struct *device, char *file_name, int baud_rate, bool canonic)
 {
 	device->file_name = file_name;
-	device->baud_rate = baud_rate;
+	device->baud_rate = (unsigned int)baud_rate;
 
-	uart_start(device, true);
+	uart_start(device, canonic);
 }
 
 /*
@@ -164,15 +164,15 @@ int uart_reads_chunk(struct uart_device_struct *device, char **buf, size_t buf_l
 
 	chunk_data[rc] = '\0';
 
-	*buf = (char *)malloc(rc + 1); /* strcpy adds a null terminator character '\0' */
+	*buf = (char *)malloc(strlen(chunk_data) + 1); /* strcpy adds a null terminator character '\0' */
 
 	if (!*buf)
 	{
-		printf("%s: failed to allocate UART TTY instance\r\n", __func__);
+		printf("%s: failed to allocate buf memory\r\n", __func__);
 		return -ENOMEM;
 	}
 
-	strncpy(*buf, chunk_data, rc);
+	strncpy(*buf, chunk_data, strlen(chunk_data));
 
 	return rc;
 }
