@@ -46,7 +46,6 @@ int main(int argc, char *argv[])
     slog_config_get(&cfg);
 
     if( argc == 2 ) {
-      cfg.log_module = 6; //
       module_flag = atoi(argv[1]);
    }
 
