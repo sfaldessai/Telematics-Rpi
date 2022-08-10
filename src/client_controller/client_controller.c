@@ -18,7 +18,7 @@
 /* mutex to lock cloud_data struct for wirte */
 pthread_mutex_t cloud_data_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-#define MAX_READ_SIZE 32 /* set to 80 for temporary. TBD: message format & size */
+#define MAX_READ_SIZE 32 /* max stm32 data length is 32 */
 
 /*
  * Name : get_clinet_controller_data
@@ -43,7 +43,6 @@ void get_clinet_controller_data(char *read_data, struct client_controller_data_s
     stmc_data = strchr(stmc_data + 1, COMMA);
     client_controller_data->pto = atof(stmc_data + 1);
 
-    free(stmc_data);
 }
 
 /*
