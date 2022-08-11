@@ -57,12 +57,13 @@ int main(int argc, char *argv[])
 
 
     if( argc == 2 ) {
-        if (isdigit(atoi(argv[1]))) {
-            module_flag = atoi(argv[1]);
-        }
-        else {
-            module_flag = 1;
-        }
+        module_flag = atoi(argv[1]);
+        // if (isNumber(atoi(argv[1]))) {
+        //     module_flag = atoi(argv[1]);
+        // }
+        // else {
+        //     module_flag = 1;
+        // }
     }
 
     logger_info(1, "module flag is %d", module_flag);

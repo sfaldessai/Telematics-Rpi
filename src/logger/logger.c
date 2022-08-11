@@ -311,8 +311,6 @@ static void logger_display_stack(const logger_context_t *pCtx, va_list args)
 
 void logger_display(logger_flag_t eFlag, uint8_t nNewLine, int inLogModule, const char *pFormat, ...)
 {
-    va_list ap;
-    va_start(ap, pFormat);
 
     printf("inLogModule = %d\n", inLogModule);
     printf("extern module_flag = %d\n", module_flag);

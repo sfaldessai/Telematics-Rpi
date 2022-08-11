@@ -90,13 +90,13 @@ extern "C" {
         LOGGER_DATE_FULL
     } logger_date_ctrl_t;
     
-#define logger_info(...) \
+#define logger_info(int, ...) \
     logger_display(LOGGER_INFO, 1,int, __VA_ARGS__)
 
-#define logger_warn(...) \
+#define logger_warn(int, ...) \
     logger_display(LOGGER_WARN, 1,int, __VA_ARGS__)
 
-#define logger_debug(...) \
+#define logger_debug(int, ...) \
     logger_display(LOGGER_DEBUG, 1,int, __VA_ARGS__)
 
 #define logger_error(int, ...) \
