@@ -17,21 +17,11 @@
 
 #define SERIAL_LOG_MODULE_ID 3
 
-
 int uart_start(struct uart_device_struct *device, bool canonical)
 {
 	struct termios *tty;
 	int fd;
 	int rc;
-
-	/* Used variables */
-    logger_config_t cfg;
-
-	/* Initialize logger and allow only error and not tagged output */
-    logger_config_get(&cfg);
-
-	/* Enable all logging flags */
-    logger_enable(LOGGER_FLAGS_ALL);
 
 	fd = open(device->file_name, O_RDWR | O_NOCTTY);
 	if (fd < 0)

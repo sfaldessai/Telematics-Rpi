@@ -8,6 +8,10 @@
 #include <stdio.h>
 #include <unistd.h>
 #include "cloud_server.h"
+#include "../logger/logger.h"
+
+#define CLOUD_LOG_MODULE_ID 6
+
 
 void *write_to_cloud(void *arg)
 {
@@ -16,10 +20,11 @@ void *write_to_cloud(void *arg)
     {
         sleep(2); /* Display data every 2 sec*/
 
-        printf("\nSTM32 Sensor: %s\n", cloud_data->stm32_data.sensor_data);
-        printf("\nLat: %.4f %c", cloud_data->gps_data.latitude, cloud_data->gps_data.lat_cardinal_sign);
-        printf("\t Long: %.4f %c\n", cloud_data->gps_data.longitude, cloud_data->gps_data.long_cardinal_sign);
-        printf("\nPDOP:%.2f\tHDOP:%.2f\tVDOP:%.2f\n", cloud_data->gps_data.pdop, cloud_data->gps_data.hdop, cloud_data->gps_data.vdop);
+        logger_info(CLOUD_LOG_MODULE_ID, "\nSTM32 Sensor: %s\n", cloud_data->stm32_data.sensor_data);
+        logger_info(CLOUD_LOG_MODULE_ID, "\nLat: %.4f %c", cloud_data->gps_data.latitude, cloud_data->gps_data.lat_cardinal_sign);
+        logger_info(CLOUD_LOG_MODULE_ID, "\t Long: %.4f %c\n", cloud_data->gps_data.longitude, cloud_data->gps_data.long_cardinal_sign);
+        logger_info(CLOUD_LOG_MODULE_ID, "\nPDOP:%.2f\tHDOP:%.2f\tVDOP:%.2f\n", cloud_data->gps_data.pdop,
+            cloud_data->gps_data.hdop, cloud_data->gps_data.vdop);
     }
 }
 

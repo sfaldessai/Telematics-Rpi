@@ -20,7 +20,7 @@
 #include <time.h>
 #include "logger.h"
 
-#include <syscall.h>
+//#include <syscall.h>
 #include <sys/time.h>
 
 extern int module_flag;
@@ -170,7 +170,7 @@ void logger_get_date(logger_date_t *pDate)
 
 static uint32_t logger_get_tid()
 {
-    return syscall(__NR_gettid);
+    return 0; // syscall(__NR_gettid);
 }
 
 static void logger_create_tag(char *pOut, size_t nSize, logger_flag_t eFlag, const char *pColor)

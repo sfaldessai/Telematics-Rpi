@@ -15,6 +15,7 @@
 #include "gps_module.h"
 #include "../serial_interface/serial_config.h"
 #include "../main.h"
+#include "../logger/logger.h"
 
 #define MAX_READ_SIZE 80 /* GPS at most, sends 80 or so chars per message string.*/
 #define COMMA 0x2C
@@ -29,6 +30,7 @@ void get_lat_log(double *latitude)
 
     degrees = (int)(*latitude / 100);
     *latitude = degrees + (*latitude - degrees * 100) / 60;
+    logger_info(GPS_LOG_MODULE_ID, "\nGPS get_lat_lan degrees: %d\n", degrees);
 }
 
 void get_dops(char **gsa_data, char *nmea_data)

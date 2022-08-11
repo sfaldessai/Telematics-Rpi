@@ -14,6 +14,7 @@
 pthread_mutex_t cloud_data_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 #define MAX_READ_SIZE 80 /* set to 80 for temporary. TBD: message format & size */
+#define CC_LOG_MODULE_ID 5
 
 void *read_from_stm32(void *arg)
 {
@@ -33,7 +34,8 @@ void *read_from_stm32(void *arg)
 
         if (read_data_len > 0)
         {
-            printf("\n STM32 DATA: %s\n", read_data);
+            logger_info(CC_LOG_MODULE_ID, "\n STM32 DATA: %s\n", read_data);
+
             /*
              * Message protocol used in microcontroller:
              * *<SERIALNO><LOCATION><VIN><BATTERY><SPEED><IDLETIME><SERVICE>$""

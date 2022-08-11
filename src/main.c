@@ -26,7 +26,7 @@ bool isNumber(char number[])
         i = 1;
     for (; number[i] != 0; i++)
     {
-        //if (number[i] > '7' || number[i] < '0')
+        //if (number[i] > '9' || number[i] < '0')
         if (!isdigit(number[i]))
             return false;
     }
@@ -46,6 +46,15 @@ int main(int argc, char *argv[])
     stm32_device.baud_rate = B115200;
     gps_device.baud_rate = B9600;
 
+    /* Used variables */
+    logger_config_t cfg;
+
+    /* Initialize logger and allow only error and not tagged output */
+    logger_config_get(&cfg);
+
+    /* Enable all logging flags */
+    logger_enable(LOGGER_FLAGS_ALL);
+
 
     if( argc == 2 ) {
         if (isdigit(atoi(argv[1]))) {
@@ -54,7 +63,9 @@ int main(int argc, char *argv[])
         else {
             module_flag = 1;
         }
-   }
+    }
+
+    logger_info(1, "module flag is %d", module_flag);
 
     /* Pointer char initializing to null*/
     initialize_cloud_data(&cloud_data);
