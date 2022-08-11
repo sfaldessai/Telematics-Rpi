@@ -12,19 +12,20 @@
 
 #define CLOUD_LOG_MODULE_ID 6
 
-
 void *write_to_cloud(void *arg)
 {
     struct cloud_data_struct *cloud_data = (struct cloud_data_struct *)arg;
+
+    logger_config_t cfg;
+    logger_setup(&cfg);
+
     while (1)
     {
-        sleep(2); /* Display data every 2 sec*/
-
         logger_info(CLOUD_LOG_MODULE_ID, "\nSTM32 Sensor: %s\n", cloud_data->stm32_data.sensor_data);
         logger_info(CLOUD_LOG_MODULE_ID, "\nLat: %.4f %c", cloud_data->gps_data.latitude, cloud_data->gps_data.lat_cardinal_sign);
         logger_info(CLOUD_LOG_MODULE_ID, "\t Long: %.4f %c\n", cloud_data->gps_data.longitude, cloud_data->gps_data.long_cardinal_sign);
         logger_info(CLOUD_LOG_MODULE_ID, "\nPDOP:%.2f\tHDOP:%.2f\tVDOP:%.2f\n", cloud_data->gps_data.pdop,
-            cloud_data->gps_data.hdop, cloud_data->gps_data.vdop);
+                    cloud_data->gps_data.hdop, cloud_data->gps_data.vdop);
     }
 }
 

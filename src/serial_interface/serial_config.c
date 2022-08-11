@@ -23,11 +23,14 @@ int uart_start(struct uart_device_struct *device, bool canonical)
 	int fd;
 	int rc;
 
+	logger_config_t cfg;
+    logger_setup(&cfg);
+
 	fd = open(device->file_name, O_RDWR | O_NOCTTY);
 	if (fd < 0)
 	{
 		/* Error message with errno string (in this case must be 'Success')*/
-        logger_error(SERIAL_LOG_MODULE_ID,"Error: failed to open UART device - %s\r\n", __func__);
+		logger_error(SERIAL_LOG_MODULE_ID, "Error: failed to open UART device - %s\r\n", __func__);
 		device->fd = fd;
 		return fd;
 	}

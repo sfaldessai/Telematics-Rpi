@@ -20,7 +20,6 @@
 #include <time.h>
 #include "logger.h"
 
-//#include <syscall.h>
 #include <sys/time.h>
 
 extern int module_flag;
@@ -168,11 +167,6 @@ void logger_get_date(logger_date_t *pDate)
     pDate->nUsec = logger_get_usec();
 }
 
-static uint32_t logger_get_tid()
-{
-    return 0; // syscall(__NR_gettid);
-}
-
 static void logger_create_tag(char *pOut, size_t nSize, logger_flag_t eFlag, const char *pColor)
 {
     logger_config_t *pCfg = &g_logger.config;
@@ -191,14 +185,6 @@ static void logger_create_tag(char *pOut, size_t nSize, logger_flag_t eFlag, con
         snprintf(pOut, nSize, "<%s>%s", pTag, pIndent);
     else
         snprintf(pOut, nSize, "%s<%s>%s%s", pColor, pTag, LOGGER_COLOR_RESET, pIndent);
-}
-
-static void logger_create_tid(char *pOut, int nSize, uint8_t nTraceTid)
-{
-    if (!nTraceTid)
-        pOut[0] = LOGGER_NUL;
-    else
-        snprintf(pOut, nSize, "(%u) ", logger_get_tid());
 }
 
 static void logger_display_message(const logger_context_t *pCtx, const char *pInfo, int nInfoLen, const char *pInput)
@@ -236,8 +222,8 @@ static void logger_display_message(const logger_context_t *pCtx, const char *pIn
     const logger_date_t *pDate = &pCtx->date;
 
     char sFilePath[LOGGER_PATH_MAX + LOGGER_NAME_MAX + LOGGER_DATE_MAX];
-    snprintf(sFilePath, sizeof(sFilePath), "%s/%s-%04d-%02d-%02d.log",
-             pCfg->sFilePath, pCfg->sFileName, pDate->nYear, pDate->nMonth, pDate->nDay);
+
+    snprintf(sFilePath, sizeof(sFilePath), "%s-%04d-%02d-%02d.log",LOGGER_NAME_DEFAULT, pDate->nYear, pDate->nMonth, pDate->nDay);
 
     FILE *pFile = fopen(sFilePath, "a");
     if (pFile == NULL)
@@ -271,7 +257,6 @@ static int logger_create_info(const logger_context_t *pCtx, char *pOut, size_t n
     const char *pColorCode = logger_get_color(pCtx->eFlag);
     const char *pColor = pCtx->nFullColor ? pColorCode : LOGGER_EMPTY;
 
-    logger_create_tid(sTid, sizeof(sTid), pCfg->nTraceTid);
     logger_create_tag(sTag, sizeof(sTag), pCtx->eFlag, pColorCode);
     return snprintf(pOut, nSize, "%s%s%s%s", pColor, sTid, sDate, sTag);
 }
@@ -311,9 +296,6 @@ static void logger_display_stack(const logger_context_t *pCtx, va_list args)
 
 void logger_display(logger_flag_t eFlag, uint8_t nNewLine, int inLogModule, const char *pFormat, ...)
 {
-
-    printf("inLogModule = %d\n", inLogModule);
-    printf("extern module_flag = %d\n", module_flag);
 
     logger_lock(&g_logger);
     logger_config_t *pCfg = &g_logger.config;
@@ -432,9 +414,6 @@ void logger_init(const char *pName, uint16_t nFlags, uint8_t nTdSafe)
     pCfg->nFlush = 0;
     pCfg->nFlags = nFlags;
 
-    // const char* pFileName = (pName != NULL) ? pName : logger_NAME_DEFAULT;
-    // snprintf(pCfg->sFileName, sizeof(pCfg->sFileName), "%s", pFileName);
-
     /* Initialize mutex */
     g_logger.nTdSafe = nTdSafe;
     logger_sync_init(&g_logger);
@@ -450,4 +429,13 @@ void logger_destroy()
         pthread_mutex_destroy(&g_logger.mutex);
         g_logger.nTdSafe = 0;
     }
+}
+
+void logger_setup(logger_config_t *cfg)
+{
+        cfg->nToScreen = 1;
+        cfg->nToFile = 1;
+        cfg->eDateControl = LOGGER_DATE_FULL;
+        logger_config_set(cfg);
+	    logger_enable(LOGGER_FLAGS_ALL);
 }
