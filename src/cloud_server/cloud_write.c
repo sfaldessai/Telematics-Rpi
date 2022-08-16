@@ -40,6 +40,7 @@ void initialize_cloud_data(struct cloud_data_struct *cloud_data)
 {
     struct gps_data_struct gps_data;
     struct client_controller_data_struct client_controller_data;
+    struct can_data_struct can_data;
 
     gps_data.gps_time = "";
     gps_data.latitude = 0.0;
@@ -54,6 +55,10 @@ void initialize_cloud_data(struct cloud_data_struct *cloud_data)
     client_controller_data.motion = 0;
     client_controller_data.voltage = 0.0;
 
+    can_data.speed = 0;
+    can_data.supported_pids = 0;
+
     cloud_data->gps_data = gps_data;
     cloud_data->client_controller_data = client_controller_data;
+    cloud_data->can_data = can_data;
 }

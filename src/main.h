@@ -8,7 +8,6 @@
 #include <stdbool.h>
 #include "serial_interface/serial_config.h"
 #include "cloud_server/cloud_server.h"
-#include "can_bus/can_bus.h"
 
 #ifndef MAIN_H_
 #define MAIN_H_
