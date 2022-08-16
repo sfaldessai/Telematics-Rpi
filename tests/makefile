@@ -12,14 +12,12 @@ CPPUTEST_USE_EXTENSIONS = Y
 CPP_PLATFORM = Gcc
 
 
-SRC_DIRS = ./src
+SRC_DIRS = $(wildcard ./../src/*)
 
-TEST_SRC_DIRS = ./
+TEST_SRC_DIRS = ./ ./gps_module/ ./client_controller/
 
 INCLUDE_DIRS =\
   .\
   $(CPPUTEST_HOME)/include\
 
 include $(CPPUTEST_HOME)/build/MakefileWorker.mk
-
-

@@ -4,17 +4,22 @@
  * Company: HashedIn By Deloitte.
  * Copyright (C) 2022 HashedIn By Deloitte
  */
+#include <stdint.h>
 
 #ifndef CLIENT_CONTROLLER_H_
 #define CLIENT_CONTROLLER_H_
 
 #define DEBUG
 
-struct stm32_data_struct
+/* client_controller_data_struct struct to hold STM32 data*/
+struct client_controller_data_struct
 {
-	char *sensor_data;
+	uint8_t motion;
+	uint8_t pto;
+	float voltage;
 };
 
-void *read_from_stm32(void *); /* pthread to handle stm32 read */
+void *read_from_client_controller(void *); /* pthread to handle client_controller read */
+void get_client_controller_data(char *, struct client_controller_data_struct *);
 
 #endif

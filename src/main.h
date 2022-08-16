@@ -5,14 +5,17 @@
  * Copyright (C) 2022 HashedIn By Deloitte
  */
 
+#include <stdbool.h>
 #include "serial_interface/serial_config.h"
 #include "cloud_server/cloud_server.h"
+#include "can_bus/can_bus.h"
 
 #ifndef MAIN_H_
 #define MAIN_H_
 
 #define DEBUG
 
+/* arg_struct struct to holds required thread arguments*/
 struct arg_struct
 {
 	struct uart_device_struct uart_device;
