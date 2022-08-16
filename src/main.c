@@ -19,7 +19,7 @@ int main()
     struct uart_device_struct stm32_device, gps_device;
     struct cloud_data_struct cloud_data;
     struct arg_struct stm32_args, gps_args;
-    pthread_t stm32_read_thread, gps_read_thread, serial_write_thread;
+    pthread_t stm32_read_thread, gps_read_thread, serial_write_thread, CAN_read_thread;
 
     stm32_device.file_name = "/dev/ttyACM0";
     gps_device.file_name = "/dev/ttyUSB0"; /* connected neo gps module to rapi using UART to USB converter */
@@ -45,8 +45,14 @@ int main()
     /* NEO GPS Module Read Thread */
     pthread_create(&serial_write_thread, NULL, (void *)&write_to_cloud, &cloud_data);
 
+    /* CAN Module Read Thread */
+    pthread_create(&CAN_read_thread, NULL, (void *)&read_from_can, &cloud_data);
+    pthread_create(&CAN_read_thread, NULL, (void *)&read_from_can, &cloud_data);
+    pthread_create(&CAN_read_thread, NULL, (void *)&read_canAble, &cloud_data);
+
     pthread_join(stm32_read_thread, NULL);
     pthread_join(gps_read_thread, NULL);
+    pthread_join(CAN_read_thread,NULL);
     pthread_join(serial_write_thread, NULL);
 
     return 0;
