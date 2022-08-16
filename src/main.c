@@ -30,14 +30,21 @@ int main(int argc, char *argv[])
     gps_device.file_name = "/dev/ttyUSB0"; /* connected neo gps module to rapi using UART to USB converter */
     stm32_device.baud_rate = B115200;
     gps_device.baud_rate = B9600;
+    int opt;
 
-    if (argc == 2)
+    while ((opt = getopt(argc, argv, "m:f")) != -1)
     {
-        module_flag = atoi(argv[1]); /* Used variables */
-    }
-    else if (argc == 3) {
-        module_flag = atoi(argv[1]);
-        write_to_file = atoi(argv[2]);
+        switch (opt)
+        {
+        case 'm':
+            module_flag = atoi(optarg);
+            break;
+        case 'f':
+            write_to_file = atoi(optarg);;
+            break;
+        default:
+            printf("no option input");
+        }
     }
     
     /* Pointer char initializing to null*/
