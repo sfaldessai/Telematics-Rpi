@@ -8,14 +8,42 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <string.h>
 #include "client_controller.h"
 #include "../serial_interface/serial_config.h"
 #include "../main.h"
 
+#define COMMA 0x2C
+
 /* mutex to lock cloud_data struct for wirte */
 pthread_mutex_t cloud_data_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-#define MAX_READ_SIZE 80 /* set to 80 for temporary. TBD: message format & size */
+#define MAX_READ_SIZE 32 /* max stm32 data length is 32 */
+
+/*
+ * Name : get_client_controller_data
+ * Descriptoin: The get_client_controller_data function is for extracting vehicle motion, PTO,
+ *              and batter voltage data from the STM32 microcontroller sentence.
+ * Input parameters:
+ *                  char * (stm32 raw data)
+ *                  client_controller_data_struct * (reference type to update stm32 data)
+ * Output parameters: void
+ */
+void get_client_controller_data(char *read_data, struct client_controller_data_struct *client_controller_data)
+{
+    char *stmc_data = NULL;
+
+    /* extracting required data from stm32 data sentence */
+    stmc_data = strchr(read_data, COMMA);
+    client_controller_data->motion = (uint8_t) atoi(stmc_data + 1);
+
+    stmc_data = strchr(stmc_data + 1, COMMA);
+    client_controller_data->voltage = (float) atof(stmc_data + 1);
+
+    stmc_data = strchr(stmc_data + 1, COMMA);
+    client_controller_data->pto = (uint8_t) atoi(stmc_data + 1);
+
+}
 
 /*
  * Name : read_from_client_controller
@@ -47,15 +75,13 @@ void *read_from_client_controller(void *arg)
              * Message protocol used in microcontroller:
              * "$STMC,<MOTION>,<VOLT>,<PTO>,#""
              * '$' & '#' used to identify starting and ending.
-             * microcontroller will send new data in every 2 sec
              */
 
-            if (read_data[0] == '$')
+            if (read_data[1] == 'S' && read_data[2] == 'T' && read_data[3] == 'M' && read_data[4] == 'C')
             {
-                client_controller_data.sensor_data = read_data;
+                get_client_controller_data(read_data, &client_controller_data);
 
-                printf("\nclient_controller Sensor: %s\n", client_controller_data.sensor_data);
-
+                /* update stm32 data to cloud_data struct which is used to combile all module data and send to cloud */
                 pthread_mutex_lock(&cloud_data_mutex);
                 cloud_data->client_controller_data = client_controller_data;
                 pthread_mutex_unlock(&cloud_data_mutex);

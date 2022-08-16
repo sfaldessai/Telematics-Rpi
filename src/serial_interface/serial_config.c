@@ -164,11 +164,12 @@ int uart_reads_chunk(struct uart_device_struct *device, char **buf, size_t buf_l
 
 	chunk_data[rc] = '\0';
 
-	*buf = (char *)malloc(sizeof(chunk_data) + 1); /* strcpy adds a null terminator character '\0' */
+	*buf = (char *)malloc(strlen(chunk_data) + 1); /* strcpy adds a null terminator character '\0' */
 
 	if (!*buf)
 	{
-		printf("%s: failed to allocate UART TTY instance\r\n", __func__);
+		/* TODO: replace printf with logger */
+		printf("%s: failed to allocate buf memory\r\n", __func__);
 		return -ENOMEM;
 	}
 

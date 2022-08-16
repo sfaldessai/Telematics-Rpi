@@ -14,7 +14,7 @@ CPP_PLATFORM = Gcc
 
 SRC_DIRS = $(wildcard ./../src/*)
 
-TEST_SRC_DIRS = ./ ./gps_module/
+TEST_SRC_DIRS = ./ ./gps_module/ ./client_controller/
 
 INCLUDE_DIRS =\
   .\
