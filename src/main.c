@@ -17,6 +17,7 @@
 
 #define MAX_READ_SIZE 1
 int module_flag = 1;
+int write_to_file = 0;
 
 int main(int argc, char *argv[])
 {
@@ -34,7 +35,10 @@ int main(int argc, char *argv[])
     {
         module_flag = atoi(argv[1]); /* Used variables */
     }
-    
+    else if (argc == 3) {
+        module_flag = atoi(argv[1]);
+        write_to_file = atoi(argv[2]);
+    }
     
     /* Pointer char initializing to null*/
     initialize_cloud_data(&cloud_data);

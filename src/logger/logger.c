@@ -23,6 +23,7 @@
 #include <sys/time.h>
 
 extern int module_flag;
+extern int write_to_file;
 
 #ifndef PTHREAD_MUTEX_RECURSIVE
 #define PTHREAD_MUTEX_RECURSIVE PTHREAD_MUTEX_RECURSIVE_NP
@@ -398,8 +399,8 @@ void logger_init(const char *pName, uint16_t nFlags, uint8_t nTdSafe)
 {
     /* Set up default values */
     logger_config_t *pCfg = &g_logger.config;
-    pCfg->eColorFormat = LOGGER_COLORING_TAG;
-    pCfg->eDateControl = LOGGER_TIME_ONLY;
+   // pCfg->eColorFormat = LOGGER_COLORING_TAG;
+   // pCfg->eDateControl = LOGGER_TIME_ONLY;
     pCfg->pCallbackCtx = NULL;
     pCfg->logCallback = NULL;
     pCfg->sSeparator[0] = ' ';
@@ -413,6 +414,13 @@ void logger_init(const char *pName, uint16_t nFlags, uint8_t nTdSafe)
     pCfg->nIndent = 0;
     pCfg->nFlush = 0;
     pCfg->nFlags = nFlags;
+    pCfg->eDateControl = LOGGER_DATE_FULL;
+    logger_enable(LOGGER_FLAGS_ALL);
+    if (write_to_file == 1) {
+        pCfg->nToFile = 1;
+        const char* pFileName = (pName != NULL) ? pName : LOGGER_NAME_DEFAULT;
+        snprintf(pCfg->sFileName, sizeof(pCfg->sFileName), "%s", pFileName);
+    }
 
     /* Initialize mutex */
     g_logger.nTdSafe = nTdSafe;
@@ -433,9 +441,6 @@ void logger_destroy()
 
 void logger_setup(logger_config_t *cfg)
 {
-        cfg->nToScreen = 1;
-        cfg->nToFile = 1;
-        cfg->eDateControl = LOGGER_DATE_FULL;
-        logger_config_set(cfg);
-	    logger_enable(LOGGER_FLAGS_ALL);
+     uint16_t nLogFlags = LOGGER_ERROR | LOGGER_WARN | LOGGER_INFO;
+     logger_init("Telematics_logs", nLogFlags, 0);
 }
