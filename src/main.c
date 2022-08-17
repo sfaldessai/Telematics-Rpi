@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
     gps_device.baud_rate = B9600;
     int opt;
 
-    while ((opt = getopt(argc, argv, "m:f")) != -1)
+    while ((opt = getopt(argc, argv, "m:f:")) != -1)
     {
         switch (opt)
         {
@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
             write_to_file = atoi(optarg);;
             break;
         default:
-            printf("no option input");
+            LOGGER_INFO("no option input");
         }
     }
     

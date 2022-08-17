@@ -349,8 +349,6 @@ void logger_enable(logger_flag_t eFlag)
     logger_unlock(&g_logger);
 }
 
-// flag for selecting module
-
 void logger_disable(logger_flag_t eFlag)
 {
     logger_lock(&g_logger);
@@ -399,8 +397,6 @@ void logger_init(const char *pName, uint16_t nFlags, uint8_t nTdSafe)
 {
     /* Set up default values */
     logger_config_t *pCfg = &g_logger.config;
-   // pCfg->eColorFormat = LOGGER_COLORING_TAG;
-   // pCfg->eDateControl = LOGGER_TIME_ONLY;
     pCfg->pCallbackCtx = NULL;
     pCfg->logCallback = NULL;
     pCfg->sSeparator[0] = ' ';
