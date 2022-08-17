@@ -9,6 +9,7 @@
 #define CAN_BUS_H_
 
 #include <stdint.h>
+#include <pthread.h>
 
 /* ODB2 PID contain a 17-character VIN */
 #define MAX_LEN_VIN 24
@@ -24,6 +25,7 @@ struct can_data_struct
 	uint32_t supported_pids;
 };
 
-void *read_from_can(void *);	 /* pthread to display all serial data */
+/* pthread to display all serial data */
+void read_from_can(void *arg, pthread_t *read_can_supported_thread, pthread_t *read_can_speed_thread);
 
 #endif
