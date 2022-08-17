@@ -29,9 +29,9 @@ int main(int argc, char *argv[])
     struct arg_struct client_controller_args, gps_args;
     pthread_t client_controller_read_thread, gps_read_thread, serial_write_thread;
 
-    stm32_device.file_name = "/dev/ttyACM0";
+    client_controller_device.file_name = "/dev/ttyACM0";
     gps_device.file_name = "/dev/ttyUSB0"; /* connected neo gps module to rapi using UART to USB converter */
-    stm32_device.baud_rate = B115200;
+    client_controller_device.baud_rate = B115200;
     gps_device.baud_rate = B9600;
     int opt;
     /* uart set-up*/
@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
             write_to_file = atoi(optarg);;
             break;
         default:
-            LOGGER_INFO("no option input");
+            break;
         }
     }
     
