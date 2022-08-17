@@ -20,7 +20,7 @@
 
 struct can_data_struct
 {
-	uint8_t *vin;
+	uint8_t vin[MAX_LEN_VIN];
 	uint8_t speed;
 	uint32_t supported_pids;
 };

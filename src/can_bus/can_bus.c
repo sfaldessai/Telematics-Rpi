@@ -29,7 +29,6 @@ void *read_can_id_number(void *arg)
 {
     /* TBD: read from can module once we get CAN module. Hardcaded for testing*/
     char *read_data = "A0000000000000001";
-    uint8_t vin[MAX_LEN_VIN];
 
     struct arg_struct *args = (struct arg_struct *)arg;
     struct uart_device_struct can_device = args->uart_device;
@@ -52,8 +51,7 @@ void *read_can_id_number(void *arg)
      */
 
     /* Copy 17 byte VIN data to cloud struct member for displaying on screen from deiplay thread */
-    strncpy(vin, read_data, MAX_LEN_VIN);
-    cloud_data->can_data.vin = vin;
+    strncpy(cloud_data->can_data.vin, read_data, MAX_LEN_VIN);
 }
 
 /*
@@ -156,10 +154,6 @@ void *read_can_supported_pid(void *arg)
  */
 void read_from_can(void *arg, pthread_t *read_can_supported_thread, pthread_t *read_can_speed_thread, pthread_t *read_can_vin_thread)
 {
-    struct arg_struct *args = (struct arg_struct *)arg;
-    struct uart_device_struct can_device = args->uart_device;
-    struct cloud_data_struct *cloud_data = args->cloud_data;
-
     /* Thread to fetch VIN. */
     pthread_create(read_can_vin_thread, NULL, &read_can_id_number, arg);
     /* Thread to fetch supported pid data. */
