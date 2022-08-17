@@ -4,10 +4,11 @@
  * Company: HashedIn By Deloitte.
  * Copyright (C) 2022 HashedIn By Deloitte
  */
-#include <stdint.h>
 
 #ifndef CLIENT_CONTROLLER_H_
 #define CLIENT_CONTROLLER_H_
+
+#include <stdint.h>
 
 #define DEBUG
 

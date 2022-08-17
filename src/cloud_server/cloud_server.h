@@ -5,12 +5,12 @@
  * Copyright (C) 2022 HashedIn By Deloitte
  */
 
+#ifndef CLOUD_SERVER_H_
+#define CLOUD_SERVER_H_
+
 #include "../gps_module/gps_module.h"
 #include "../client_controller/client_controller.h"
 #include "../can_bus/can_bus.h"
-
-#ifndef CLOUD_SERVER_H_
-#define CLOUD_SERVER_H_
 
 #define DEBUG
 

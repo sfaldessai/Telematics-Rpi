@@ -22,7 +22,7 @@ int main(void)
     struct cloud_data_struct cloud_data;
     struct arg_struct client_controller_args, gps_args, can_bus_arg;
     pthread_t client_controller_read_thread, gps_read_thread, serial_write_thread, CAN_read_thread;
-    pthread_t read_can_supported_thread, read_can_speed_thread;
+    pthread_t read_can_supported_thread, read_can_speed_thread, read_can_vin_thread;
 
     /* uart set-up*/
     uart_setup(&client_controller_device, CLIENT_CONTROLLER, B115200, true);
@@ -53,7 +53,7 @@ int main(void)
     /* CAN Module Read Thread */
     can_bus_arg.uart_device = can_bus_device;
     can_bus_arg.cloud_data = &cloud_data;
-    read_from_can(&can_bus_arg, &read_can_supported_thread, &read_can_speed_thread);
+    read_from_can(&can_bus_arg, &read_can_supported_thread, &read_can_speed_thread, &read_can_vin_thread);
 
     /* Thread Creation End */
 
@@ -69,6 +69,7 @@ int main(void)
     pthread_join(serial_write_thread, NULL);
     pthread_join(read_can_supported_thread, NULL);
     pthread_join(read_can_speed_thread, NULL);
+    pthread_join(read_can_vin_thread, NULL);
     /* Join Thread End*/
 
     return 0;

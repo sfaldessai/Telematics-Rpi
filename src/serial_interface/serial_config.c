@@ -162,8 +162,6 @@ int uart_reads_chunk(struct uart_device_struct *device, char **buf, size_t buf_l
 		return rc;
 	}
 
-	chunk_data[rc] = '\0';
-
 	*buf = (char *)malloc(strlen(chunk_data) + 1); /* strcpy adds a null terminator character '\0' */
 
 	if (!*buf)

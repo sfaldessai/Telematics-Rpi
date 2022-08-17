@@ -20,12 +20,12 @@
 
 struct can_data_struct
 {
-	uint8_t vin[MAX_LEN_VIN];
+	uint8_t *vin;
 	uint8_t speed;
 	uint32_t supported_pids;
 };
 
 /* pthread to display all serial data */
-void read_from_can(void *arg, pthread_t *read_can_supported_thread, pthread_t *read_can_speed_thread);
+void read_from_can(void *, pthread_t *, pthread_t *, pthread_t *);
 
 #endif
