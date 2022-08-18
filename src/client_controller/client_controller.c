@@ -18,8 +18,6 @@
 /* mutex to lock cloud_data struct for wirte */
 pthread_mutex_t cloud_data_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-
-#define CC_LOG_MODULE_ID 5
 #define MAX_READ_SIZE 32 /* max stm32 data length is 32 */
 
 /*

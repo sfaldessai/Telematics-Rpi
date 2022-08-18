@@ -15,8 +15,6 @@
 
 #include "serial_config.h"
 
-#define SERIAL_LOG_MODULE_ID 3
-
 /*
  * Name : uart_setup
  * Descriptoin: The uart_start function is for serial port setting port name and baud rate.
@@ -47,7 +45,7 @@ int uart_start(struct uart_device_struct *device, bool canonical)
 	int fd;
 	int rc;
 
-	logger_config_t cfg;
+    logger_config_t cfg;
     logger_setup(&cfg);
 
 	fd = open(device->file_name, O_RDWR | O_NOCTTY);

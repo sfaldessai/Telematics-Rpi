@@ -22,7 +22,6 @@
 #define SIXTY 60
 #define COMMA 0x2C
 #define CR 0x0d
-#define GPS_LOG_MODULE_ID 2
 
 /* mutex to lock cloud_data struct for wirte */
 pthread_mutex_t cloud_data_gps_mutex = PTHREAD_MUTEX_INITIALIZER;
