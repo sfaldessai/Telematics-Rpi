@@ -75,14 +75,14 @@ extern "C"
     /* Log level flags */
     typedef enum
     {
-         LOGGER_NOTAG = (1 << 0),
-    LOGGER_NOTE = (1 << 1),
-    LOGGER_INFO = (1 << 2),
-    LOGGER_WARN = (1 << 3),
-    LOGGER_DEBUG = (1 << 4),
-    LOGGER_TRACE = (1 << 5),
-    LOGGER_ERROR = (1 << 6),
-    LOGGER_FATAL = (1 << 7)
+        LOGGER_NOTAG = (1 << 0),
+        LOGGER_NOTE = (1 << 1),
+        LOGGER_INFO = (1 << 2),
+        LOGGER_WARN = (1 << 3),
+        LOGGER_DEBUG = (1 << 4),
+        LOGGER_TRACE = (1 << 5),
+        LOGGER_ERROR = (1 << 6),
+        LOGGER_FATAL = (1 << 7)
     } logger_flag_t;
 
     typedef int (*logger_cb_t)(const char *pLog, size_t nLength, logger_flag_t eFlag, void *pCtx);

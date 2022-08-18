@@ -89,3 +89,8 @@
 				Running CustomTests_tests
 				.
 				OK (1 tests, 1 ran, 0 checks, 0 ignored, 0 filtered out, 1 ms)
+
+# To Enable logging for a specific module or to write the logs for a file :
+    GPS_LOG_MODULE_ID 2, SERIAL_LOG_MODULE_ID 3, CAN_LOG_MODULE_ID 4, CC_LOG_MODULE_ID 5, CLOUD_LOG_MODULE_ID 6
+    sudo ./Telematic -m 3 ==> This will enable the logs only for Serial_interface module
+    sudo ./Telematic -m 2 -f 1 ==> This will enable the logs only for GPS module and -f flag will enable writing to a file

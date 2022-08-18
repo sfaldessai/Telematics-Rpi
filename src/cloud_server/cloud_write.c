@@ -20,7 +20,7 @@
 void *write_to_cloud(void *arg)
 {
     struct cloud_data_struct *cloud_data = (struct cloud_data_struct *)arg;
-
+    /* Initializing logger */
     logger_config_t cfg;
     logger_setup(&cfg);
 

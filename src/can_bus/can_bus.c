@@ -12,7 +12,6 @@
 
 void *read_from_can(void *arg)
 {
-    /* TODO */
-    logger_info(CAN_LOG_MODULE_ID, "%p", arg);
+    printf("%p", arg);
     return 0;
 }

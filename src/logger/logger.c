@@ -18,9 +18,8 @@
 #include <limits.h>
 #include <errno.h>
 #include <time.h>
-#include "logger.h"
-
 #include <sys/time.h>
+#include "logger.h"
 
 extern int module_flag;
 extern int write_to_file;
