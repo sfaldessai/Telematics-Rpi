@@ -30,7 +30,7 @@ extern int write_to_file;
 
 typedef struct logger
 {
-    unsigned int nTdSafe : 1;
+    uint8_t nTdSafe : 1;
     pthread_mutex_t mutex;
     logger_config_t config;
 } logger_t;
@@ -158,12 +158,12 @@ void logger_get_date(logger_date_t *pDate)
     time_t rawtime = time(NULL);
     localtime_r(&rawtime, &timeinfo);
 
-    pDate->nYear = timeinfo.tm_year + 1900;
-    pDate->nMonth = timeinfo.tm_mon + 1;
-    pDate->nDay = timeinfo.tm_mday;
-    pDate->nHour = timeinfo.tm_hour;
-    pDate->nMin = timeinfo.tm_min;
-    pDate->nSec = timeinfo.tm_sec;
+    pDate->nYear = (uint8_t)timeinfo.tm_year + 1900;
+    pDate->nMonth = (uint8_t)timeinfo.tm_mon + 1;
+    pDate->nDay = (uint8_t)timeinfo.tm_mday;
+    pDate->nHour = (uint8_t)timeinfo.tm_hour;
+    pDate->nMin = (uint8_t)timeinfo.tm_min;
+    pDate->nSec = (uint8_t)timeinfo.tm_sec;
     pDate->nUsec = logger_get_usec();
 }
 
@@ -202,7 +202,7 @@ static void logger_display_message(const logger_context_t *pCtx, const char *pIn
         size_t nLength = 0;
         char *pLog = NULL;
 
-        nLength += asprintf(&pLog, "%s%s%s%s%s", pInfo, pSeparator, pMessage, pReset, pNewLine);
+        nLength += (size_t)asprintf(&pLog, "%s%s%s%s%s", pInfo, pSeparator, pMessage, pReset, pNewLine);
         if (pLog != NULL)
         {
             nCbVal = pCfg->logCallback(pLog, nLength, pCtx->eFlag, pCfg->pCallbackCtx);
@@ -223,7 +223,7 @@ static void logger_display_message(const logger_context_t *pCtx, const char *pIn
 
     char sFilePath[LOGGER_PATH_MAX + LOGGER_NAME_MAX + LOGGER_DATE_MAX];
 
-    snprintf(sFilePath, sizeof(sFilePath), "%s-%04d-%02d-%02d.log",LOGGER_NAME_DEFAULT, pDate->nYear, pDate->nMonth, pDate->nDay);
+    snprintf(sFilePath, sizeof(sFilePath), "%s-%04d-%02d-%02d.log", LOGGER_NAME_DEFAULT, pDate->nYear, pDate->nMonth, pDate->nDay);
 
     FILE *pFile = fopen(sFilePath, "a");
     if (pFile == NULL)
@@ -267,7 +267,7 @@ static void logger_display_heap(const logger_context_t *pCtx, va_list args)
     char *pMessage = NULL;
     char loggerInfo[LOGGER_INFO_MAX];
 
-    nBytes += vasprintf(&pMessage, pCtx->pFormat, args);
+    nBytes += (size_t)vasprintf(&pMessage, pCtx->pFormat, args);
     va_end(args);
 
     if (pMessage == NULL)
@@ -343,8 +343,9 @@ void logger_enable(logger_flag_t eFlag)
     logger_lock(&g_logger);
 
     if (!LOGGER_FLAGS_CHECK(g_logger.config.nFlags, eFlag))
-        g_logger.config.nFlags |= eFlag;
-
+    {
+        g_logger.config.nFlags |= (uint16_t)eFlag;
+    }
     logger_unlock(&g_logger);
 }
 
@@ -353,7 +354,9 @@ void logger_disable(logger_flag_t eFlag)
     logger_lock(&g_logger);
 
     if (LOGGER_FLAGS_CHECK(g_logger.config.nFlags, eFlag))
-        g_logger.config.nFlags &= ~eFlag;
+    {
+        g_logger.config.nFlags &= (uint16_t)~eFlag;
+    }
 
     logger_unlock(&g_logger);
 }
@@ -411,14 +414,15 @@ void logger_init(const char *pName, uint16_t nFlags, uint8_t nTdSafe)
     pCfg->nFlags = nFlags;
     pCfg->eDateControl = LOGGER_DATE_FULL;
     logger_enable(LOGGER_FLAGS_ALL);
-    if (write_to_file == 1) {
+    if (write_to_file == 1)
+    {
         pCfg->nToFile = 1;
-        const char* pFileName = (pName != NULL) ? pName : LOGGER_NAME_DEFAULT;
+        const char *pFileName = (pName != NULL) ? pName : LOGGER_NAME_DEFAULT;
         snprintf(pCfg->sFileName, sizeof(pCfg->sFileName), "%s", pFileName);
     }
 
     /* Initialize mutex */
-    g_logger.nTdSafe = nTdSafe;
+    g_logger.nTdSafe =  nTdSafe;
     logger_sync_init(&g_logger);
 }
 
@@ -434,8 +438,8 @@ void logger_destroy()
     }
 }
 
-void logger_setup(logger_config_t *cfg)
+void logger_setup()
 {
-     uint16_t nLogFlags = LOGGER_ERROR | LOGGER_WARN | LOGGER_INFO;
-     logger_init("Telematics_logs", nLogFlags, 0);
+    uint16_t nLogFlags = LOGGER_ERROR | LOGGER_WARN | LOGGER_INFO;
+    logger_init("Telematics_logs", nLogFlags, 0);
 }

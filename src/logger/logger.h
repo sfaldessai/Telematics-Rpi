@@ -69,7 +69,7 @@ extern "C"
         uint8_t nUsec;
     } logger_date_t;
 
-    uint8_t logger_get_usec();
+    uint8_t logger_get_usec(void);
     void logger_get_date(logger_date_t *pDate);
 
     /* Log level flags */
@@ -150,9 +150,9 @@ extern "C"
 
     void logger_init(const char *pName, uint16_t nFlags, uint8_t nTdSafe);
     void logger_display(logger_flag_t eFlag, uint8_t nNewLine, int inModuleLog, const char *pFormat, ...);
-    void logger_destroy(); // Needed only if the logger_init() function argument nTdSafe > 0
+    void logger_destroy(void); // Needed only if the logger_init() function argument nTdSafe > 0
 
-    void logger_setup(logger_config_t *cfg);
+    void logger_setup(void);
 
 #ifdef __cplusplus
 }

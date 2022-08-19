@@ -45,8 +45,7 @@ int uart_start(struct uart_device_struct *device, bool canonical)
 	int fd;
 	int rc;
 
-	logger_config_t cfg;
-	logger_setup(&cfg);
+	logger_setup();
 
 	fd = open(device->file_name, O_RDWR | O_NOCTTY);
 	if (fd < 0)
