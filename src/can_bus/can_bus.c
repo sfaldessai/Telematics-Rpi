@@ -41,7 +41,8 @@ void *read_can_id_number(void *arg)
      * uart_writes(can_device, "0x02\r\n");
      */
 
-    sleep(1);
+    uart_writes(&can_device, "0x02");
+    uart_reads_chunk(&can_device, &read_data, MAX_LEN_VIN);
 
     /*
      *
@@ -82,7 +83,8 @@ void *read_can_speed_pid(void *arg)
          * uart_writes(&can_device, "0x0d\r\n");
          */
 
-        sleep(1);
+        // uart_writes(&can_device, "0x0d");
+        // uart_reads_chunk(&can_device, &read_data, MAX_LEN_VIN);
 
         /*
          *
@@ -93,7 +95,10 @@ void *read_can_speed_pid(void *arg)
 
         /* Copy 1 byte (0-255) Vehicle speed data to cloud struct member for displaying on screen from deiplay thread */
 
-        cloud_data->can_data.speed = (uint8_t) atoi(read_data);
+        cloud_data->can_data.speed = (uint8_t)atoi(read_data);
+
+        /* request next data after 1sec */
+        sleep(1);
     }
 }
 
@@ -125,7 +130,8 @@ void *read_can_supported_pid(void *arg)
          * uart_writes(&can_device, "0x00\r\n");
          */
 
-        sleep(2);
+        // uart_writes(&can_device, "0x0d");
+        // uart_reads_chunk(&can_device, &read_data, MAX_LEN_VIN);
 
         /*
          *
@@ -135,7 +141,10 @@ void *read_can_supported_pid(void *arg)
          */
 
         /* Copy 32 byte Vehicle Supported PID data to cloud struct member for displaying on screen from deiplay thread */
-        cloud_data->can_data.supported_pids = (uint32_t) atoi(read_data);
+        cloud_data->can_data.supported_pids = (uint32_t)atoi(read_data);
+
+        /* request next data after 30sec */
+        sleep(30);
     }
 }
 

@@ -12,9 +12,9 @@
 #include <pthread.h>
 #include "main.h"
 
-#define CLIENT_CONTROLLER "/dev/ttyACM0"
+#define CLIENT_CONTROLLER "/dev/ttyACM1"
 #define GPS_MODULE "/dev/ttyUSB0"
-#define CAN_MODULE "/dev/ttyUSB0"
+#define CAN_MODULE "/dev/ttyACM0"
 
 int main(void)
 {

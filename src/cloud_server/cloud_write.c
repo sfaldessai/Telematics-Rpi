@@ -24,11 +24,13 @@ void *write_to_cloud(void *arg)
     {
         sleep(2); /* Display data every 2 sec*/
 
-        printf("\n VIN = %s | SPEED = %d | SUPPORTED PIDs = %d \n", cloud_data->can_data.vin, cloud_data->can_data.speed, cloud_data->can_data.supported_pids);
-        printf("\n motion = %d | voltage = %f | pto = %d\n", cloud_data->client_controller_data.motion, cloud_data->client_controller_data.voltage, cloud_data->client_controller_data.pto);
-        printf("\nLat: %.4f %c", cloud_data->gps_data.latitude, cloud_data->gps_data.lat_cardinal_sign);
-        printf("\t Long: %.4f %c\n", cloud_data->gps_data.longitude, cloud_data->gps_data.long_cardinal_sign);
+        printf("\n#################################### TELEMATIC DATA####################################\n");
+        printf("\nVIN = %s | SPEED = %d | SUPPORTED PIDs = %d \n", cloud_data->can_data.vin, cloud_data->can_data.speed, cloud_data->can_data.supported_pids);
+        printf("\nMOTION = %d | VOLTAGE = %f | PTO = %d\n", cloud_data->client_controller_data.motion, cloud_data->client_controller_data.voltage, cloud_data->client_controller_data.pto);
+        printf("\nLAT: %.4f %c", cloud_data->gps_data.latitude, cloud_data->gps_data.lat_cardinal_sign);
+        printf("\nLONG: %.4f %c\n", cloud_data->gps_data.longitude, cloud_data->gps_data.long_cardinal_sign);
         printf("\nPDOP:%.2f\tHDOP:%.2f\tVDOP:%.2f\n", cloud_data->gps_data.pdop, cloud_data->gps_data.hdop, cloud_data->gps_data.vdop);
+        printf("\n#################################### END ##############################################\n");
     }
 }
 
