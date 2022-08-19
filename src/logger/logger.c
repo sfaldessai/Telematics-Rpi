@@ -59,7 +59,7 @@ static void logger_sync_init(logger_t *plogger)
         pthread_mutexattr_destroy(&mutexAttr))
     {
         printf("<%s:%d> %s: [ERROR] Can not initialize mutex: %d\n",
-               __FILE__, __LINE__, __FUNCTION__, errno);
+               __FILE__, __LINE__, __func__, errno);
 
         exit(EXIT_FAILURE);
     }
@@ -70,7 +70,7 @@ static void logger_lock(logger_t *plogger)
     if (plogger->nTdSafe && pthread_mutex_lock(&plogger->mutex))
     {
         printf("<%s:%d> %s: [ERROR] Can not lock mutex: %d\n",
-               __FILE__, __LINE__, __FUNCTION__, errno);
+               __FILE__, __LINE__, __func__, errno);
 
         exit(EXIT_FAILURE);
     }
@@ -81,7 +81,7 @@ static void logger_unlock(logger_t *plogger)
     if (plogger->nTdSafe && pthread_mutex_unlock(&plogger->mutex))
     {
         printf("<%s:%d> %s: [ERROR] Can not unlock mutex: %d\n",
-               __FILE__, __LINE__, __FUNCTION__, errno);
+               __FILE__, __LINE__, __func__, errno);
 
         exit(EXIT_FAILURE);
     }
@@ -274,7 +274,7 @@ static void logger_display_heap(const logger_context_t *pCtx, va_list args)
     if (pMessage == NULL)
     {
         printf("<%s:%d> %s<error>%s %s: Can not allocate memory for input: errno(%d)\n",
-               __FILE__, __LINE__, LOGGER_COLOR_RED, LOGGER_COLOR_RESET, __FUNCTION__, errno);
+               __FILE__, __LINE__, LOGGER_COLOR_RED, LOGGER_COLOR_RESET, __func__, errno);
 
         return;
     }

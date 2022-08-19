@@ -69,14 +69,10 @@ extern "C"
     /* Log level flags */
     typedef enum
     {
-         LOGGER_NOTAG = (1 << 0),
-    LOGGER_NOTE = (1 << 1),
-    LOGGER_INFO = (1 << 2),
-    LOGGER_WARN = (1 << 3),
-    LOGGER_DEBUG = (1 << 4),
-    LOGGER_TRACE = (1 << 5),
-    LOGGER_ERROR = (1 << 6),
-    LOGGER_FATAL = (1 << 7)
+        LOGGER_INFO = (1 << 2),
+        LOGGER_WARN = (1 << 3),
+        LOGGER_DEBUG = (1 << 4),
+        LOGGER_ERROR = (1 << 6)
     } logger_flag_t;
 
     typedef int (*logger_cb_t)(const char *pLog, size_t nLength, logger_flag_t eFlag, void *pCtx);
@@ -95,7 +91,6 @@ extern "C"
         LOGGER_TIME_ONLY,
         LOGGER_DATE_FULL
     } logger_date_ctrl_t;
-
 
 #define logger_info(int, ...) \
     logger_display(LOGGER_INFO, 1, int, __VA_ARGS__)
@@ -151,7 +146,7 @@ extern "C"
     void logger_display(logger_flag_t eFlag, uint8_t nNewLine, int inModuleLog, const char *pFormat, ...);
     void logger_destroy(); // Needed only if the logger_init() function argument nTdSafe > 0
 
-   void logger_setup(logger_config_t *cfg);
+    void logger_setup(logger_config_t *cfg);
 
 #ifdef __cplusplus
 }

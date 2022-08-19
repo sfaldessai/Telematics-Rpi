@@ -28,14 +28,13 @@ void *write_to_cloud(void *arg)
 
     while (1)
     {
-        logger_info(CLOUD_LOG_MODULE_ID, "\n motion = %d | voltage = %f | pto = %d\n",cloud_data->client_controller_data.motion,
-            cloud_data->client_controller_data.voltage, cloud_data->client_controller_data.pto);
-        logger_info(CLOUD_LOG_MODULE_ID, "\nLat: %.4f %c", cloud_data->gps_data.latitude, cloud_data->gps_data.lat_cardinal_sign);
-        logger_info(CLOUD_LOG_MODULE_ID, "\t Long: %.4f %c\n", cloud_data->gps_data.longitude, cloud_data->gps_data.long_cardinal_sign);
-        logger_info(CLOUD_LOG_MODULE_ID, "\nPDOP:%.2f\tHDOP:%.2f\tVDOP:%.2f\n", cloud_data->gps_data.pdop,
+        logger_info(CLOUD_LOG_MODULE_ID, "\tmotion = %d | voltage = %f | pto = %d\n", cloud_data->client_controller_data.motion,
+                    cloud_data->client_controller_data.voltage, cloud_data->client_controller_data.pto);
+        logger_info(CLOUD_LOG_MODULE_ID, "\tLat: %.4f %c", cloud_data->gps_data.latitude, cloud_data->gps_data.lat_cardinal_sign);
+        logger_info(CLOUD_LOG_MODULE_ID, "\tLong: %.4f %c\n", cloud_data->gps_data.longitude, cloud_data->gps_data.long_cardinal_sign);
+        logger_info(CLOUD_LOG_MODULE_ID, "\tPDOP:%.2f\tHDOP:%.2f\tVDOP:%.2f\n", cloud_data->gps_data.pdop,
                     cloud_data->gps_data.hdop, cloud_data->gps_data.vdop);
         sleep(2); /* Display data every 2 sec*/
-
     }
 }
 
