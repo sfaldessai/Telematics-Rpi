@@ -10,8 +10,6 @@
 #include "cloud_server.h"
 #include "../logger/logger.h"
 
-#define CLOUD_LOG_MODULE_ID 6
-
 /*
  * Name : write_to_cloud
  * Descriptoin: The write_to_cloud function is for diplaying/monitoring vehicle informtion from
@@ -22,7 +20,7 @@
 void *write_to_cloud(void *arg)
 {
     struct cloud_data_struct *cloud_data = (struct cloud_data_struct *)arg;
-
+    /* Initializing logger */
     logger_config_t cfg;
     logger_setup(&cfg);
 

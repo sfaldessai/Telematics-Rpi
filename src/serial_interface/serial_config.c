@@ -15,8 +15,6 @@
 
 #include "serial_config.h"
 
-#define SERIAL_LOG_MODULE_ID 3
-
 /*
  * Name : uart_setup
  * Descriptoin: The uart_start function is for serial port setting port name and baud rate.

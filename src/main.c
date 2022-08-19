@@ -11,9 +11,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
-#include "main.h"
 #include <getopt.h>
 #include <ctype.h>
+#include "main.h"
 
 #define MAX_READ_SIZE 1
 #define CLIENT_CONTROLLER "/dev/ttyACM0"
@@ -28,12 +28,12 @@ int main(int argc, char *argv[])
     struct cloud_data_struct cloud_data;
     struct arg_struct client_controller_args, gps_args;
     pthread_t client_controller_read_thread, gps_read_thread, serial_write_thread;
+    int opt;
 
     client_controller_device.file_name = "/dev/ttyACM0";
     gps_device.file_name = "/dev/ttyUSB0"; /* connected neo gps module to rapi using UART to USB converter */
     client_controller_device.baud_rate = B115200;
     gps_device.baud_rate = B9600;
-    int opt;
     /* uart set-up*/
     uart_setup(&client_controller_device, CLIENT_CONTROLLER, B115200, true);
     uart_setup(&gps_device, GPS_MODULE, B9600, true);

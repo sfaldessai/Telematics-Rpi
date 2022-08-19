@@ -21,7 +21,6 @@
 #define SIXTY 60
 #define COMMA 0x2C
 #define CR 0x0d
-#define GPS_LOG_MODULE_ID 2
 
 /* mutex to lock cloud_data struct for wirte */
 pthread_mutex_t cloud_data_gps_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -38,7 +37,6 @@ void get_lat_log(double *latitude)
     int degrees;
     degrees = (int)(*latitude / HUNDRED);
     *latitude = degrees + (*latitude - degrees * HUNDRED) / SIXTY;
-    logger_info(GPS_LOG_MODULE_ID, "\nGPS get_lat_lan degrees: %d\n", degrees);
 }
 
 /*
