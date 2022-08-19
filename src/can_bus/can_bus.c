@@ -41,9 +41,6 @@ void *read_can_id_number(void *arg)
      * uart_writes(can_device, "0x02\r\n");
      */
 
-    uart_writes(&can_device, "0x02");
-    uart_reads_chunk(&can_device, &read_data, MAX_LEN_VIN);
-
     /*
      *
      * TBD: Write function to Receive the VIN data from CAN module.
@@ -82,9 +79,6 @@ void *read_can_speed_pid(void *arg)
          *
          * uart_writes(&can_device, "0x0d\r\n");
          */
-
-        // uart_writes(&can_device, "0x0d");
-        // uart_reads_chunk(&can_device, &read_data, MAX_LEN_VIN);
 
         /*
          *
@@ -129,9 +123,6 @@ void *read_can_supported_pid(void *arg)
          *
          * uart_writes(&can_device, "0x00\r\n");
          */
-
-        // uart_writes(&can_device, "0x0d");
-        // uart_reads_chunk(&can_device, &read_data, MAX_LEN_VIN);
 
         /*
          *
