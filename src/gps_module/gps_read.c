@@ -35,7 +35,6 @@ pthread_mutex_t cloud_data_gps_mutex = PTHREAD_MUTEX_INITIALIZER;
 void get_lat_log(double *latitude)
 {
     int degrees;
-
     degrees = (int)(*latitude / HUNDRED);
     *latitude = degrees + (*latitude - degrees * HUNDRED) / SIXTY;
 }
@@ -127,7 +126,7 @@ void get_gps_data(char *nmea_data, struct gps_data_struct *gps_data)
  */
 void *read_from_gps(void *arg)
 {
-    char *read_data = NULL;
+    char read_data[MAX_READ_SIZE];
     int read_data_len = 0;
 
     struct arg_struct *args = (struct arg_struct *)arg;
@@ -137,18 +136,18 @@ void *read_from_gps(void *arg)
 
     do
     {
-        read_data_len = uart_reads_chunk(&gps_device, &read_data, MAX_READ_SIZE); /* read char from serial port */
+        read_data_len = uart_reads_chunk(&gps_device, read_data, MAX_READ_SIZE); /* read char from serial port */
 
         if (read_data_len > 0)
         {
+            logger_info(GPS_LOG_MODULE_ID, "COMPLETE GPS DATA: %s\n", read_data);
+
             get_gps_data(read_data, &gps_data);
 
             /* update gps_data to cloud_data struct */
             pthread_mutex_lock(&cloud_data_gps_mutex);
             cloud_data->gps_data = gps_data;
             pthread_mutex_unlock(&cloud_data_gps_mutex);
-
-            free(read_data);
         }
     } while (1);
     uart_stop(&gps_device);

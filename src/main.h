@@ -7,6 +7,7 @@
 
 #include "serial_interface/serial_config.h"
 #include "cloud_server/cloud_server.h"
+#include "logger/logger.h"
 #include <stdbool.h>
 
 #ifndef MAIN_H_

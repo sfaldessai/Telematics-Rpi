@@ -18,6 +18,7 @@
 /* mutex to lock cloud_data struct for wirte */
 pthread_mutex_t cloud_data_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+#define CC_LOG_MODULE_ID 5
 #define MAX_READ_SIZE 32 /* max stm32 data length is 32 */
 
 /*
@@ -35,14 +36,13 @@ void get_client_controller_data(char *read_data, struct client_controller_data_s
 
     /* extracting required data from stm32 data sentence */
     stmc_data = strchr(read_data, COMMA);
-    client_controller_data->motion = (uint8_t) atoi(stmc_data + 1);
+    client_controller_data->motion = (uint8_t)atoi(stmc_data + 1);
 
     stmc_data = strchr(stmc_data + 1, COMMA);
-    client_controller_data->voltage = (float) atof(stmc_data + 1);
+    client_controller_data->voltage = (float)atof(stmc_data + 1);
 
     stmc_data = strchr(stmc_data + 1, COMMA);
-    client_controller_data->pto = (uint8_t) atoi(stmc_data + 1);
-
+    client_controller_data->pto = (uint8_t)atoi(stmc_data + 1);
 }
 
 /*
@@ -55,7 +55,7 @@ void get_client_controller_data(char *read_data, struct client_controller_data_s
  */
 void *read_from_client_controller(void *arg)
 {
-    char *read_data = NULL;
+    char read_data[MAX_READ_SIZE];
     int read_data_len = 0;
 
     struct arg_struct *args = (struct arg_struct *)arg;
@@ -67,10 +67,11 @@ void *read_from_client_controller(void *arg)
     {
 
         /* Reading data byte by byte */
-        read_data_len = uart_reads_chunk(&client_controller_device, &read_data, MAX_READ_SIZE);
+        read_data_len = uart_reads_chunk(&client_controller_device, read_data, MAX_READ_SIZE);
 
         if (read_data_len > 0)
         {
+            logger_info(CC_LOG_MODULE_ID, "COMPLETE STM32 DATA: %s\n", read_data);
             /*
              * Message protocol used in microcontroller:
              * "$STMC,<MOTION>,<VOLT>,<PTO>,#""
@@ -86,8 +87,6 @@ void *read_from_client_controller(void *arg)
                 cloud_data->client_controller_data = client_controller_data;
                 pthread_mutex_unlock(&cloud_data_mutex);
             }
-
-            free(read_data);
         }
     }
     uart_stop(&client_controller_device);

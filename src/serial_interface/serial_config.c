@@ -45,10 +45,13 @@ int uart_start(struct uart_device_struct *device, bool canonical)
 	int fd;
 	int rc;
 
+	logger_setup();
+
 	fd = open(device->file_name, O_RDWR | O_NOCTTY);
 	if (fd < 0)
 	{
-		printf("%s: failed to open UART device\r\n", __func__);
+		/* Error message with errno string (in this case must be 'Success')*/
+		logger_error(SERIAL_LOG_MODULE_ID, "Error: failed to open UART device - %s\r\n", __func__);
 		device->fd = fd;
 		return fd;
 	}
@@ -96,7 +99,7 @@ int uart_start(struct uart_device_struct *device, bool canonical)
 	rc = tcsetattr(fd, TCSANOW, tty);
 	if (rc)
 	{
-		printf("%s: failed to set attributes\r\n", __func__);
+		logger_error(SERIAL_LOG_MODULE_ID, "Error: failed to set attributes - %s\r\n", __func__);
 		return rc;
 	}
 
@@ -120,14 +123,14 @@ int uart_reads(struct uart_device_struct *device, char *buf, size_t buf_len)
 
 	if (device->fd < 0)
 	{
-		printf("%s: failed to open UART device\r\n", __func__);
+		logger_error(SERIAL_LOG_MODULE_ID, "failed to open UART device - %s\r\n", __func__);
 		return device->fd;
 	}
 
 	rc = read(device->fd, buf, buf_len);
 	if (rc < 0)
 	{
-		printf("%s: failed to read uart data\r\n", __func__);
+		logger_error(SERIAL_LOG_MODULE_ID, "failed to read uart data - %s\r\n", __func__);
 		return rc;
 	}
 
@@ -143,37 +146,25 @@ int uart_reads(struct uart_device_struct *device, char *buf, size_t buf_len)
  * 					 size_t (buffer size)
  * Output parameters: int
  */
-int uart_reads_chunk(struct uart_device_struct *device, char **buf, size_t buf_len)
+int uart_reads_chunk(struct uart_device_struct *device, char *buf, size_t buf_len)
 {
 	int rc;
-	char chunk_data[buf_len];
 
 	if (device->fd < 0)
 	{
-		printf("%s: failed to open UART device\r\n", __func__);
+		logger_error(SERIAL_LOG_MODULE_ID, "failed to open UART device - %s\r\n", __func__);
 		return device->fd;
 	}
 
-	rc = read(device->fd, chunk_data, buf_len);
+	rc = read(device->fd, buf, buf_len);
 
 	if (rc < 0)
 	{
-		printf("%s: failed to read uart data\r\n", __func__);
+		logger_error(SERIAL_LOG_MODULE_ID, "failed to read uart data - %s\r\n", __func__);
 		return rc;
 	}
 
-	chunk_data[rc] = '\0';
-
-	*buf = (char *)malloc(strlen(chunk_data) + 1); /* strcpy adds a null terminator character '\0' */
-
-	if (!*buf)
-	{
-		/* TODO: replace printf with logger */
-		printf("%s: failed to allocate buf memory\r\n", __func__);
-		return -ENOMEM;
-	}
-
-	strncpy(*buf, chunk_data, strlen(chunk_data));
+	buf[rc] = '\0';
 
 	return rc;
 }

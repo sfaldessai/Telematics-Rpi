@@ -7,10 +7,11 @@
 
 #include <stdio.h>
 #include "can_bus.h"
+#include "../logger/logger.h"
+
 
 void *read_from_can(void *arg)
 {
-    /* TODO */
     printf("%p", arg);
     return 0;
 }

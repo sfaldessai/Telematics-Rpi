@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include "cloud_server.h"
+#include "../logger/logger.h"
 
 /*
  * Name : write_to_cloud
@@ -19,14 +20,19 @@
 void *write_to_cloud(void *arg)
 {
     struct cloud_data_struct *cloud_data = (struct cloud_data_struct *)arg;
+    
+    /* Initializing logger */
+    logger_setup();
+
     while (1)
     {
+        logger_info(CLOUD_LOG_MODULE_ID, "\tmotion = %d | voltage = %f | pto = %d\n", cloud_data->client_controller_data.motion,
+                    cloud_data->client_controller_data.voltage, cloud_data->client_controller_data.pto);
+        logger_info(CLOUD_LOG_MODULE_ID, "\tLat: %.4f %c", cloud_data->gps_data.latitude, cloud_data->gps_data.lat_cardinal_sign);
+        logger_info(CLOUD_LOG_MODULE_ID, "\tLong: %.4f %c\n", cloud_data->gps_data.longitude, cloud_data->gps_data.long_cardinal_sign);
+        logger_info(CLOUD_LOG_MODULE_ID, "\tPDOP:%.2f\tHDOP:%.2f\tVDOP:%.2f\n", cloud_data->gps_data.pdop,
+                    cloud_data->gps_data.hdop, cloud_data->gps_data.vdop);
         sleep(2); /* Display data every 2 sec*/
-
-        printf("\n motion = %d | voltage = %f | pto = %d\n", cloud_data->client_controller_data.motion, cloud_data->client_controller_data.voltage, cloud_data->client_controller_data.pto);
-        printf("\nLat: %.4f %c", cloud_data->gps_data.latitude, cloud_data->gps_data.lat_cardinal_sign);
-        printf("\t Long: %.4f %c\n", cloud_data->gps_data.longitude, cloud_data->gps_data.long_cardinal_sign);
-        printf("\nPDOP:%.2f\tHDOP:%.2f\tVDOP:%.2f\n", cloud_data->gps_data.pdop, cloud_data->gps_data.hdop, cloud_data->gps_data.vdop);
     }
 }
 
