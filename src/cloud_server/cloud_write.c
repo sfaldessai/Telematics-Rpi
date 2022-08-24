@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <sqlite3.h>
 #include "cloud_server.h"
 #include "../logger/logger.h"
 
@@ -23,6 +24,14 @@ void *write_to_cloud(void *arg)
     
     /* Initializing logger */
     logger_setup();
+    int rc = db_setup();
+    if (rc) {
+        fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
+        return(0);
+    }
+    else {
+        create_table();
+    }
 
     while (1)
     {
@@ -62,4 +71,46 @@ void initialize_cloud_data(struct cloud_data_struct *cloud_data)
 
     cloud_data->gps_data = gps_data;
     cloud_data->client_controller_data = client_controller_data;
+}
+
+int db_setup() {
+    sqlite3* db;
+    char* err_msg = 0;
+
+    int rc = sqlite3_open("test.db", &db);
+
+    if (rc != SQLITE_OK) {
+
+        logger_error(CLOUD_LOG_MODULE_ID, "Cannot open database: %s\n", sqlite3_errmsg(db));
+        sqlite3_close(db);
+
+        return 1;
+    }
+    return rc;
+}
+
+void create_table() {
+    int result;
+    char* sql = "DROP TABLE IF EXISTS Telematics;"
+        "CREATE TABLE Telematics(Date Text,Time Text,Motion INT,Voltage Text,PTO INT);"
+        "INSERT INTO Telematics VALUES('2022.08.17','12:17:59.005', 1, '0.0000', 0);"
+        "INSERT INTO Telematics VALUES('2022.08.17','12:18:00.003', 1, '0.0000', 0);"
+        "INSERT INTO Telematics VALUES('2022.08.17','12:18:02.007', 1, '0.0000', 0);";
+
+    result = sqlite3_exec(db, sql, 0, 0, &err_msg);
+
+    if (result != SQLITE_OK) {
+
+        fprintf(stderr, "SQL error: %s\n", err_msg);
+
+        sqlite3_free(err_msg);
+        sqlite3_close(db);
+
+        return 1;
+    }
+    else {
+        logger_info(CLOUD_LOG_MODULE_ID, "Table created and data inserted successfully");
+    }
+
+    sqlite3_close(db);
 }
