@@ -13,6 +13,8 @@
 
 /* ODB2 PID contain a 17-character VIN */
 #define MAX_LEN_VIN 24
+#define VIN_LEN 17
+#define WMI_LEN 3
 #define MAX_LEN_SPEED_DATA 8
 #define MAX_LEN_SUPPORTED_DATA 32 
 
