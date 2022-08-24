@@ -1,4 +1,11 @@
-static char *manufacturers[1053] =
+#ifndef RESOURCE_H_
+#define RESOURCE_H_
+
+#define WMI_LIST_LEN 1053
+
+#define DEBUG
+
+static char *manufacturers[WMI_LIST_LEN] =
     {
         "4TL=Toyota",
         "JMG=Mazda",
@@ -1053,3 +1060,5 @@ static char *manufacturers[1053] =
         "JN1=Nissan",
         "5FU=Honda USA-Alabama",
         "5YJ=Tesla Motors"};
+
+#endif

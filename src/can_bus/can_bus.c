@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
 #include "can_bus.h"
 #include "../serial_interface/serial_config.h"
 #include "../main.h"
@@ -24,26 +23,27 @@ pthread_mutex_t can_bus_mutex = PTHREAD_MUTEX_INITIALIZER;
  * Name : get_manufaturer_detail
  * Descriptoin: The get_manufaturer_detail function is for fetching manufaturer detail & vehicle type.
  * Input parameters:
- *                  char *wmi : World manufaturer Identifier
+ *                  uint8_t wmi : World manufaturer Identifier
  * Output parameters: char * : manufaturer detail & vehicle type
  */
-char *get_manufaturer_detail(char *wmi)
+char *get_manufaturer_detail(uint8_t *wmi)
 {
-    for (size_t i = 0; i < strlen(manufacturers); i++)
+    for (size_t i = 0; i < WMI_LIST_LEN; i++)
     {
         uint8_t wmi_key[3];
         size_t index = 0;
-
+        
         char *manufacturer_detail = strchr(manufacturers[i], EQUALS_SIGN);
-        index = (int)(manufacturer_detail - manufacturers[i]);
 
-        strncpy(wmi_key, manufacturers[i], WMI_LEN);
+        strncpy(wmi_key, manufacturers[i], 3);
 
-        if (wmi == wmi_key)
+        if (strcmp(wmi, wmi_key))
         {
             return manufacturer_detail + 1;
         }
     }
+
+    return NULL;
 }
 
 /*
@@ -252,7 +252,7 @@ void *read_can_supported_pid(void *arg)
  * Output parameters: void
  */
 void read_from_can(void *arg, pthread_t *read_can_supported_thread, pthread_t *read_can_speed_thread, pthread_t *read_can_vin_thread)
-{
+{   
     /* Thread to fetch VIN. */
     pthread_create(read_can_vin_thread, NULL, &read_can_id_number, arg);
     /* Thread to fetch supported pid data. */

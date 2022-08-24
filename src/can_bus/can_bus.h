@@ -10,6 +10,7 @@
 
 #include <stdint.h>
 #include <pthread.h>
+#include <stdbool.h>
 
 /* ODB2 PID contain a 17-character VIN */
 #define MAX_LEN_VIN 24
@@ -29,5 +30,8 @@ struct can_data_struct
 
 /* pthread to display all serial data */
 void read_from_can(void *, pthread_t *, pthread_t *, pthread_t *);
+
+char *get_manufaturer_detail(uint8_t *);
+bool validate_VIN(char *);
 
 #endif
