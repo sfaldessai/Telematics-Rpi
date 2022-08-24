@@ -8,27 +8,54 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <termios.h>
+#include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
+#include <getopt.h>
+#include <ctype.h>
 #include "main.h"
 
-#define CLIENT_CONTROLLER "/dev/ttyACM1"
+#define MAX_READ_SIZE 1
+#define CLIENT_CONTROLLER "/dev/ttyACM0"
 #define GPS_MODULE "/dev/ttyUSB0"
-#define CAN_MODULE "/dev/ttyACM0"
+#define CAN_MODULE "/dev/ttyUSB1"
+int module_flag = 1;
+int write_to_file = 0;
 
-int main(void)
+
+int main(int argc, char *argv[])
 {
     struct uart_device_struct client_controller_device, gps_device, can_bus_device;
     struct cloud_data_struct cloud_data;
     struct arg_struct client_controller_args, gps_args, can_bus_arg;
-    pthread_t client_controller_read_thread, gps_read_thread, serial_write_thread, CAN_read_thread;
+    pthread_t client_controller_read_thread, gps_read_thread, serial_write_thread;
     pthread_t read_can_supported_thread, read_can_speed_thread, read_can_vin_thread;
+    int opt;
 
+    client_controller_device.file_name = "/dev/ttyACM0";
+    gps_device.file_name = "/dev/ttyUSB0"; /* connected neo gps module to rapi using UART to USB converter */
+    client_controller_device.baud_rate = B115200;
+    gps_device.baud_rate = B9600;
     /* uart set-up*/
     uart_setup(&client_controller_device, CLIENT_CONTROLLER, B115200, true);
     uart_setup(&gps_device, GPS_MODULE, B9600, true);
     uart_setup(&can_bus_device, CAN_MODULE, B115200, true);
 
+    while ((opt = getopt(argc, argv, "m:f:")) != -1)
+    {
+        switch (opt)
+        {
+        case 'm':
+            module_flag = atoi(optarg);
+            break;
+        case 'f':
+            write_to_file = atoi(optarg);;
+            break;
+        default:
+            break;
+        }
+    }
+    
     /* Pointer char initializing to null*/
     initialize_cloud_data(&cloud_data);
 

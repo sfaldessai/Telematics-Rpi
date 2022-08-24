@@ -8,7 +8,9 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
 #include "cloud_server.h"
+#include "../logger/logger.h"
 
 /*
  * Name : write_to_cloud
@@ -20,17 +22,21 @@
 void *write_to_cloud(void *arg)
 {
     struct cloud_data_struct *cloud_data = (struct cloud_data_struct *)arg;
+    
+    /* Initializing logger */
+    logger_setup();
+
     while (1)
     {
+        logger_info(CLOUD_LOG_MODULE_ID, "\tVIN = %s | SPEED = %d | SUPPORTED PIDs = %d\n", cloud_data->can_data.vin,
+                    cloud_data->can_data.speed, cloud_data->can_data.supported_pids);
+        logger_info(CLOUD_LOG_MODULE_ID, "\tMOTION = %d | VOLTAGE = %f | PTO = %d\n", cloud_data->client_controller_data.motion,
+                    cloud_data->client_controller_data.voltage, cloud_data->client_controller_data.pto);
+        logger_info(CLOUD_LOG_MODULE_ID, "\tLAT: %.4f %c", cloud_data->gps_data.latitude, cloud_data->gps_data.lat_cardinal_sign);
+        logger_info(CLOUD_LOG_MODULE_ID, "\tLONG: %.4f %c\n", cloud_data->gps_data.longitude, cloud_data->gps_data.long_cardinal_sign);
+        logger_info(CLOUD_LOG_MODULE_ID, "\tPDOP:%.2f\tHDOP:%.2f\tVDOP:%.2f\n", cloud_data->gps_data.pdop,
+                    cloud_data->gps_data.hdop, cloud_data->gps_data.vdop);
         sleep(2); /* Display data every 2 sec*/
-
-        printf("\n#################################### TELEMATIC DATA####################################\n");
-        printf("\nVIN = %s | SPEED = %d | SUPPORTED PIDs = %d \n", cloud_data->can_data.vin, cloud_data->can_data.speed, cloud_data->can_data.supported_pids);
-        printf("\nMOTION = %d | VOLTAGE = %f | PTO = %d\n", cloud_data->client_controller_data.motion, cloud_data->client_controller_data.voltage, cloud_data->client_controller_data.pto);
-        printf("\nLAT: %.4f %c", cloud_data->gps_data.latitude, cloud_data->gps_data.lat_cardinal_sign);
-        printf("\nLONG: %.4f %c\n", cloud_data->gps_data.longitude, cloud_data->gps_data.long_cardinal_sign);
-        printf("\nPDOP:%.2f\tHDOP:%.2f\tVDOP:%.2f\n", cloud_data->gps_data.pdop, cloud_data->gps_data.hdop, cloud_data->gps_data.vdop);
-        printf("\n#################################### END ##############################################\n");
     }
 }
 
@@ -59,6 +65,7 @@ void initialize_cloud_data(struct cloud_data_struct *cloud_data)
     client_controller_data.motion = 0;
     client_controller_data.voltage = 0.0;
 
+    memset(can_data.vin, '\0', MAX_LEN_VIN);
     can_data.speed = 0;
     can_data.supported_pids = 0;
 

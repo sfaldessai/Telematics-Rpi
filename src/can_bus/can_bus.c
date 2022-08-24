@@ -11,6 +11,7 @@
 #include "can_bus.h"
 #include "../serial_interface/serial_config.h"
 #include "../main.h"
+#include "../logger/logger.h"
 
 /* mutex to lock cloud_data struct for wirte */
 pthread_mutex_t can_bus_mutex = PTHREAD_MUTEX_INITIALIZER;

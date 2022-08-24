@@ -12,6 +12,8 @@
 
 #define DEBUG
 
+#include <stdint.h>
+
 /* client_controller_data_struct struct to hold STM32 data*/
 struct client_controller_data_struct
 {
