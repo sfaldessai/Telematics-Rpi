@@ -30,11 +30,12 @@ char *get_manufaturer_detail(uint8_t *wmi)
 {
     for (size_t i = 0; i < WMI_LIST_LEN; i++)
     {
-        char wmi_key[WMI_LEN];
+        char wmi_key[WMI_LEN + 1];
 
         char *manufacturer_detail = strchr(manufacturers[i], EQUALS_SIGN);
 
-        strncpy((char *)wmi_key, manufacturers[i], 3);
+        strncpy(wmi_key, manufacturers[i], 3);
+        wmi_key[WMI_LEN + 1] = '\0';
 
         int result = strcmp((char *)wmi, wmi_key);
         if (result == 0)

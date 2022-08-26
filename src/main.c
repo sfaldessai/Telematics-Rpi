@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
 {
     struct uart_device_struct client_controller_device, gps_device, can_bus_device;
     struct cloud_data_struct cloud_data;
-    struct arg_struct client_controller_args, gps_args, can_bus_arg;
+    struct arg_struct client_controller_args, gps_args;
     pthread_t client_controller_read_thread, gps_read_thread, serial_write_thread;
     pthread_t read_can_supported_thread, read_can_speed_thread, read_can_vin_thread;
     int opt;
