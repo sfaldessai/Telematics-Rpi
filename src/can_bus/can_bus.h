@@ -17,7 +17,7 @@
 #define VIN_LEN 17
 #define WMI_LEN 3
 #define MAX_LEN_SPEED_DATA 8
-#define MAX_LEN_SUPPORTED_DATA 32 
+#define MAX_LEN_SUPPORTED_DATA 32
 
 #define DEBUG
 
@@ -32,6 +32,6 @@ struct can_data_struct
 void read_from_can(void *, pthread_t *, pthread_t *, pthread_t *);
 
 char *get_manufaturer_detail(uint8_t *);
-bool validate_VIN(char *);
+bool validate_vin(char *);
 
 #endif

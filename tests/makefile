@@ -11,10 +11,11 @@ CPPUTEST_HOME = cpputest
 CPPUTEST_USE_EXTENSIONS = Y
 CPP_PLATFORM = Gcc
 
+LD_LIBRARIES = -L$(CPPUTEST_HOME)/lib -pthread -lpthread
 
 SRC_DIRS = $(wildcard ./../src/*)
 
-TEST_SRC_DIRS = ./ ./gps_module/ ./client_controller/
+TEST_SRC_DIRS = ./ ./gps_module/ ./client_controller/ ./can_bus/
 
 INCLUDE_DIRS =\
   .\

@@ -30,14 +30,14 @@ char *get_manufaturer_detail(uint8_t *wmi)
 {
     for (size_t i = 0; i < WMI_LIST_LEN; i++)
     {
-        uint8_t wmi_key[3];
-        size_t index = 0;
-        
+        char wmi_key[WMI_LEN];
+
         char *manufacturer_detail = strchr(manufacturers[i], EQUALS_SIGN);
 
-        strncpy(wmi_key, manufacturers[i], 3);
+        strncpy((char *)wmi_key, manufacturers[i], 3);
 
-        if (strcmp(wmi, wmi_key))
+        int result = strcmp((char *)wmi, wmi_key);
+        if (result == 0)
         {
             return manufacturer_detail + 1;
         }
@@ -47,27 +47,27 @@ char *get_manufaturer_detail(uint8_t *wmi)
 }
 
 /*
- * Name : validate_VIN
- * Descriptoin: The validate_VIN function is for validating VIN.
+ * Name : validate_vin
+ * Descriptoin: The validate_vin function is for validating VIN.
  * Input parameters:
  *                  char *vin : Vehicle Identification Number
  * Output parameters: bool : true/false
  */
-bool validate_VIN(char *vin)
+bool validate_vin(char *vin)
 {
     if (strlen(vin) != VIN_LEN)
     {
         return false;
     }
     /* VIN Numerical counterparts */
-    static const int values[] = {1, 2, 3, 4, 5, 6, 7, 8, 0, 1, 2, 3, 4, 5, 0, 7, 0, 9, 2, 3, 4, 5, 6, 7, 8, 9};
+    static const size_t values[] = {1, 2, 3, 4, 5, 6, 7, 8, 0, 1, 2, 3, 4, 5, 0, 7, 0, 9, 2, 3, 4, 5, 6, 7, 8, 9};
     /* Weights */
-    static const int weights[] = {8, 7, 6, 5, 4, 3, 2, 10, 0, 9, 8, 7, 6, 5, 4, 3, 2};
+    static const size_t weights[] = {8, 7, 6, 5, 4, 3, 2, 10, 0, 9, 8, 7, 6, 5, 4, 3, 2};
 
-    int sum = 0;
-    for (int i = 0; i < VIN_LEN; i++)
+    size_t sum = 0;
+    for (size_t i = 0; i < VIN_LEN; i++)
     {
-        int value;
+        size_t value;
         char vin_character = vin[i];
 
         /* Numerical counterparts for VIN characters */
@@ -103,8 +103,9 @@ bool validate_VIN(char *vin)
 
     /* The check digit is the character on position 9 and can be a number from 0 to 9 and X (for 10) */
     char check_digit = vin[8];
+    size_t check_digit_value = (size_t)check_digit - 48;
 
-    if ((sum == 10 && check_digit == 'X') || (sum == (check_digit - 48)))
+    if ((sum == 10 && check_digit == 'X') || (sum == check_digit_value))
     {
         return true;
     }
@@ -120,35 +121,28 @@ bool validate_VIN(char *vin)
  * Descriptoin: The read_can_id_number function is for fetching VIN PID data from the CAN module
  *
  * Input parameters:
- *                  void *arg : uart_device_struct can_device and cloud_data_struct
+ *                  void *arg : cloud_data_struct to update VIN data
  *
  * Output parameters: void
  */
 void *read_can_id_number(void *arg)
 {
+    struct cloud_data_struct *cloud_data = (struct cloud_data_struct *)arg;
+
     /* TBD: read from can module once we get CAN module. Hardcaded for testing*/
     char *read_data = "A0000000000000001";
 
-    struct arg_struct *args = (struct arg_struct *)arg;
-    struct uart_device_struct can_device = args->uart_device;
-    struct cloud_data_struct *cloud_data = args->cloud_data;
-
     /*
      *
-     * TBD: Write function to Request the CAN module for PID 0x02 VIN data.
+     * TBD: Write a function to Request the CAN module or virtual CAN for PID 0x02 VIN data,
+     * and get respose in read_data
      *
-     * uart_writes(can_device, "0x02\r\n");
-     */
-
-    /*
-     *
-     * TBD: Write function to Receive the VIN data from CAN module.
-     *
-     * uart_reads_chunk(can_device, &read_data, MAX_LEN_VIN);
      */
 
     /* Copy 17 byte VIN data to cloud struct member for displaying on screen from deiplay thread */
-    strncpy(cloud_data->can_data.vin, read_data, MAX_LEN_VIN);
+    strncpy((char *)cloud_data->can_data.vin, read_data, MAX_LEN_VIN);
+
+    return 0;
 }
 
 /*
@@ -157,35 +151,25 @@ void *read_can_id_number(void *arg)
  * Descriptoin: The read_can_speed_pid function is for fetching Vehicle speed PID data from the CAN module
  *
  * Input parameters:
- *                  void *arg : uart_device_struct can_device and cloud_data_struct
+ *                  void *arg : cloud_data_struct to update vehicle speed data
  *
  * Output parameters: void
  */
 void *read_can_speed_pid(void *arg)
 {
+    struct cloud_data_struct *cloud_data = (struct cloud_data_struct *)arg;
+
     /* TBD: read from can once we get CAN module. Hardcaded for testing*/
     char *read_data = "85";
-
-    struct arg_struct *args = (struct arg_struct *)arg;
-    struct uart_device_struct can_device = args->uart_device;
-    struct cloud_data_struct *cloud_data = args->cloud_data;
 
     while (1)
     {
         /*
          *
-         * TBD: Write function to Request the CAN module for PID 0x0d Vehicle speed data.
+         * TBD: Write a function to Request the CAN module or virtual CAN for PID 0x0d vehicle speed data,
+         * and get respose in read_data
          *
-         * uart_writes(&can_device, "0x0d\r\n");
          */
-
-        /*
-         *
-         * TBD: Write function to Receive the Vehicle speed data from CAN module.
-         *
-         * uart_reads_chunk(&can_device, &read_data, MAX_LEN_SPEED_DATA);
-         */
-
         /* Copy 1 byte (0-255) Vehicle speed data to cloud struct member for displaying on screen from deiplay thread */
 
         cloud_data->can_data.speed = (uint8_t)atoi(read_data);
@@ -201,33 +185,24 @@ void *read_can_speed_pid(void *arg)
  * Descriptoin: The read_can_supported_pid function is for fetching supported PID data from the CAN module
  *
  * Input parameters:
- *                  void *arg : uart_device_struct can_device and cloud_data_struct
+ *                  void *arg : cloud_data_struct to update supported pid data
  *
  * Output parameters: void
  */
 void *read_can_supported_pid(void *arg)
 {
+    struct cloud_data_struct *cloud_data = (struct cloud_data_struct *)arg;
+
     /* TBD: read from can once we get CAN module. Hardcaded for testing*/
     char *read_data = "2147483647";
-
-    struct arg_struct *args = (struct arg_struct *)arg;
-    struct uart_device_struct can_device = args->uart_device;
-    struct cloud_data_struct *cloud_data = args->cloud_data;
 
     while (1)
     {
         /*
          *
-         * TBD: Write function to Request the CAN module for PID 0x00 Vehicle Supported PID data.
+         * TBD: Write a function to Request the CAN module or virtual CAN for PID 0x00 Vehicle Supported PID data,
+         * and get respose in read_data
          *
-         * uart_writes(&can_device, "0x00\r\n");
-         */
-
-        /*
-         *
-         * TBD: Write function to Receive the Vehicle Supported PID data from CAN module.
-         *
-         * uart_reads_chunk(&can_device, &read_data, MAX_LEN_SPEED_DATA);
          */
 
         /* Copy 32 byte Vehicle Supported PID data to cloud struct member for displaying on screen from deiplay thread */
@@ -252,7 +227,7 @@ void *read_can_supported_pid(void *arg)
  * Output parameters: void
  */
 void read_from_can(void *arg, pthread_t *read_can_supported_thread, pthread_t *read_can_speed_thread, pthread_t *read_can_vin_thread)
-{   
+{
     /* Thread to fetch VIN. */
     pthread_create(read_can_vin_thread, NULL, &read_can_id_number, arg);
     /* Thread to fetch supported pid data. */

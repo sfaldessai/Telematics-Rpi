@@ -16,12 +16,9 @@
 #include "main.h"
 
 #define MAX_READ_SIZE 1
-#define CLIENT_CONTROLLER "/dev/ttyACM0"
+#define CLIENT_CONTROLLER "/dev/ttyACM1"
 #define GPS_MODULE "/dev/ttyUSB0"
-#define CAN_MODULE "/dev/ttyUSB1"
-int module_flag = 1;
-int write_to_file = 0;
-
+#define CAN_MODULE "/dev/ttyACM0"
 
 int main(int argc, char *argv[])
 {
@@ -49,13 +46,14 @@ int main(int argc, char *argv[])
             module_flag = atoi(optarg);
             break;
         case 'f':
-            write_to_file = atoi(optarg);;
+            write_to_file = atoi(optarg);
+            ;
             break;
         default:
             break;
         }
     }
-    
+
     /* Pointer char initializing to null*/
     initialize_cloud_data(&cloud_data);
 
@@ -78,9 +76,7 @@ int main(int argc, char *argv[])
     pthread_create(&serial_write_thread, NULL, &write_to_cloud, &cloud_data);
 
     /* CAN Module Read Thread */
-    can_bus_arg.uart_device = can_bus_device;
-    can_bus_arg.cloud_data = &cloud_data;
-    read_from_can(&can_bus_arg, &read_can_supported_thread, &read_can_speed_thread, &read_can_vin_thread);
+    read_from_can(&cloud_data, &read_can_supported_thread, &read_can_speed_thread, &read_can_vin_thread);
 
     /* Thread Creation End */
 

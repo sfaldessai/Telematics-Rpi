@@ -20,9 +20,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include "logger.h"
-
-extern int module_flag;
-extern int write_to_file;
+#include "./../global/global.h"
 
 #ifndef PTHREAD_MUTEX_RECURSIVE
 #define PTHREAD_MUTEX_RECURSIVE PTHREAD_MUTEX_RECURSIVE_NP
@@ -30,7 +28,7 @@ extern int write_to_file;
 
 typedef struct logger
 {
-    uint8_t nTdSafe : 1;
+    uint8_t nTdSafe;
     pthread_mutex_t mutex;
     logger_config_t config;
 } logger_t;
@@ -200,9 +198,10 @@ static void logger_display_message(const logger_context_t *pCtx, const char *pIn
     if (pCfg->logCallback != NULL)
     {
         size_t nLength = 0;
-        char *pLog = NULL;
+        char *pLog = malloc(strlen(pInfo) + strlen(pSeparator) + strlen(pMessage) + strlen(pReset) + strlen(pNewLine) + 1);
+        ;
 
-        nLength += (size_t)asprintf(&pLog, "%s%s%s%s%s", pInfo, pSeparator, pMessage, pReset, pNewLine);
+        nLength += (size_t)sprintf(pLog, "%s%s%s%s%s", pInfo, pSeparator, pMessage, pReset, pNewLine);
         if (pLog != NULL)
         {
             nCbVal = pCfg->logCallback(pLog, nLength, pCtx->eFlag, pCfg->pCallbackCtx);
@@ -261,29 +260,6 @@ static int logger_create_info(const logger_context_t *pCtx, char *pOut, size_t n
     return snprintf(pOut, nSize, "%s%s%s%s", pColor, sTid, sDate, sTag);
 }
 
-static void logger_display_heap(const logger_context_t *pCtx, va_list args)
-{
-    size_t nBytes = 0;
-    char *pMessage = NULL;
-    char loggerInfo[LOGGER_INFO_MAX];
-
-    nBytes += (size_t)vasprintf(&pMessage, pCtx->pFormat, args);
-    va_end(args);
-
-    if (pMessage == NULL)
-    {
-        printf("<%s:%d> %s<error>%s %s: Can not allocate memory for input: errno(%d)\n",
-               __FILE__, __LINE__, LOGGER_COLOR_RED, LOGGER_COLOR_RESET, __func__, errno);
-
-        return;
-    }
-
-    int nLength = logger_create_info(pCtx, loggerInfo, sizeof(loggerInfo));
-    logger_display_message(pCtx, loggerInfo, nLength, pMessage);
-    if (pMessage != NULL)
-        free(pMessage);
-}
-
 static void logger_display_stack(const logger_context_t *pCtx, va_list args)
 {
     char sMessage[LOGGER_MESSAGE_MAX];
@@ -313,7 +289,7 @@ void logger_display(logger_flag_t eFlag, uint8_t nNewLine, int inLogModule, cons
         ctx.nFullColor = pCfg->eColorFormat == LOGGER_COLORING_FULL ? 1 : 0;
 
         void (*logger_display_args)(const logger_context_t *pCtx, va_list args);
-        logger_display_args = pCfg->nUseHeap ? logger_display_heap : logger_display_stack;
+        logger_display_args = logger_display_stack;
 
         va_list args;
         va_start(args, pFormat);
@@ -422,7 +398,7 @@ void logger_init(const char *pName, uint16_t nFlags, uint8_t nTdSafe)
     }
 
     /* Initialize mutex */
-    g_logger.nTdSafe =  nTdSafe;
+    g_logger.nTdSafe = nTdSafe;
     logger_sync_init(&g_logger);
 }
 
