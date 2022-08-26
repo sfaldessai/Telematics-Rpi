@@ -9,7 +9,7 @@ SERIAL_INTERFACE_DIR = $(SRC_DIR)/serial_interface
 LOGGER_MODULE_DIR = $(SRC_DIR)/logger
 
 CFLAGS = -g -O2 -Wall -I
-LIBS = -lpthread
+LIBS = -lpthread -lsqlite3
 
 
 OUT=telematic

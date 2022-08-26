@@ -24,13 +24,15 @@ void *write_to_cloud(void *arg)
     
     /* Initializing logger */
     logger_setup();
-    int rc = db_setup();
+
+    sqlite3 *db;
+    int rc = db_setup(&db);
     if (rc) {
         fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
         return(0);
     }
     else {
-        create_table();
+        create_table(&db);
     }
 
     while (1)
@@ -73,8 +75,8 @@ void initialize_cloud_data(struct cloud_data_struct *cloud_data)
     cloud_data->client_controller_data = client_controller_data;
 }
 
-int db_setup() {
-    sqlite3* db;
+int db_setup(sqlite3 *db) {
+   
     char* err_msg = 0;
 
     int rc = sqlite3_open("test.db", &db);
@@ -89,7 +91,8 @@ int db_setup() {
     return rc;
 }
 
-void create_table() {
+void create_table(sqlite3 *db) {
+    char *err_msg = 0;
     int result;
     char* sql = "DROP TABLE IF EXISTS Telematics;"
         "CREATE TABLE Telematics(Date Text,Time Text,Motion INT,Voltage Text,PTO INT);"
