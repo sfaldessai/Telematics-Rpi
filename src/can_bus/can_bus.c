@@ -16,9 +16,6 @@
 
 #define EQUALS_SIGN 0x3D
 
-/* mutex to lock cloud_data struct for wirte */
-pthread_mutex_t can_bus_mutex = PTHREAD_MUTEX_INITIALIZER;
-
 /*
  * Name : get_manufaturer_detail
  * Descriptoin: The get_manufaturer_detail function is for fetching manufaturer detail & vehicle type.
@@ -220,7 +217,7 @@ void *read_can_supported_pid(void *arg)
  * Descriptoin: The read_from_can function is for fetching CAN data which contains VIN, SPEED, and supported PID data
  *
  * Input parameters:
- *                  void *arg : uart_device_struct can_device and cloud_data_struct
+ *                  void *arg : cloud_data_struct to update CAN data
  *                  pthread_t *read_can_supported_thread
  *                  pthread_t *read_can_speed_thread
  *                  pthread_t *read_can_vin_thread

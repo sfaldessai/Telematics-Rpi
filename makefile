@@ -32,7 +32,7 @@ client_controller.o:
 	gcc -c $(CFLAGS) $(CLIENT_CONTROLLER_DIR) $(CLIENT_CONTROLLER_DIR)/client_controller.c -o $(SRC_DIR)/client_controller.o $(LIBS)
 
 can_bus.o:
-	gcc -c -I$(CAN_BUS) $(CAN_BUS)/can_bus.c -o $(SRC_DIR)/can_bus.o -lpthread
+	gcc -c -I$(CAN_BUS) $(CAN_BUS)/can_bus.c -o $(SRC_DIR)/can_bus.o $(LIBS)
 	
 cloud_write.o:
 	gcc -c $(CFLAGS) $(CLOUD_SERVER_DIR) $(CLOUD_SERVER_DIR)/cloud_write.c -o $(SRC_DIR)/cloud_write.o $(LIBS)
