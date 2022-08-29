@@ -16,6 +16,8 @@
 
 #define EQUALS_SIGN 0x3D
 
+int sockfd = 0;
+
 /*
  * Name : get_manufaturer_detail
  * Descriptoin: The get_manufaturer_detail function is for fetching manufaturer detail & vehicle type.
@@ -155,6 +157,7 @@ void *read_can_id_number(void *arg)
  */
 void *read_can_speed_pid(void *arg)
 {
+    struct can_frame frame, request_frame;
     struct cloud_data_struct *cloud_data = (struct cloud_data_struct *)arg;
 
     /* TBD: read from can once we get CAN module. Hardcaded for testing*/
@@ -170,11 +173,23 @@ void *read_can_speed_pid(void *arg)
          */
         /* Copy 1 byte (0-255) Vehicle speed data to cloud struct member for displaying on screen from deiplay thread */
 
-        cloud_data->can_data.speed = (uint8_t)atoi(read_data);
+        get_request_frame(&request_frame, SPEED_PID);
+        transmit_can_data(sockfd, request_frame);
+        sleep(0.5);
+        receive_can_data(sockfd, &frame);
+
+        logger_info(CAN_LOG_MODULE_ID, "0x%03X [%d]  %02X %02X %02X %02X %02X %02X %02X %02X \n\n",
+                    frame.can_id, frame.can_dlc, frame.data[0], frame.data[1], frame.data[2],
+                    frame.data[3], frame.data[4], frame.data[5], frame.data[6], frame.data[7]);
+                    
+        cloud_data->can_data.speed = (uint8_t) frame.data[3];
+
+        logger_info(CAN_LOG_MODULE_ID, "CAN Vehicle Speed: %d",cloud_data->can_data.speed);
 
         /* request next data after 1sec */
         sleep(1);
     }
+    close_socket(&sockfd);
 }
 
 /*
@@ -189,6 +204,7 @@ void *read_can_speed_pid(void *arg)
  */
 void *read_can_supported_pid(void *arg)
 {
+    struct can_frame frame, request_frame;
     struct cloud_data_struct *cloud_data = (struct cloud_data_struct *)arg;
 
     /* TBD: read from can once we get CAN module. Hardcaded for testing*/
@@ -203,12 +219,22 @@ void *read_can_supported_pid(void *arg)
          *
          */
 
+        get_request_frame(&request_frame, SUPPORTED_PID);
+        transmit_can_data(sockfd, request_frame);
+        sleep(0.5);
+        receive_can_data(sockfd, &frame);
+
+        logger_info(CAN_LOG_MODULE_ID, "\n0x%03X [%d]  %02X %02X %02X %02X %02X %02X %02X %02X",
+                    frame.can_id, frame.can_dlc, frame.data[0], frame.data[1], frame.data[2],
+                    frame.data[3], frame.data[4], frame.data[5], frame.data[6], frame.data[7]);
+
         /* Copy 32 byte Vehicle Supported PID data to cloud struct member for displaying on screen from deiplay thread */
         cloud_data->can_data.supported_pids = (uint32_t)atoi(read_data);
 
         /* request next data after 30sec */
         sleep(30);
     }
+    close_socket(&sockfd);
 }
 
 /*
@@ -226,6 +252,9 @@ void *read_can_supported_pid(void *arg)
  */
 void read_from_can(void *arg, pthread_t *read_can_supported_thread, pthread_t *read_can_speed_thread, pthread_t *read_can_vin_thread)
 {
+
+    setup_can_socket(&sockfd);
+
     /* Thread to fetch VIN. */
     pthread_create(read_can_vin_thread, NULL, &read_can_id_number, arg);
     /* Thread to fetch supported pid data. */
