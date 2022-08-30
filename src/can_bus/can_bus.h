@@ -29,14 +29,19 @@
 #define SUPPORTED_PID 0x00
 #define SPEED_PID 0x0D
 #define VIN_PID 0x02
+#define CAN_REQUEST_ID 0x7DF
 #define VIN_MODE 0x09
 #define LIVE_DATA_MODE 0x01
+#define CAN_EMPTY_DATA 0xAA
+
+
 #define CAN_FILE "vcan0"
 #define CAN_REQUEST "CAN REQUEST"
 #define CAN_RESPONSE "CAN RESPONSE"
 #define VIN_DATA_FRAME 3
 #define SPEED_DATA_FRAME 1
 #define SUPPORTED_DATA_FRAME 1
+#define CAN_FRAME_LENGTH 8
 
 #define DEBUG
 

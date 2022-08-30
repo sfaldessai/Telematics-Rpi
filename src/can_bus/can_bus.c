@@ -166,7 +166,7 @@ void *read_can_id_number(void *arg)
     struct cloud_data_struct *cloud_data = (struct cloud_data_struct *)arg;
 
     /* TBD: read from can module once we get CAN module. Hardcaded for testing*/
-    char *read_data = "A0000000000000001";
+    char read_data[VIN_LEN];
 
     /* prepare CAN request frame */
     get_request_frame(&request_frame, VIN_PID, VIN_MODE);
@@ -174,7 +174,23 @@ void *read_can_id_number(void *arg)
     /* Send Request and get response for PID 0x02 */
     can_request_response(vin_frame, VIN_DATA_FRAME, request_frame);
 
+    size_t j = 0;
     /* TODO: convert vin bytes to decimal and assign to cloud_data->can_data.vin */
+    for (size_t i = 5; i < CAN_FRAME_LENGTH; i++)
+    {
+        read_data[j] = (char) vin_frame[0].data[i];
+        j = j + 1;
+    }
+    for (size_t i = 1; i < CAN_FRAME_LENGTH; i++)
+    {
+        read_data[j] = (char) vin_frame[1].data[i];
+        j = j + 1;
+    }
+    for (size_t i = 1; i < CAN_FRAME_LENGTH; i++)
+    {
+        read_data[j] = (char) vin_frame[2].data[i];
+        j = j + 1;
+    }
 
     /* Copy 17 byte VIN data to cloud struct member for displaying on screen from deiplay thread */
     strncpy((char *)cloud_data->can_data.vin, read_data, MAX_LEN_VIN);
@@ -213,7 +229,7 @@ void *read_can_speed_pid(void *arg)
         if (speed_frame[0].data[2] == SPEED_PID)
         {
             cloud_data->can_data.speed = (uint8_t)speed_frame[0].data[3];
-            
+
             logger_info(CAN_LOG_MODULE_ID, "CAN Vehicle Speed: %d", cloud_data->can_data.speed);
         }
 

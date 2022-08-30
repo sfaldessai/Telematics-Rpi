@@ -21,9 +21,9 @@
 void get_request_frame(struct can_frame *request_frame, int pid, int mode)
 {
 	/* can request ID: 0x7DF for all request*/
-	request_frame->can_id = 0x7DF;
+	request_frame->can_id = CAN_REQUEST_ID;
 	/* Data length code: 0 .. 8 */
-	request_frame->can_dlc = 8;
+	request_frame->can_dlc = CAN_FRAME_LENGTH;
 
 	/* CAN Data Fields */
 	/* #bytes using 0x02 for all PIDs */
@@ -34,7 +34,7 @@ void get_request_frame(struct can_frame *request_frame, int pid, int mode)
 	 * 0x01 : Show Current Data - for speed and supported PID
 	 * 0x09 : Request vehicle information
 	 */
-	request_frame->data[1] = 0x01;
+	request_frame->data[1] = mode;
 	/* PID
 	 * 0x00 for supported pids
 	 * 0x0D for speed
@@ -43,11 +43,11 @@ void get_request_frame(struct can_frame *request_frame, int pid, int mode)
 	request_frame->data[2] = pid;
 
 	/* Below bytes are not used and set to 0xAA */
-	request_frame->data[3] = 0xAA;
-	request_frame->data[4] = 0xAA;
-	request_frame->data[5] = 0xAA;
-	request_frame->data[6] = 0xAA;
-	request_frame->data[7] = 0xAA;
+	request_frame->data[3] = CAN_EMPTY_DATA;
+	request_frame->data[4] = CAN_EMPTY_DATA;
+	request_frame->data[5] = CAN_EMPTY_DATA;
+	request_frame->data[6] = CAN_EMPTY_DATA;
+	request_frame->data[7] = CAN_EMPTY_DATA;
 }
 
 /*
