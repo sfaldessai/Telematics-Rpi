@@ -7,6 +7,7 @@ CLOUD_SERVER_DIR = $(SRC_DIR)/cloud_server
 GPS_MODULE_DIR = $(SRC_DIR)/gps_module
 SERIAL_INTERFACE_DIR = $(SRC_DIR)/serial_interface
 LOGGER_MODULE_DIR = $(SRC_DIR)/logger
+DB_MODULE_DIR = $(SRC_DIR)/database
 
 CFLAGS = -g -O2 -Wall -I
 LIBS = -lpthread -lsqlite3
@@ -29,7 +30,10 @@ client_controller.o:
 cloud_write.o:
 	gcc -c $(CFLAGS) $(CLOUD_SERVER_DIR) $(CLOUD_SERVER_DIR)/cloud_write.c -o $(SRC_DIR)/cloud_write.o $(LIBS)
 
-main: serial_interface.o gps_module.o client_controller.o cloud_write.o logger.o
+db_handler.o:
+	gcc -c $(CFLAGS) $(DB_MODULE_DIR) $(DB_MODULE_DIR)/db_handler.c -o $(SRC_DIR)/db_handler.o $(LIBS)
+
+main: serial_interface.o gps_module.o client_controller.o cloud_write.o logger.o db_handler.o
 	gcc $(CFLAGS) $(SRC_DIR) $(SRC_DIR)/*.o $(SRC_DIR)/main.c -o $(OUT) $(LIBS)
 
 clean:

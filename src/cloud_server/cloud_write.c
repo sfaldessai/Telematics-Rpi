@@ -10,6 +10,7 @@
 #include <sqlite3.h>
 #include "cloud_server.h"
 #include "../logger/logger.h"
+#include "../database/db_handler.h"
 
 /*
  * Name : write_to_cloud
@@ -25,17 +26,7 @@ void *write_to_cloud(void *arg)
     /* Initializing logger */
     logger_setup();
 
-    sqlite3 *db;
-    int rc = db_setup(&db);
-    if (rc)
-    {
-        fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
-        return (0);
-    }
-    else
-    {
-        create_table();
-    }
+    initialize_db();
 
     while (1)
     {
@@ -45,6 +36,7 @@ void *write_to_cloud(void *arg)
         logger_info(CLOUD_LOG_MODULE_ID, "\tLong: %.4f %c\n", cloud_data->gps_data.longitude, cloud_data->gps_data.long_cardinal_sign);
         logger_info(CLOUD_LOG_MODULE_ID, "\tPDOP:%.2f\tHDOP:%.2f\tVDOP:%.2f\n", cloud_data->gps_data.pdop,
                     cloud_data->gps_data.hdop, cloud_data->gps_data.vdop);
+        insert_telematics_data(&cloud_data);
         sleep(2); /* Display data every 2 sec*/
     }
 }
@@ -77,52 +69,4 @@ void initialize_cloud_data(struct cloud_data_struct *cloud_data)
     cloud_data->client_controller_data = client_controller_data;
 }
 
-int db_setup(sqlite3 *db)
-{
 
-    char *err_msg = 0;
-
-    int rc = sqlite3_open("test.db", &db);
-
-    if (rc != SQLITE_OK)
-    {
-
-        logger_error(CLOUD_LOG_MODULE_ID, "Cannot open database: %s\n", sqlite3_errmsg(db));
-        sqlite3_close(db);
-
-        return 1;
-    }
-    return rc;
-}
-
-void create_table()
-{
-    char *err_msg = 0;
-    sqlite3 *db;
-    int result;
-    char *sql = "DROP TABLE IF EXISTS Telematics;"
-                "CREATE TABLE Telematics(Date Text,Time Text,Motion INT,Voltage Text,PTO INT);"
-                "INSERT INTO Telematics VALUES('2022.08.17','12:17:59.005', 1, '0.0000', 0);"
-                "INSERT INTO Telematics VALUES('2022.08.17','12:18:00.003', 1, '0.0000', 0);"
-                "INSERT INTO Telematics VALUES('2022.08.17','12:18:02.007', 1, '0.0000', 0);";
-
-    int rc = sqlite3_open("test.db", &db);
-    result = sqlite3_exec(db, sql, 0, 0, &err_msg);
-
-    if (result != SQLITE_OK)
-    {
-
-        fprintf(stderr, "SQL error: %s\n", err_msg);
-
-        sqlite3_free(err_msg);
-        sqlite3_close(db);
-
-        return 1;
-    }
-    else
-    {
-        logger_info(CLOUD_LOG_MODULE_ID, "Table created and data inserted successfully");
-    }
-
-    sqlite3_close(db);
-}

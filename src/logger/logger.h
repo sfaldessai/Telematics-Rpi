@@ -57,6 +57,7 @@ extern "C"
 #define CAN_LOG_MODULE_ID 4
 #define CC_LOG_MODULE_ID 5
 #define CLOUD_LOG_MODULE_ID 6
+#define DB_LOG_MODULE_ID 7
 
     typedef struct loggerDate
     {
