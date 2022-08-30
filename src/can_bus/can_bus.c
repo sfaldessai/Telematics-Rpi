@@ -14,6 +14,9 @@
 #include "../logger/logger.h"
 #include "../../include/resource.h"
 
+/* mutex to lock can_module_lock */
+pthread_mutex_t can_module_lock = PTHREAD_MUTEX_INITIALIZER;
+
 #define EQUALS_SIGN 0x3D
 
 int sockfd = 0;
@@ -116,6 +119,38 @@ bool validate_vin(char *vin)
 }
 
 /*
+ * Name : can_request_response
+ * Descriptoin: The can_request_response function is for requesting PID data to can module and get response from the CAN module.
+ * Input parameters:
+ *                  struct can_frame * : response frame, updating from can response frame
+ *                  size_t frame_length : number of can response frames - 3 frames for VIN, 1 frame for speed and supported pid
+ *                  struct can_frame : can request frame which contains requets PID details
+ * Output parameters: void
+ */
+void can_request_response(struct can_frame *frame, size_t frame_length, struct can_frame request_frame)
+{
+    struct can_frame response_frame;
+
+    /* locking read write for can data synchronization */
+    pthread_mutex_lock(&can_module_lock);
+
+    transmit_can_data(sockfd, request_frame);
+
+    log_can_data(request_frame, CAN_REQUEST);
+
+    sleep(0.2);
+
+    for (size_t i = 0; i < frame_length; i++)
+    {
+        receive_can_data(sockfd, &response_frame);
+        log_can_data(response_frame, CAN_RESPONSE);
+        frame[i] = response_frame;
+    }
+
+    pthread_mutex_unlock(&can_module_lock);
+}
+
+/*
  * Name : read_can_id_number
  *
  * Descriptoin: The read_can_id_number function is for fetching VIN PID data from the CAN module
@@ -127,17 +162,19 @@ bool validate_vin(char *vin)
  */
 void *read_can_id_number(void *arg)
 {
+    struct can_frame vin_frame[VIN_DATA_FRAME], request_frame;
     struct cloud_data_struct *cloud_data = (struct cloud_data_struct *)arg;
 
     /* TBD: read from can module once we get CAN module. Hardcaded for testing*/
     char *read_data = "A0000000000000001";
 
-    /*
-     *
-     * TBD: Write a function to Request the CAN module or virtual CAN for PID 0x02 VIN data,
-     * and get respose in read_data
-     *
-     */
+    /* prepare CAN request frame */
+    get_request_frame(&request_frame, VIN_PID, VIN_MODE);
+
+    /* Send Request and get response for PID 0x02 */
+    can_request_response(vin_frame, VIN_DATA_FRAME, request_frame);
+
+    /* TODO: convert vin bytes to decimal and assign to cloud_data->can_data.vin */
 
     /* Copy 17 byte VIN data to cloud struct member for displaying on screen from deiplay thread */
     strncpy((char *)cloud_data->can_data.vin, read_data, MAX_LEN_VIN);
@@ -157,7 +194,7 @@ void *read_can_id_number(void *arg)
  */
 void *read_can_speed_pid(void *arg)
 {
-    struct can_frame frame, request_frame;
+    struct can_frame speed_frame[SPEED_DATA_FRAME], request_frame;
     struct cloud_data_struct *cloud_data = (struct cloud_data_struct *)arg;
 
     /* TBD: read from can once we get CAN module. Hardcaded for testing*/
@@ -165,26 +202,20 @@ void *read_can_speed_pid(void *arg)
 
     while (1)
     {
-        /*
-         *
-         * TBD: Write a function to Request the CAN module or virtual CAN for PID 0x0d vehicle speed data,
-         * and get respose in read_data
-         *
-         */
         /* Copy 1 byte (0-255) Vehicle speed data to cloud struct member for displaying on screen from deiplay thread */
 
-        get_request_frame(&request_frame, SPEED_PID);
-        transmit_can_data(sockfd, request_frame);
-        sleep(0.5);
-        receive_can_data(sockfd, &frame);
+        /* prepare CAN request frame */
+        get_request_frame(&request_frame, SPEED_PID, LIVE_DATA_MODE);
 
-        logger_info(CAN_LOG_MODULE_ID, "0x%03X [%d]  %02X %02X %02X %02X %02X %02X %02X %02X \n\n",
-                    frame.can_id, frame.can_dlc, frame.data[0], frame.data[1], frame.data[2],
-                    frame.data[3], frame.data[4], frame.data[5], frame.data[6], frame.data[7]);
-                    
-        cloud_data->can_data.speed = (uint8_t) frame.data[3];
+        /* Send Request and get response for PID 0x0D */
+        can_request_response(speed_frame, SPEED_DATA_FRAME, request_frame);
 
-        logger_info(CAN_LOG_MODULE_ID, "CAN Vehicle Speed: %d",cloud_data->can_data.speed);
+        if (speed_frame[0].data[2] == SPEED_PID)
+        {
+            cloud_data->can_data.speed = (uint8_t)speed_frame[0].data[3];
+            
+            logger_info(CAN_LOG_MODULE_ID, "CAN Vehicle Speed: %d", cloud_data->can_data.speed);
+        }
 
         /* request next data after 1sec */
         sleep(1);
@@ -204,7 +235,7 @@ void *read_can_speed_pid(void *arg)
  */
 void *read_can_supported_pid(void *arg)
 {
-    struct can_frame frame, request_frame;
+    struct can_frame supported_frame[SUPPORTED_DATA_FRAME], request_frame;
     struct cloud_data_struct *cloud_data = (struct cloud_data_struct *)arg;
 
     /* TBD: read from can once we get CAN module. Hardcaded for testing*/
@@ -212,21 +243,13 @@ void *read_can_supported_pid(void *arg)
 
     while (1)
     {
-        /*
-         *
-         * TBD: Write a function to Request the CAN module or virtual CAN for PID 0x00 Vehicle Supported PID data,
-         * and get respose in read_data
-         *
-         */
+        /* prepare CAN request frame */
+        get_request_frame(&request_frame, SUPPORTED_PID, LIVE_DATA_MODE);
 
-        get_request_frame(&request_frame, SUPPORTED_PID);
-        transmit_can_data(sockfd, request_frame);
-        sleep(0.5);
-        receive_can_data(sockfd, &frame);
+        /* Send Request and get response for PID 0x00 */
+        can_request_response(supported_frame, SUPPORTED_DATA_FRAME, request_frame);
 
-        logger_info(CAN_LOG_MODULE_ID, "\n0x%03X [%d]  %02X %02X %02X %02X %02X %02X %02X %02X",
-                    frame.can_id, frame.can_dlc, frame.data[0], frame.data[1], frame.data[2],
-                    frame.data[3], frame.data[4], frame.data[5], frame.data[6], frame.data[7]);
+        /* TODO: convert supported pid response bytes to binary and assign to can data can_data.supported_pids */
 
         /* Copy 32 byte Vehicle Supported PID data to cloud struct member for displaying on screen from deiplay thread */
         cloud_data->can_data.supported_pids = (uint32_t)atoi(read_data);

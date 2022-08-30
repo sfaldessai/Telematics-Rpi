@@ -68,10 +68,8 @@ int main(int argc, char **argv)
 				frame.data[0] = 3;
 				frame.data[1] = 41;
 				frame.data[2] = 0x0D;
-
-				int speed = get_random_number(0, 255);
 				
-				frame.data[3] = speed;
+				frame.data[3] = get_random_number(0, 255);
 				frame.data[4] = 0xAA;
 				frame.data[5] = 0xAA;
 				frame.data[6] = 0xAA;
@@ -90,10 +88,10 @@ int main(int argc, char **argv)
 				frame.data[0] = 0x06;
 				frame.data[1] = 0x41;
 				frame.data[2] = 0x00;
-				frame.data[3] = 0x12;
-				frame.data[4] = 0x34;
-				frame.data[5] = 0x56;
-				frame.data[6] = 0x78;
+				frame.data[3] = get_random_number(0, 255);
+				frame.data[4] = get_random_number(0, 255);
+				frame.data[5] = get_random_number(0, 255);
+				frame.data[6] = get_random_number(0, 255);
 				frame.data[7] = 0xAA;
 				if (write(s, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame))
 				{
@@ -106,14 +104,43 @@ int main(int argc, char **argv)
 				frame.can_id = 0x7E8;
 				frame.can_dlc = 8;
 
-				frame.data[0] = 3;
-				frame.data[1] = 41;
-				frame.data[2] = 0x0D;
-				frame.data[3] = 0x12;
-				frame.data[4] = 0;
-				frame.data[5] = 0;
-				frame.data[6] = 0;
-				frame.data[7] = 0;
+				frame.data[0] = 0x10;
+				frame.data[1] = 0x14;
+				frame.data[2] = 0x49;
+				frame.data[3] = 0x02;
+				frame.data[4] = 0x01;
+				frame.data[5] = 0x33;
+				frame.data[6] = 0x46;
+				frame.data[7] = 0x41;
+				if (write(s, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame))
+				{
+					perror("Write");
+					return 1;
+				}
+				sleep(0.2);
+				frame.data[0] = 0x21;
+				frame.data[1] = 0x44;
+				frame.data[2] = 0x50;
+				frame.data[3] = 0x34;
+				frame.data[4] = 0x46;
+				frame.data[5] = 0x4A;
+				frame.data[6] = 0x32;
+				frame.data[7] = 0x42;
+				if (write(s, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame))
+				{
+					perror("Write");
+					return 1;
+				}
+				sleep(0.2);
+				frame.data[0] = 0x22;
+				frame.data[1] = 0x4D;
+				frame.data[2] = 0x31;
+				frame.data[3] = 0x31;
+				frame.data[4] = 0x33;
+				frame.data[5] = 0x39;
+				frame.data[6] = 0x31;
+				frame.data[7] = 0x33;
+				sleep(0.2);
 				if (write(s, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame))
 				{
 					perror("Write");

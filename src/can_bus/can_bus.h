@@ -28,7 +28,15 @@
 #define MAX_LEN_SUPPORTED_DATA 32
 #define SUPPORTED_PID 0x00
 #define SPEED_PID 0x0D
-
+#define VIN_PID 0x02
+#define VIN_MODE 0x09
+#define LIVE_DATA_MODE 0x01
+#define CAN_FILE "vcan0"
+#define CAN_REQUEST "CAN REQUEST"
+#define CAN_RESPONSE "CAN RESPONSE"
+#define VIN_DATA_FRAME 3
+#define SPEED_DATA_FRAME 1
+#define SUPPORTED_DATA_FRAME 1
 
 #define DEBUG
 
@@ -45,10 +53,11 @@ void read_from_can(void *, pthread_t *, pthread_t *, pthread_t *);
 char *get_manufaturer_detail(uint8_t *);
 bool validate_vin(char *);
 
-void get_request_frame(struct can_frame *, int);
+void get_request_frame(struct can_frame *, int, int);
 void transmit_can_data(int, struct can_frame);
 void receive_can_data(int, struct can_frame *);
 void setup_can_socket(int *);
 void close_socket(int *);
+void log_can_data(struct can_frame, char *);
 
 #endif
