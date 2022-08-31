@@ -4,6 +4,7 @@
 #include <unistd.h>
 
 #include "can_bus.h"
+#include "../../include/resource.h"
 #include "../logger/logger.h"
 
 /*
@@ -168,4 +169,165 @@ void log_can_data(struct can_frame frame, char *type)
 	logger_info(CAN_LOG_MODULE_ID, "%s :0x%03X [%d]  %02X %02X %02X %02X %02X %02X %02X %02X \n\n",
 				type, frame.can_id, frame.can_dlc, frame.data[0], frame.data[1], frame.data[2],
 				frame.data[3], frame.data[4], frame.data[5], frame.data[6], frame.data[7]);
+}
+
+/*
+ * Name : log_can_supported_data
+ *
+ * Descriptoin: The log_can_supported_data function is for logging can supported PID with support status.
+ *
+ * Input parameters:
+ *                  uint8_t *supported_binary_value: supported PID binary values
+ *
+ * Output parameters: void
+ */
+void log_can_supported_data(uint8_t *supported_binary_value)
+{
+	for (size_t i = 0; i < CAN_PID_LENGTH; i++)
+	{
+		if (supported_binary_value[i] == 1)
+		{
+			logger_info(CAN_LOG_MODULE_ID, "PID = %s \t SUPPORTED = YES\n", can_pids[i]);
+		}
+		else
+		{
+			logger_info(CAN_LOG_MODULE_ID, "PID = %s \t SUPPORTED = NO\n", can_pids[i]);
+		}
+	}
+}
+
+/*
+ * Name : vin_from_can_frame_data
+ *
+ * Descriptoin: The vin_from_can_frame_data function is for extracting VIN data from 3 can frames and converting into string value.
+ *
+ * Input parameters:
+ *                  struct can_frame *vin_frame: array of vin can frames (3 frames for VIN)
+ *					char *read_data: reference type, updating extracted vin
+ * Output parameters: void
+ */
+void vin_from_can_frame_data(struct can_frame *vin_frame, char *read_data)
+{
+	size_t j = 0;
+	for (size_t i = 5; i < CAN_FRAME_LENGTH; i++)
+	{
+		read_data[j] = (char)vin_frame[0].data[i];
+		j = j + 1;
+	}
+	for (size_t i = 1; i < CAN_FRAME_LENGTH; i++)
+	{
+		read_data[j] = (char)vin_frame[1].data[i];
+		j = j + 1;
+	}
+	for (size_t i = 1; i < CAN_FRAME_LENGTH; i++)
+	{
+		read_data[j] = (char)vin_frame[2].data[i];
+		j = j + 1;
+	}
+}
+
+/*
+ * Name : add_binary_values
+ *
+ * Descriptoin: The add_binary_values function is for extracting VIN data from 3 can frames and converting into string value.
+ *
+ * Input parameters:
+ *                  uint8_t *supported_binary: reference type, appedning all 32 PIDs binary data.
+ *					int *index: referenc type, updating index value for supported_binary array index.
+ *					char *binary: hex byte binary value, appending to supported_binary.
+ * Output parameters: void
+ */
+void add_binary_values(uint8_t *supported_binary, int *index, char *binary)
+{
+	for (size_t i = 0; i < 4; i++)
+	{
+		supported_binary[*index] = (binary[i] - '0');
+		*index = *index + 1;
+	}
+}
+
+/*
+ * Name : hex_to_binary
+ *
+ * Descriptoin: The hex_to_binary function is for extracting VIN data from 3 can frames and converting into string value.
+ *
+ * Input parameters:
+ *                  struct can_frame supported_frame: can frame data for supported PIDs. 
+ *					uint8_t *supported_binary: referenc type, updating binary supported PIDs data from can frame data.
+ *
+ * Output parameters: void
+ */
+void hex_to_binary(struct can_frame supported_frame, uint8_t *supported_binary)
+{
+	size_t i = 0;
+	int index = 0;
+
+	uint8_t supported_value[8];
+	sprintf(supported_value, "%x%x%x%x", supported_frame.data[3], supported_frame.data[4], supported_frame.data[5], supported_frame.data[3]);
+	printf("\n%s\n", supported_value);
+
+	while (supported_value[i])
+	{
+
+		switch (supported_value[i])
+		{
+		case '0':
+			add_binary_values(supported_binary, &index, "0000");
+			break;
+		case '1':
+			add_binary_values(supported_binary, &index, "0001");
+			break;
+		case '2':
+			add_binary_values(supported_binary, &index, "0010");
+			break;
+		case '3':
+			add_binary_values(supported_binary, &index, "0011");
+			break;
+		case '4':
+			add_binary_values(supported_binary, &index, "0100");
+			break;
+		case '5':
+			add_binary_values(supported_binary, &index, "0101");
+			break;
+		case '6':
+			add_binary_values(supported_binary, &index, "0110");
+			break;
+		case '7':
+			add_binary_values(supported_binary, &index, "0111");
+			break;
+		case '8':
+			add_binary_values(supported_binary, &index, "1000");
+			break;
+		case '9':
+			add_binary_values(supported_binary, &index, "1001");
+			break;
+		case 'A':
+		case 'a':
+			add_binary_values(supported_binary, &index, "1010");
+			break;
+		case 'B':
+		case 'b':
+			add_binary_values(supported_binary, &index, "1011");
+			break;
+		case 'C':
+		case 'c':
+			add_binary_values(supported_binary, &index, "1100");
+			break;
+		case 'D':
+		case 'd':
+			add_binary_values(supported_binary, &index, "1101");
+			break;
+		case 'E':
+		case 'e':
+			add_binary_values(supported_binary, &index, "1110");
+			break;
+		case 'F':
+		case 'f':
+			add_binary_values(supported_binary, &index, "1111");
+			break;
+		default:
+			break;
+		}
+		i++;
+	}
 }

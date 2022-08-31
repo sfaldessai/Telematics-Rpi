@@ -12,7 +12,6 @@
 #include <pthread.h>
 #include <stdbool.h>
 
-
 #include <net/if.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
@@ -34,7 +33,6 @@
 #define LIVE_DATA_MODE 0x01
 #define CAN_EMPTY_DATA 0xAA
 
-
 #define CAN_FILE "vcan0"
 #define CAN_REQUEST "CAN REQUEST"
 #define CAN_RESPONSE "CAN RESPONSE"
@@ -42,6 +40,7 @@
 #define SPEED_DATA_FRAME 1
 #define SUPPORTED_DATA_FRAME 1
 #define CAN_FRAME_LENGTH 8
+#define CAN_PID_LENGTH 32
 
 #define DEBUG
 
@@ -49,7 +48,7 @@ struct can_data_struct
 {
 	uint8_t vin[MAX_LEN_VIN];
 	uint8_t speed;
-	uint32_t supported_pids;
+	uint32_t supported_pids[32];
 };
 
 /* pthread to display all serial data */
@@ -64,5 +63,8 @@ void receive_can_data(int, struct can_frame *);
 void setup_can_socket(int *);
 void close_socket(int *);
 void log_can_data(struct can_frame, char *);
+void vin_from_can_frame_data(struct can_frame *, char *);
+void hex_to_binary(struct can_frame, uint8_t *);
+void log_can_supported_data(uint8_t *);
 
 #endif
