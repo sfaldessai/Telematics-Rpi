@@ -11,7 +11,7 @@
 #include "db_handler.h"
 #include "../logger/logger.h"
 
-void initialize_db() {
+int initialize_db() {
     sqlite3* db;
     int rc = db_setup(&db);
     if (rc)
@@ -37,7 +37,7 @@ int db_setup(sqlite3* db)
     else {
         int result;
         char* sql = "DROP TABLE IF EXISTS Telematics;"
-            "CREATE TABLE Telematics(Date DATETIME,Motion INT,Voltage Text,PTO INT,Lat TEXT,Long TEXT,DOP TEXT,Serial TEXT,VIN TEXT,Speed TEXT,Dist_Travelled, TEXT, Idle_time TEXT, Veh_in_Service TEXT);"
+            "CREATE TABLE Telematics(Date DATETIME,Motion INT,Voltage Text,PTO INT,Lat TEXT,Long TEXT,DOP TEXT,Serial TEXT,VIN TEXT,Speed varchar(20),Dist_Travelled varchar(20), Idle_time varchar(20), Veh_in_Service varchar(20));"
             "INSERT INTO Telematics VALUES (datetime("now"), 1, '0.0000', 0, '12.9010 N', '97.0013 E', '2.95', '12345', '12345', '45kmph', '1800km', '27mins', '86mins'); "
             "INSERT INTO Telematics VALUES (datetime("now"), 1, '0.0000', 0, '12.9010 N', '97.0013 E', '2.95', '12345', '12345', '45kmph', '1800km', '27mins', '86mins'); "
             "INSERT INTO Telematics VALUES (datetime("now"), 1, '0.0000', 0, '12.9010 N', '97.0013 E', '2.95', '12345', '12345', '45kmph', '1800km', '27mins', '86mins'); "
@@ -46,7 +46,7 @@ int db_setup(sqlite3* db)
     return rc;
 }
 
-void insert_telematics_data(struct cloud_data_struct* inCloud_data)
+int insert_telematics_data(struct cloud_data_struct* inCloud_data)
 {
     cloud_data = inCloud_data;
     char* err_msg = 0;

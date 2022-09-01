@@ -15,8 +15,8 @@
 struct cloud_data_struct* cloud_data;
 int db_setup();
 
-void initialize_db();
+int initialize_db();
 
-void insert_telematics_data(struct cloud_data_struct* inCloud_data);
+int insert_telematics_data(struct cloud_data_struct* inCloud_data);
 
 #endif
