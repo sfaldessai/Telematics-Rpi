@@ -32,11 +32,11 @@ char *get_manufaturer_detail(uint8_t *wmi)
 {
     for (size_t i = 0; i < WMI_LIST_LEN; i++)
     {
-        char wmi_key[WMI_LEN + 1];
+        char wmi_key[CAN_FRAME_LENGTH];
 
         char *manufacturer_detail = strchr(manufacturers[i], EQUALS_SIGN);
 
-        strncpy(wmi_key, manufacturers[i], 3);
+        strncpy(wmi_key, manufacturers[i], WMI_LEN);
         wmi_key[WMI_LEN + 1] = '\0';
 
         int result = strcmp((char *)wmi, wmi_key);
@@ -136,7 +136,7 @@ void can_request_response(struct can_frame *frame, size_t frame_length, struct c
 
     transmit_can_data(sockfd, request_frame);
 
-    // log_can_data(request_frame, CAN_REQUEST);
+    log_can_data(request_frame, CAN_REQUEST);
 
     sleep(0.2);
 
@@ -201,9 +201,6 @@ void *read_can_speed_pid(void *arg)
     struct can_frame speed_frame[SPEED_DATA_FRAME], request_frame;
     struct cloud_data_struct *cloud_data = (struct cloud_data_struct *)arg;
 
-    /* TBD: read from can once we get CAN module. Hardcaded for testing*/
-    char *read_data = "85";
-
     while (1)
     {
         /* Copy 1 byte (0-255) Vehicle speed data to cloud struct member for displaying on screen from deiplay thread */
@@ -250,7 +247,7 @@ void *read_can_supported_pid(void *arg)
         /* Send Request and get response for PID 0x00 */
         can_request_response(supported_frame, SUPPORTED_DATA_FRAME, request_frame);
 
-        if (supported_frame[0].data[2] == SPEED_PID)
+        if (supported_frame[0].data[2] == SUPPORTED_PID)
         {
             uint8_t supported_binary_value[CAN_PID_LENGTH];
 

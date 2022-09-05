@@ -19,8 +19,8 @@
 pthread_mutex_t cloud_data_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 #define CC_LOG_MODULE_ID 5
-#define MAX_READ_SIZE 32 /* max stm32 data length is 32 */
-
+#define MAX_READ_SIZE 1 /* max stm32 LL data length is 1 */
+#define MAXSIZE 32
 /*
  * Name : get_client_controller_data
  * Descriptoin: The get_client_controller_data function is for extracting vehicle motion, PTO,
@@ -55,8 +55,10 @@ void get_client_controller_data(char *read_data, struct client_controller_data_s
  */
 void *read_from_client_controller(void *arg)
 {
-    char read_data[MAX_READ_SIZE];
+    char read_data;
     int read_data_len = 0;
+    char stem32_serial_data[MAXSIZE];
+    size_t i = 0;
 
     struct arg_struct *args = (struct arg_struct *)arg;
     struct uart_device_struct client_controller_device = args->uart_device;
@@ -67,25 +69,42 @@ void *read_from_client_controller(void *arg)
     {
 
         /* Reading data byte by byte */
-        read_data_len = uart_reads_chunk(&client_controller_device, read_data, MAX_READ_SIZE);
+        read_data_len = uart_reads(&client_controller_device, &read_data, MAX_READ_SIZE);
 
         if (read_data_len > 0)
         {
-            logger_info(CC_LOG_MODULE_ID, "COMPLETE STM32 DATA: %s\n", read_data);
             /*
              * Message protocol used in microcontroller:
              * "$STMC,<MOTION>,<VOLT>,<PTO>,#""
              * '$' & '#' used to identify starting and ending.
              */
+            if (read_data == '$')
+            { 
+                i = 0;
+                stem32_serial_data[i] = read_data;
+                do
+                {
+                    read_data_len = uart_reads(&client_controller_device, &read_data, MAX_READ_SIZE);
+                    if (read_data_len > 0)
+                    {
+                        i++;
+                        stem32_serial_data[i] = read_data;
+                    }
+                } while (read_data != '#');
 
-            if (read_data[1] == 'S' && read_data[2] == 'T' && read_data[3] == 'M' && read_data[4] == 'C')
-            {
-                get_client_controller_data(read_data, &client_controller_data);
+                stem32_serial_data[i + 1] = '\0';
 
-                /* update stm32 data to cloud_data struct which is used to combile all module data and send to cloud */
-                pthread_mutex_lock(&cloud_data_mutex);
-                cloud_data->client_controller_data = client_controller_data;
-                pthread_mutex_unlock(&cloud_data_mutex);
+                logger_info(CC_LOG_MODULE_ID, "COMPLETE STM32 DATA: %s\n", stem32_serial_data);
+
+                if (stem32_serial_data[1] == 'S' && stem32_serial_data[2] == 'T' && stem32_serial_data[3] == 'M' && stem32_serial_data[4] == 'C')
+                {
+                    get_client_controller_data(stem32_serial_data, &client_controller_data);
+
+                    /* update stm32 data to cloud_data struct which is used to combile all module data and send to cloud */
+                    pthread_mutex_lock(&cloud_data_mutex);
+                    cloud_data->client_controller_data = client_controller_data;
+                    pthread_mutex_unlock(&cloud_data_mutex);
+                }
             }
         }
     }

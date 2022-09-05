@@ -4,12 +4,12 @@
 #define WMI_LIST_LEN 1053
 #define WMI_STRING_LEN 80
 
-#define PID_SUPPORTED_LEN 80
+#define PID_SUPPORTED_LEN 32
 
 #define DEBUG
 
 /* All supported CAN PID list */
-static char can_pids[PID_SUPPORTED_LEN][WMI_STRING_LEN] =
+static const char can_pids[PID_SUPPORTED_LEN][WMI_STRING_LEN] =
     {
         {"01 - Monitor status since DTCs cleared"},
         {"02 - Freeze DTC"},
@@ -46,7 +46,7 @@ static char can_pids[PID_SUPPORTED_LEN][WMI_STRING_LEN] =
 
 /* TBD Update below list with vehicle type*/
 /* List of mainly commonly used WMIs */
-static char manufacturers[WMI_LIST_LEN][WMI_STRING_LEN] =
+static const char manufacturers[WMI_LIST_LEN][WMI_STRING_LEN] =
     {
         {"4TL=Toyota"},
         {"JMG=Mazda"},

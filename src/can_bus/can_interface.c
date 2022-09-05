@@ -83,7 +83,7 @@ void transmit_can_data(int sockfd, struct can_frame request_frame)
  */
 void receive_can_data(int sockfd, struct can_frame *frame)
 {
-	int nbytes, i;
+	int nbytes;
 	nbytes = read(sockfd, frame, sizeof(struct can_frame));
 	if (nbytes < 0)
 	{
@@ -252,7 +252,7 @@ void add_binary_values(uint8_t *supported_binary, int *index, char *binary)
  * Descriptoin: The hex_to_binary function is for extracting VIN data from 3 can frames and converting into string value.
  *
  * Input parameters:
- *                  struct can_frame supported_frame: can frame data for supported PIDs. 
+ *                  struct can_frame supported_frame: can frame data for supported PIDs.
  *					uint8_t *supported_binary: referenc type, updating binary supported PIDs data from can frame data.
  *
  * Output parameters: void
@@ -262,9 +262,8 @@ void hex_to_binary(struct can_frame supported_frame, uint8_t *supported_binary)
 	size_t i = 0;
 	int index = 0;
 
-	uint8_t supported_value[8];
-	sprintf(supported_value, "%x%x%x%x", supported_frame.data[3], supported_frame.data[4], supported_frame.data[5], supported_frame.data[3]);
-	printf("\n%s\n", supported_value);
+	uint8_t supported_value[16];
+	sprintf((char *)supported_value, "%x%x%x%x", supported_frame.data[3], supported_frame.data[4], supported_frame.data[5], supported_frame.data[3]);
 
 	while (supported_value[i])
 	{
