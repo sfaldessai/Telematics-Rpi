@@ -263,7 +263,7 @@ void hex_to_binary(struct can_frame supported_frame, uint8_t *supported_binary)
 	int index = 0;
 
 	uint8_t supported_value[16];
-	sprintf((char *)supported_value, "%x%x%x%x", supported_frame.data[3], supported_frame.data[4], supported_frame.data[5], supported_frame.data[3]);
+	sprintf((char *)supported_value, "%x%x%x%x", supported_frame.data[3], supported_frame.data[4], supported_frame.data[5], supported_frame.data[6]);
 
 	while (supported_value[i])
 	{

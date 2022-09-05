@@ -19,6 +19,8 @@
 #include <linux/can.h>
 #include <linux/can/raw.h>
 
+#include "../../include/resource.h"
+
 /* ODB2 PID contain a 17-character VIN */
 #define MAX_LEN_VIN 24
 #define VIN_LEN 17
@@ -33,6 +35,7 @@
 #define LIVE_DATA_MODE 0x01
 #define CAN_EMPTY_DATA 0xAA
 
+/* TOD: replace with real can name while using read can module */
 #define CAN_FILE "vcan0"
 #define CAN_REQUEST "CAN REQUEST"
 #define CAN_RESPONSE "CAN RESPONSE"
@@ -48,7 +51,8 @@ struct can_data_struct
 {
 	uint8_t vin[MAX_LEN_VIN];
 	uint8_t speed;
-	uint32_t supported_pids[32];
+	uint32_t supported_pids[CAN_PID_LENGTH];
+	char vehicle_type[WMI_STRING_LEN];
 };
 
 /* pthread to display all serial data */

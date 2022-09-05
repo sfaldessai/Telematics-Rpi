@@ -79,7 +79,7 @@ void *read_from_client_controller(void *arg)
              * '$' & '#' used to identify starting and ending.
              */
             if (read_data == '$')
-            { 
+            {
                 i = 0;
                 stem32_serial_data[i] = read_data;
                 do

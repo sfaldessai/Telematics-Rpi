@@ -12,7 +12,6 @@
 #include "../serial_interface/serial_config.h"
 #include "../main.h"
 #include "../logger/logger.h"
-#include "../../include/resource.h"
 
 /* mutex to lock can_module_lock */
 pthread_mutex_t can_module_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -33,11 +32,14 @@ char *get_manufaturer_detail(uint8_t *wmi)
     for (size_t i = 0; i < WMI_LIST_LEN; i++)
     {
         char wmi_key[CAN_FRAME_LENGTH];
+        memset(wmi_key, '\0', sizeof(wmi_key));
 
         char *manufacturer_detail = strchr(manufacturers[i], EQUALS_SIGN);
 
-        strncpy(wmi_key, manufacturers[i], WMI_LEN);
-        wmi_key[WMI_LEN + 1] = '\0';
+        for (size_t j = 0; j < WMI_LEN; j++)
+        {
+            wmi_key[j] = manufacturers[i][j];
+        }
 
         int result = strcmp((char *)wmi, wmi_key);
         if (result == 0)
@@ -105,7 +107,7 @@ bool validate_vin(char *vin)
     sum = sum % 11;
 
     /* The check digit is the character on position 9 and can be a number from 0 to 9 and X (for 10) */
-    char check_digit = vin[8];
+    char check_digit = vin[CAN_FRAME_LENGTH];
     size_t check_digit_value = (size_t)check_digit - 48;
 
     if ((sum == 10 && check_digit == 'X') || (sum == check_digit_value))
@@ -177,10 +179,39 @@ void *read_can_id_number(void *arg)
     {
         vin_from_can_frame_data(vin_frame, read_data);
 
-        /* Copy 17 byte VIN data to cloud struct member for displaying on screen from deiplay thread */
-        strncpy((char *)cloud_data->can_data.vin, read_data, MAX_LEN_VIN);
+        bool is_valid = validate_vin(read_data);
 
-        logger_info(CAN_LOG_MODULE_ID, "CAN VIN: %s", cloud_data->can_data.vin);
+        if (is_valid)
+        {
+            uint8_t wmi[WMI_LEN];
+
+            /* Extracting 1st 3 character from VIN for WMI details and assigning to wmi */
+            for (size_t i = 0; i < WMI_LEN; i++)
+            {
+                wmi[i] = read_data[i];
+            }
+            
+            char *vehicle_detail = get_manufaturer_detail(wmi);
+
+            if (vehicle_detail != NULL)
+            {
+                strncpy(cloud_data->can_data.vehicle_type, vehicle_detail, WMI_STRING_LEN - 1);
+                
+                /* Copy 17 byte VIN data to cloud struct member for displaying on screen from deiplay thread */
+                strncpy((char *)cloud_data->can_data.vin, read_data, MAX_LEN_VIN);
+
+                logger_info(CAN_LOG_MODULE_ID, "VALID CAN VIN: %s", cloud_data->can_data.vin);
+                logger_info(CAN_LOG_MODULE_ID, "VEHICLE TYPE: %s", cloud_data->can_data.vehicle_type);
+            }
+            else
+            {
+                logger_info(CAN_LOG_MODULE_ID, "INVALID CAN VIN: %s", read_data);
+            }
+        }
+        else
+        {
+            logger_info(CAN_LOG_MODULE_ID, "INVALID CAN VIN: %s", read_data);
+        }
     }
 
     return 0;
