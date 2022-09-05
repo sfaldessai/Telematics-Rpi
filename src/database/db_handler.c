@@ -11,19 +11,21 @@
 #include "db_handler.h"
 #include "../logger/logger.h"
 
-int initialize_db() {
-    sqlite3* db;
+int initialize_db()
+{
+    sqlite3 *db;
     int rc = db_setup(&db);
     if (rc)
     {
         logger_error(DB_LOG_MODULE_ID, "Cannot open database: %s\n", sqlite3_errmsg(db));
         return (0);
     }
+    return rc;
 }
 
-int db_setup(sqlite3* db)
+int db_setup(sqlite3 *db)
 {
-    char* err_msg = 0;
+    char *err_msg = 0;
 
     int rc = sqlite3_open("test.db", &db);
 
@@ -34,26 +36,35 @@ int db_setup(sqlite3* db)
 
         return 1;
     }
-    else {
+    else
+    {
         int result;
-        char* sql = "DROP TABLE IF EXISTS Telematics;"
-            "CREATE TABLE Telematics(Date DATETIME,Motion INT,Voltage Text,PTO INT,Lat TEXT,Long TEXT,DOP TEXT,Serial TEXT,VIN TEXT,Speed varchar(20),Dist_Travelled varchar(20), Idle_time varchar(20), Veh_in_Service varchar(20));"
-            "INSERT INTO Telematics VALUES (datetime("now"), 1, '0.0000', 0, '12.9010 N', '97.0013 E', '2.95', '12345', '12345', '45kmph', '1800km', '27mins', '86mins'); "
-            "INSERT INTO Telematics VALUES (datetime("now"), 1, '0.0000', 0, '12.9010 N', '97.0013 E', '2.95', '12345', '12345', '45kmph', '1800km', '27mins', '86mins'); "
-            "INSERT INTO Telematics VALUES (datetime("now"), 1, '0.0000', 0, '12.9010 N', '97.0013 E', '2.95', '12345', '12345', '45kmph', '1800km', '27mins', '86mins'); "
+        char *sql = "DROP TABLE IF EXISTS Telematics;"
+                    "CREATE TABLE Telematics(ID INTEGER PRIMARY KEY AUTOINCREMENT,creation_time TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,Motion INT,Voltage Text,PTO INT,Lat TEXT,Long TEXT,DOP TEXT,Serial TEXT,VIN TEXT,Speed varchar(20),Dist_Travelled varchar(20), Idle_time varchar(20), Veh_in_Service varchar(20));"
+                    "INSERT INTO Telematics (Motion,Voltage,PTO,Lat,Long,DOP,Serial,VIN,Speed,Dist_Travelled,Idle_time,Veh_in_Service) VALUES (1, '0.0000', 0, '12.9010 N', '97.0013 E', '2.95', '12345', '12345', '45kmph', '1800km', '27mins', '86mins');"
+                    "INSERT INTO Telematics (Motion,Voltage,PTO,Lat,Long,DOP,Serial,VIN,Speed,Dist_Travelled,Idle_time,Veh_in_Service) VALUES (1, '0.0000', 0, '12.9010 N', '97.0013 E', '2.95', '12345', '12345', '45kmph', '1800km', '27mins', '86mins');"
+                    "INSERT INTO Telematics (Motion,Voltage,PTO,Lat,Long,DOP,Serial,VIN,Speed,Dist_Travelled,Idle_time,Veh_in_Service) VALUES (1, '0.0000', 0, '12.9010 N', '97.0013 E', '2.95', '12345', '12345', '45kmph', '1800km', '27mins', '86mins');";
         result = sqlite3_exec(db, sql, 0, 0, &err_msg);
+
+        if (result != SQLITE_OK)
+        {
+            fprintf(stderr, "SQL error: %s\n", err_msg);
+            sqlite3_free(err_msg);
+            sqlite3_close(db);
+            return 1;
+        }
     }
     return rc;
 }
 
-int insert_telematics_data(struct cloud_data_struct* inCloud_data)
+/*int insert_telematics_data(struct cloud_data_struct* inCloud_data)
 {
     cloud_data = inCloud_data;
     char* err_msg = 0;
     sqlite3* db;
     int result;
     char* sql = "INSERT INTO Telematics VALUES (datetime("now"), cloud_data->client_controller_data.motion, cloud_data->client_controller_data.voltage, cloud_data->client_controller_data.pto,
-        cloud_data->gps_data.latitude, cloud_data->gps_data.longitude, cloud_data->gps_data.pdop , '12345', cloud_data->can_data.vin, cloud_data->can_data.speed, '1800km', '27mins', '86mins'); "
+        cloud_data->gps_data.latitude, cloud_data->gps_data.longitude, cloud_data->gps_data.pdop , '12345', cloud_data->can_data.vin, cloud_data->can_data.speed, '1800km', '27mins', '86mins'); ";
 
     int rc = sqlite3_open("test.db", &db);
     result = sqlite3_exec(db, sql, 0, 0, &err_msg);
@@ -71,4 +82,4 @@ int insert_telematics_data(struct cloud_data_struct* inCloud_data)
     }
 
     sqlite3_close(db);
-}
+}*/

@@ -36,7 +36,7 @@ void *write_to_cloud(void *arg)
         logger_info(CLOUD_LOG_MODULE_ID, "\tLong: %.4f %c\n", cloud_data->gps_data.longitude, cloud_data->gps_data.long_cardinal_sign);
         logger_info(CLOUD_LOG_MODULE_ID, "\tPDOP:%.2f\tHDOP:%.2f\tVDOP:%.2f\n", cloud_data->gps_data.pdop,
                     cloud_data->gps_data.hdop, cloud_data->gps_data.vdop);
-        insert_telematics_data(&cloud_data);
+        // insert_telematics_data(&cloud_data);
         sleep(2); /* Display data every 2 sec*/
     }
 }

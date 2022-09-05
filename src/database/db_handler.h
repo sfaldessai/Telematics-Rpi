@@ -12,11 +12,11 @@
 #define DB_HANDLER_H_
 
 #define DEBUG
-struct cloud_data_struct* cloud_data;
+// struct cloud_data_struct* cloud_data;
 int db_setup();
 
 int initialize_db();
 
-int insert_telematics_data(struct cloud_data_struct* inCloud_data);
+// int insert_telematics_data(struct cloud_data_struct* inCloud_data);
 
 #endif
