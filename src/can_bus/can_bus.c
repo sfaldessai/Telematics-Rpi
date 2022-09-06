@@ -307,13 +307,14 @@ void *read_can_supported_pid(void *arg)
  */
 void read_from_can(void *arg, pthread_t *read_can_supported_thread, pthread_t *read_can_speed_thread, pthread_t *read_can_vin_thread)
 {
-
-    setup_can_socket(&sockfd);
-
-    /* Thread to fetch VIN. */
-    pthread_create(read_can_vin_thread, NULL, &read_can_id_number, arg);
-    /* Thread to fetch supported pid data. */
-    pthread_create(read_can_supported_thread, NULL, &read_can_supported_pid, arg);
-    /* Thread to fetch spedd pid data. */
-    pthread_create(read_can_speed_thread, NULL, &read_can_speed_pid, arg);
+    /* setup socket can */
+    if (setup_can_socket(&sockfd) == 0)
+    {
+        /* Thread to fetch VIN. */
+        pthread_create(read_can_vin_thread, NULL, &read_can_id_number, arg);
+        /* Thread to fetch supported pid data. */
+        pthread_create(read_can_supported_thread, NULL, &read_can_supported_pid, arg);
+        /* Thread to fetch spedd pid data. */
+        pthread_create(read_can_speed_thread, NULL, &read_can_speed_pid, arg);
+    }
 }

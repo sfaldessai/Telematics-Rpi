@@ -64,7 +64,7 @@ bool validate_vin(char *);
 void get_request_frame(struct can_frame *, int, int);
 void transmit_can_data(int, struct can_frame);
 void receive_can_data(int, struct can_frame *);
-void setup_can_socket(int *);
+int setup_can_socket(int *);
 void close_socket(int *);
 void log_can_data(struct can_frame, char *);
 void vin_from_can_frame_data(struct can_frame *, char *);

@@ -106,16 +106,17 @@ void receive_can_data(int sockfd, struct can_frame *frame)
  * Input parameters:
  *                  int sockfd: can socket file descriptor, update and return
  *
- * Output parameters: void
+ * Output parameters: int : return 1 for socket fail and return return 0 for socket success
  */
-void setup_can_socket(int *sockfd)
+int setup_can_socket(int *sockfd)
 {
 	struct sockaddr_can addr;
 	struct ifreq ifr;
-
-	if ((*sockfd = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0)
+	*sockfd = socket(PF_CAN, SOCK_RAW, CAN_RAW);
+	if (*sockfd < 0)
 	{
 		logger_error(CAN_LOG_MODULE_ID, "Error: Socket Open- %s\r\n", __func__);
+		return 1;
 	}
 
 	strcpy(ifr.ifr_name, CAN_FILE);
@@ -130,6 +131,7 @@ void setup_can_socket(int *sockfd)
 				   sizeof timeout) < 0)
 	{
 		logger_error(CAN_LOG_MODULE_ID, "Error: setsockopt failed- %s\r\n", __func__);
+		return 1;
 	}
 
 	memset(&addr, 0, sizeof(addr));
@@ -139,7 +141,10 @@ void setup_can_socket(int *sockfd)
 	if (bind(*sockfd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
 	{
 		logger_error(CAN_LOG_MODULE_ID, "Error: Socket Bind- %s\r\n", __func__);
+		return 1;
 	}
+
+	return 0;
 }
 
 /*
@@ -154,7 +159,7 @@ void setup_can_socket(int *sockfd)
  */
 void close_socket(int *sockfd)
 {
-	if (close(*sockfd) < 0)
+	if (*sockfd > 0 && close(*sockfd) < 0)
 	{
 		logger_error(CAN_LOG_MODULE_ID, "Error: Socket Close- %s\r\n", __func__);
 	}

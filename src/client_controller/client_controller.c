@@ -57,7 +57,7 @@ void *read_from_client_controller(void *arg)
 {
     char read_data;
     int read_data_len = 0;
-    char stem32_serial_data[MAXSIZE];
+    char stm32_serial_data[MAXSIZE];
     size_t i = 0;
 
     struct arg_struct *args = (struct arg_struct *)arg;
@@ -81,24 +81,24 @@ void *read_from_client_controller(void *arg)
             if (read_data == '$')
             {
                 i = 0;
-                stem32_serial_data[i] = read_data;
+                stm32_serial_data[i] = read_data;
                 do
                 {
                     read_data_len = uart_reads(&client_controller_device, &read_data, MAX_READ_SIZE);
                     if (read_data_len > 0)
                     {
                         i++;
-                        stem32_serial_data[i] = read_data;
+                        stm32_serial_data[i] = read_data;
                     }
                 } while (read_data != '#');
 
-                stem32_serial_data[i + 1] = '\0';
+                stm32_serial_data[i + 1] = '\0';
 
-                logger_info(CC_LOG_MODULE_ID, "COMPLETE STM32 DATA: %s\n", stem32_serial_data);
+                logger_info(CC_LOG_MODULE_ID, "COMPLETE STM32 DATA: %s\n", stm32_serial_data);
 
-                if (stem32_serial_data[1] == 'S' && stem32_serial_data[2] == 'T' && stem32_serial_data[3] == 'M' && stem32_serial_data[4] == 'C')
+                if (stm32_serial_data[1] == 'S' && stm32_serial_data[2] == 'T' && stm32_serial_data[3] == 'M' && stm32_serial_data[4] == 'C')
                 {
-                    get_client_controller_data(stem32_serial_data, &client_controller_data);
+                    get_client_controller_data(stm32_serial_data, &client_controller_data);
 
                     /* update stm32 data to cloud_data struct which is used to combile all module data and send to cloud */
                     pthread_mutex_lock(&cloud_data_mutex);
