@@ -17,22 +17,25 @@
 #define EQUALS_SIGN 0x3D
 
 /*
- * Name : get_manufaturer_detail
- * Descriptoin: The get_manufaturer_detail function is for fetching manufaturer detail & vehicle type.
+ * Name : get_manufacturer_detail
+ * Descriptoin: The get_manufacturer_detail function is for fetching manufaturer detail & vehicle type.
  * Input parameters:
  *                  uint8_t wmi : World manufaturer Identifier
  * Output parameters: char * : manufaturer detail & vehicle type
  */
-char *get_manufaturer_detail(uint8_t *wmi)
+char *get_manufacturer_detail(uint8_t *wmi)
 {
     for (size_t i = 0; i < WMI_LIST_LEN; i++)
     {
-        char wmi_key[WMI_LEN + 1];
+        char wmi_key[CAN_FRAME_LENGTH];
+        memset(wmi_key, '\0', sizeof(wmi_key));
 
         char *manufacturer_detail = strchr(manufacturers[i], EQUALS_SIGN);
 
-        strncpy(wmi_key, manufacturers[i], 3);
-        wmi_key[WMI_LEN + 1] = '\0';
+        for (size_t j = 0; j < WMI_LEN; j++)
+        {
+            wmi_key[j] = manufacturers[i][j];
+        }
 
         int result = strcmp((char *)wmi, wmi_key);
         if (result == 0)
@@ -48,7 +51,8 @@ char *get_manufaturer_detail(uint8_t *wmi)
  * Name : validate_vin
  * Descriptoin: The validate_vin function is for validating VIN.
  * Input parameters:
- *                  char *vin : Vehicle Identification Number
+ *                  char *vin : Vehicle Identification Number 
+ *                              Sample VIN = 5YJSA3DG9HFP14703
  * Output parameters: bool : true/false
  */
 bool validate_vin(char *vin)
@@ -57,10 +61,6 @@ bool validate_vin(char *vin)
     {
         return false;
     }
-    /* VIN Numerical counterparts */
-    static const size_t values[] = {1, 2, 3, 4, 5, 6, 7, 8, 0, 1, 2, 3, 4, 5, 0, 7, 0, 9, 2, 3, 4, 5, 6, 7, 8, 9};
-    /* Weights */
-    static const size_t weights[] = {8, 7, 6, 5, 4, 3, 2, 10, 0, 9, 8, 7, 6, 5, 4, 3, 2};
 
     size_t sum = 0;
     for (size_t i = 0; i < VIN_LEN; i++)

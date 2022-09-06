@@ -51,25 +51,25 @@ TEST(CanBusTestGroup, validateVinLenInValidTest)
     CHECK_EQUAL(0, result);
 }
 
-TEST(CanBusTestGroup, getManufaturerDetailValidTest)
+TEST(CanBusTestGroup, getManufacturerDetailValidTest)
 {
     /*arrange*/
     uint8_t *wmi = (uint8_t *)"5YJ";
 
     /*act*/
-    char *vehicle_detail = get_manufaturer_detail(wmi);
+    char *vehicle_detail = get_manufacturer_detail(wmi);
 
     /*assert*/
     STRCMP_EQUAL("Tesla Motors", vehicle_detail);
 }
 
-TEST(CanBusTestGroup, getManufaturerDetailInValidTest)
+TEST(CanBusTestGroup, getManufacturerDetailInValidTest)
 {
     /*arrange*/
     uint8_t *wmi = (uint8_t *)"5YO";
 
     /*act*/
-    char *vehicle_detail = get_manufaturer_detail(wmi);
+    char *vehicle_detail = get_manufacturer_detail(wmi);
 
     /*assert*/
     STRCMP_EQUAL(NULL, vehicle_detail);
