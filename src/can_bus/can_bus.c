@@ -37,8 +37,7 @@ char *get_manufacturer_detail(uint8_t *wmi)
             wmi_key[j] = manufacturers[i][j];
         }
 
-        int result = strcmp((char *)wmi, wmi_key);
-        if (result == 0)
+        if (strcmp((char *)wmi, wmi_key) == 0)
         {
             return manufacturer_detail + 1;
         }
@@ -140,7 +139,8 @@ void *read_can_id_number(void *arg)
     /* Copy 17 byte VIN data to cloud struct member for displaying on screen from deiplay thread */
     strncpy((char *)cloud_data->can_data.vin, read_data, MAX_LEN_VIN);
 
-    return 0;
+    /* Retuning null to avoid control reaches end of non-void function warning */
+    return NULL;
 }
 
 /*
