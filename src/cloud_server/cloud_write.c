@@ -68,5 +68,3 @@ void initialize_cloud_data(struct cloud_data_struct *cloud_data)
     cloud_data->gps_data = gps_data;
     cloud_data->client_controller_data = client_controller_data;
 }
-
-
