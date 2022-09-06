@@ -1,3 +1,9 @@
+/*
+ * created at 2022-08-30 14:30.
+ *
+ * Company: HashedIn By Deloitte.
+ * Copyright (C) 2022 HashedIn By Deloitte
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,15 +17,18 @@
 #include <linux/can.h>
 #include <linux/can/raw.h>
 
+/*
+* virtual_can_server.c is using for accessing vcan0 (virtual can) and simulating odb2 data.
+* TBD: We can remove this file once we ready to connect the real can module. 
+*/
+
+
 int get_random_number(int lower, int upper)
 {
 	int number = 0;
-	number = (rand() %
-			   (upper - lower + 1)) +
-			  lower;
+	number = (rand() % (upper - lower + 1)) + lower;
 	return number;
 }
-
 
 int main(int argc, char **argv)
 {
@@ -68,7 +77,7 @@ int main(int argc, char **argv)
 				frame.data[0] = 3;
 				frame.data[1] = 41;
 				frame.data[2] = 0x0D;
-				
+
 				frame.data[3] = get_random_number(0, 255);
 				frame.data[4] = 0xAA;
 				frame.data[5] = 0xAA;

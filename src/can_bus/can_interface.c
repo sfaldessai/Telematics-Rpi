@@ -1,3 +1,10 @@
+/*
+ * created at 2022-08-30 14:30.
+ *
+ * Company: HashedIn By Deloitte.
+ * Copyright (C) 2022 HashedIn By Deloitte
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
