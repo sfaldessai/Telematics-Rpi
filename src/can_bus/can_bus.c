@@ -230,13 +230,6 @@ void *read_can_speed_pid(void *arg)
     /* prepare CAN request frame */
     get_request_frame(&request_frame, SPEED_PID, LIVE_DATA_MODE);
 
-    printf("\n request_frame SPEED_PID = ");
-
-    for (int i = 0; i < 8; i++)
-		{
-			printf(" %02X ", request_frame.data[i]);
-		}
-
     while (1)
     {
         /* Copy 1 byte (0-255) Vehicle speed data to cloud struct member for displaying on screen from deiplay thread */
@@ -274,14 +267,6 @@ void *read_can_supported_pid(void *arg)
 
     /* prepare CAN request frame */
     get_request_frame(&request_frame, SUPPORTED_PID, LIVE_DATA_MODE);
-
-     printf("\n request_frame SUPPORTED_PID = ");
-
-    for (int i = 0; i < 8; i++)
-		{
-			printf(" %02X ", request_frame.data[i]);
-		}
-
 
     while (1)
     {
