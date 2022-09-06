@@ -42,13 +42,13 @@ void get_request_frame(struct can_frame *request_frame, int pid, int mode)
 	 * 0x01 : Show Current Data - for speed and supported PID
 	 * 0x09 : Request vehicle information
 	 */
-	request_frame->data[1] = mode;
+	request_frame->data[1] = (uint8_t) mode;
 	/* PID
 	 * 0x00 for supported pids
 	 * 0x0D for speed
 	 * 0x02 for VIN
 	 */
-	request_frame->data[2] = pid;
+	request_frame->data[2] = (uint8_t) pid;
 
 	/* Below bytes are not used and set to 0xAA */
 	request_frame->data[3] = CAN_EMPTY_DATA;

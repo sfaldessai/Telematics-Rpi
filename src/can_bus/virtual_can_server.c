@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdint.h>
 
 #include <net/if.h>
 #include <sys/ioctl.h>
@@ -23,14 +24,14 @@
 */
 
 
-int get_random_number(int lower, int upper)
+uint8_t get_random_number(uint8_t lower, uint8_t upper)
 {
 	int number = 0;
 	number = (rand() % (upper - lower + 1)) + lower;
-	return number;
+	return (uint8_t) number;
 }
 
-int main(int argc, char **argv)
+int main(void)
 {
 	int s, i;
 	int nbytes;
@@ -126,7 +127,7 @@ int main(int argc, char **argv)
 					perror("Write");
 					return 1;
 				}
-				sleep(0.2);
+				usleep(200000);
 				frame.data[0] = 0x21;
 				frame.data[1] = 0x44;
 				frame.data[2] = 0x50;
@@ -140,7 +141,7 @@ int main(int argc, char **argv)
 					perror("Write");
 					return 1;
 				}
-				sleep(0.2);
+				usleep(200000);
 				frame.data[0] = 0x22;
 				frame.data[1] = 0x4D;
 				frame.data[2] = 0x31;
@@ -149,7 +150,7 @@ int main(int argc, char **argv)
 				frame.data[5] = 0x39;
 				frame.data[6] = 0x31;
 				frame.data[7] = 0x33;
-				sleep(0.2);
+				usleep(200000);
 				if (write(s, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame))
 				{
 					perror("Write");
