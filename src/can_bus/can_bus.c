@@ -21,13 +21,13 @@ pthread_mutex_t can_module_lock = PTHREAD_MUTEX_INITIALIZER;
 int sockfd = 0;
 
 /*
- * Name : get_manufaturer_detail
- * Descriptoin: The get_manufaturer_detail function is for fetching manufaturer detail & vehicle type.
+ * Name : get_manufacturer_detail
+ * Descriptoin: The get_manufacturer_detail function is for fetching manufaturer detail & vehicle type.
  * Input parameters:
  *                  uint8_t wmi : World manufaturer Identifier
  * Output parameters: char * : manufaturer detail & vehicle type
  */
-char *get_manufaturer_detail(uint8_t *wmi)
+char *get_manufacturer_detail(uint8_t *wmi)
 {
     for (size_t i = 0; i < WMI_LIST_LEN; i++)
     {
@@ -41,8 +41,7 @@ char *get_manufaturer_detail(uint8_t *wmi)
             wmi_key[j] = manufacturers[i][j];
         }
 
-        int result = strcmp((char *)wmi, wmi_key);
-        if (result == 0)
+        if (strcmp((char *)wmi, wmi_key) == 0)
         {
             return manufacturer_detail + 1;
         }
@@ -56,6 +55,7 @@ char *get_manufaturer_detail(uint8_t *wmi)
  * Descriptoin: The validate_vin function is for validating VIN.
  * Input parameters:
  *                  char *vin : Vehicle Identification Number
+ *                              Sample VIN = 5YJSA3DG9HFP14703
  * Output parameters: bool : true/false
  */
 bool validate_vin(char *vin)
@@ -64,10 +64,6 @@ bool validate_vin(char *vin)
     {
         return false;
     }
-    /* VIN Numerical counterparts */
-    static const size_t values[] = {1, 2, 3, 4, 5, 6, 7, 8, 0, 1, 2, 3, 4, 5, 0, 7, 0, 9, 2, 3, 4, 5, 6, 7, 8, 9};
-    /* Weights */
-    static const size_t weights[] = {8, 7, 6, 5, 4, 3, 2, 10, 0, 9, 8, 7, 6, 5, 4, 3, 2};
 
     size_t sum = 0;
     for (size_t i = 0; i < VIN_LEN; i++)
@@ -140,8 +136,6 @@ void can_request_response(struct can_frame *frame, size_t frame_length, struct c
 
     log_can_data(request_frame, CAN_REQUEST);
 
-    sleep(0.2);
-
     for (size_t i = 0; i < frame_length; i++)
     {
         receive_can_data(sockfd, &response_frame);
@@ -190,13 +184,13 @@ void *read_can_id_number(void *arg)
             {
                 wmi[i] = read_data[i];
             }
-            
-            char *vehicle_detail = get_manufaturer_detail(wmi);
+
+            char *vehicle_detail = get_manufacturer_detail(wmi);
 
             if (vehicle_detail != NULL)
             {
                 strncpy(cloud_data->can_data.vehicle_type, vehicle_detail, WMI_STRING_LEN - 1);
-                
+
                 /* Copy 17 byte VIN data to cloud struct member for displaying on screen from deiplay thread */
                 strncpy((char *)cloud_data->can_data.vin, read_data, MAX_LEN_VIN);
 
@@ -214,7 +208,8 @@ void *read_can_id_number(void *arg)
         }
     }
 
-    return 0;
+    /* Retuning null to avoid control reaches end of non-void function warning */
+    return NULL;
 }
 
 /*
@@ -232,12 +227,19 @@ void *read_can_speed_pid(void *arg)
     struct can_frame speed_frame[SPEED_DATA_FRAME], request_frame;
     struct cloud_data_struct *cloud_data = (struct cloud_data_struct *)arg;
 
+    /* prepare CAN request frame */
+    get_request_frame(&request_frame, SPEED_PID, LIVE_DATA_MODE);
+
+    printf("\n request_frame SPEED_PID = ");
+
+    for (int i = 0; i < 8; i++)
+		{
+			printf(" %02X ", request_frame.data[i]);
+		}
+
     while (1)
     {
         /* Copy 1 byte (0-255) Vehicle speed data to cloud struct member for displaying on screen from deiplay thread */
-
-        /* prepare CAN request frame */
-        get_request_frame(&request_frame, SPEED_PID, LIVE_DATA_MODE);
 
         /* Send Request and get response for PID 0x0D */
         can_request_response(speed_frame, SPEED_DATA_FRAME, request_frame);
@@ -270,11 +272,19 @@ void *read_can_supported_pid(void *arg)
     struct can_frame supported_frame[SUPPORTED_DATA_FRAME], request_frame;
     struct cloud_data_struct *cloud_data = (struct cloud_data_struct *)arg;
 
+    /* prepare CAN request frame */
+    get_request_frame(&request_frame, SUPPORTED_PID, LIVE_DATA_MODE);
+
+     printf("\n request_frame SUPPORTED_PID = ");
+
+    for (int i = 0; i < 8; i++)
+		{
+			printf(" %02X ", request_frame.data[i]);
+		}
+
+
     while (1)
     {
-        /* prepare CAN request frame */
-        get_request_frame(&request_frame, SUPPORTED_PID, LIVE_DATA_MODE);
-
         /* Send Request and get response for PID 0x00 */
         can_request_response(supported_frame, SUPPORTED_DATA_FRAME, request_frame);
 

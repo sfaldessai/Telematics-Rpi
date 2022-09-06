@@ -94,3 +94,32 @@
     GPS_LOG_MODULE_ID 2, SERIAL_LOG_MODULE_ID 3, CAN_LOG_MODULE_ID 4, CC_LOG_MODULE_ID 5, CLOUD_LOG_MODULE_ID 6
     sudo ./Telematic -m 3 ==> This will enable the logs only for Serial_interface module
     sudo ./Telematic -m 2 -f 1 ==> This will enable the logs only for GPS module and -f flag will enable writing to a file
+
+# VIRTUAL CAN and virtual server can socket setup steps for simulating OBD2 data on request-response approach:
+
+    # Step 1: Install can-utils from the below Linux command 
+            $ sudo apt-get update
+            $ sudo apt-get install can-utils
+
+    # Step 2: Run the below commands one by one to create a virtual can 
+            $ sudo modprobe vcan &&
+            $ sudo ip link add dev vcan0 type vcan &&
+            $ sudo ip link set up vcan0
+    
+    # Step 3: Run the below command to compile virtual_can_server.c file in a different terminal 
+              to run a virtual can socket in the background to simulate OBD2 data, which acts as a can server
+            $ gcc Telematics-Rpi/src/can_bus/virtual_can_server.c -o virtualcan
+            $ ./virtualcan
+
+    # Step 4: Virtual CanSocket is ready, 
+              the telematic application can request to this virtual can to fetch the PID data by sending request can frame
+        
+    # Step 5: (Option)
+              Add the below commands in /etc/rc.local to Run Virtual CAN Socket background automatically when os boots
+
+			    sudo modprobe vcan &&
+				sudo ip link add dev vcan0 type vcan &&
+				sudo ip link set up vcan0 &&
+				cd /home/pi/Telematics-Rpi/src/can_bus &&
+				gcc virtual_can_server.c -o virtualcan &&
+				./virtualcan &

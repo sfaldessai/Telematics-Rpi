@@ -8,6 +8,11 @@
 
 #define DEBUG
 
+/* VIN Numerical counterparts */
+static const size_t values[] = {1, 2, 3, 4, 5, 6, 7, 8, 0, 1, 2, 3, 4, 5, 0, 7, 0, 9, 2, 3, 4, 5, 6, 7, 8, 9};
+/* Weights */
+static const size_t weights[] = {8, 7, 6, 5, 4, 3, 2, 10, 0, 9, 8, 7, 6, 5, 4, 3, 2};
+
 /* All supported CAN PID list */
 static const char can_pids[PID_SUPPORTED_LEN][WMI_STRING_LEN] =
     {

@@ -58,7 +58,7 @@ struct can_data_struct
 /* pthread to display all serial data */
 void read_from_can(void *, pthread_t *, pthread_t *, pthread_t *);
 
-char *get_manufaturer_detail(uint8_t *);
+char *get_manufacturer_detail(uint8_t *);
 bool validate_vin(char *);
 
 void get_request_frame(struct can_frame *, int, int);
