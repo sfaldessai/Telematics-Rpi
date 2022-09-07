@@ -21,6 +21,7 @@ struct gps_data_struct
 	double pdop;
 	double vdop;
 	double hdop;
+	double speed;
 };
 
 void *read_from_gps(void *); /* pthread to handle gps read */
@@ -28,5 +29,6 @@ void *read_from_gps(void *); /* pthread to handle gps read */
 void get_lat_log(double *);
 void get_dops(char **, char *);
 void get_gps_data(char *, struct gps_data_struct *);
+void get_gps_param_by_position(char **,char*,int);
 
 #endif
