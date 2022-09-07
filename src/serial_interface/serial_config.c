@@ -133,8 +133,6 @@ int uart_reads(struct uart_device_struct *device, char *buf, size_t buf_len)
 		logger_error(SERIAL_LOG_MODULE_ID, "failed to read uart data - %s\r\n", __func__);
 		return rc;
 	}
-
-	buf[rc] = '\0';
 	return rc;
 }
 
