@@ -5,13 +5,14 @@
  * Copyright (C) 2022 HashedIn By Deloitte
  */
 
-#include "serial_interface/serial_config.h"
-#include "cloud_server/cloud_server.h"
-#include "logger/logger.h"
-#include <stdbool.h>
-
 #ifndef MAIN_H_
 #define MAIN_H_
+
+#include <stdbool.h>
+#include "serial_interface/serial_config.h"
+#include "cloud_server/cloud_server.h"
+#include "can_bus/can_bus.h"
+#include "global/global.h"
 
 #define DEBUG
 

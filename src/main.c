@@ -16,11 +16,8 @@
 #include "main.h"
 
 #define MAX_READ_SIZE 1
-#define CLIENT_CONTROLLER "/dev/ttyACM0"
-#define GPS_MODULE "/dev/ttyUSB0"
-int module_flag = 1;
-int write_to_file = 0;
-
+#define CLIENT_CONTROLLER "/dev/ttyUSB0"
+#define GPS_MODULE "/dev/ttyUSB1"
 
 int main(int argc, char *argv[])
 {
@@ -28,6 +25,7 @@ int main(int argc, char *argv[])
     struct cloud_data_struct cloud_data;
     struct arg_struct client_controller_args, gps_args;
     pthread_t client_controller_read_thread, gps_read_thread, serial_write_thread;
+    pthread_t read_can_supported_thread, read_can_speed_thread, read_can_vin_thread;
     int opt;
 
     client_controller_device.file_name = "/dev/ttyACM0";
@@ -46,13 +44,13 @@ int main(int argc, char *argv[])
             module_flag = atoi(optarg);
             break;
         case 'f':
-            write_to_file = atoi(optarg);;
+            write_to_file = atoi(optarg);
             break;
         default:
             break;
         }
     }
-    
+
     /* Pointer char initializing to null*/
     initialize_cloud_data(&cloud_data);
 
@@ -73,7 +71,11 @@ int main(int argc, char *argv[])
     }
     /* Cloud Write Thread */
     pthread_create(&serial_write_thread, NULL, &write_to_cloud, &cloud_data);
-    /* Thread End */
+
+    /* CAN Module Read Thread */
+    read_from_can(&cloud_data, &read_can_supported_thread, &read_can_speed_thread, &read_can_vin_thread);
+
+    /* Thread Creation End */
 
     /* Join Thread */
     if (client_controller_device.fd > 0)
@@ -85,6 +87,9 @@ int main(int argc, char *argv[])
         pthread_join(gps_read_thread, NULL);
     }
     pthread_join(serial_write_thread, NULL);
+    pthread_join(read_can_supported_thread, NULL);
+    pthread_join(read_can_speed_thread, NULL);
+    pthread_join(read_can_vin_thread, NULL);
     /* Join Thread End*/
 
     return 0;

@@ -5,13 +5,13 @@
  * Copyright (C) 2022 HashedIn By Deloitte
  */
 
+#ifndef SERIAL_CONFIG_H
+#define SERIAL_CONFIG_H
+
 #include <termios.h>
 #include <unistd.h>
 #include <stdbool.h>
 #include "../logger/logger.h"
-
-#ifndef SERIAL_CONFIG_H
-#define SERIAL_CONFIG_H
 
 #define DEBUG
 

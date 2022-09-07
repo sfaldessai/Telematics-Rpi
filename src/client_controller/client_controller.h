@@ -8,9 +8,9 @@
 #ifndef CLIENT_CONTROLLER_H_
 #define CLIENT_CONTROLLER_H_
 
-#define DEBUG
-
 #include <stdint.h>
+
+#define DEBUG
 
 /* client_controller_data_struct struct to hold STM32 data*/
 struct client_controller_data_struct
