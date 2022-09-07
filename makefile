@@ -9,6 +9,7 @@ SERIAL_INTERFACE_DIR = $(SRC_DIR)/serial_interface
 CAN_BUS = $(SRC_DIR)/can_bus
 LOGGER_MODULE_DIR = $(SRC_DIR)/logger
 GLOABL_DIR = $(SRC_DIR)/global
+UTILS_DIR = $(SRC_DIR)/utils
 
 CFLAGS = -g -O2 -Wall -I
 LIBS = -lpthread
@@ -39,6 +40,9 @@ can_bus.o:
 	
 cloud_write.o:
 	gcc -c $(CFLAGS) $(CLOUD_SERVER_DIR) $(CLOUD_SERVER_DIR)/cloud_write.c -o $(SRC_DIR)/cloud_write.o $(LIBS)
+
+common_utils.o:
+	gcc -c $(CFLAGS) $(UTILS_DIR) $(UTILS_DIR)/common_utils.c -o $(SRC_DIR)/common_utils.o
 
 main: serial_interface.o gps_module.o client_controller.o cloud_write.o global.o logger.o can_interface.o can_bus.o
 	gcc $(CFLAGS) $(SRC_DIR) $(SRC_DIR)/*.o $(SRC_DIR)/main.c -o $(OUT) $(LIBS)
