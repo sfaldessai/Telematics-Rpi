@@ -12,9 +12,13 @@
 #include "../serial_interface/serial_config.h"
 #include "../main.h"
 #include "../logger/logger.h"
-#include "../../include/resource.h"
+
+/* mutex to lock can_module_lock */
+pthread_mutex_t can_module_lock = PTHREAD_MUTEX_INITIALIZER;
 
 #define EQUALS_SIGN 0x3D
+
+int sockfd = 0;
 
 /*
  * Name : get_manufacturer_detail
@@ -50,7 +54,7 @@ char *get_manufacturer_detail(uint8_t *wmi)
  * Name : validate_vin
  * Descriptoin: The validate_vin function is for validating VIN.
  * Input parameters:
- *                  char *vin : Vehicle Identification Number 
+ *                  char *vin : Vehicle Identification Number
  *                              Sample VIN = 5YJSA3DG9HFP14703
  * Output parameters: bool : true/false
  */
@@ -99,7 +103,7 @@ bool validate_vin(char *vin)
     sum = sum % 11;
 
     /* The check digit is the character on position 9 and can be a number from 0 to 9 and X (for 10) */
-    char check_digit = vin[8];
+    char check_digit = vin[CAN_FRAME_LENGTH];
     size_t check_digit_value = (size_t)check_digit - 48;
 
     if ((sum == 10 && check_digit == 'X') || (sum == check_digit_value))
@@ -110,6 +114,36 @@ bool validate_vin(char *vin)
     {
         return false;
     }
+}
+
+/*
+ * Name : can_request_response
+ * Descriptoin: The can_request_response function is for requesting PID data to can module and get response from the CAN module.
+ * Input parameters:
+ *                  struct can_frame * : response frame, updating from can response frame
+ *                  size_t frame_length : number of can response frames - 3 frames for VIN, 1 frame for speed and supported pid
+ *                  struct can_frame : can request frame which contains requets PID details
+ * Output parameters: void
+ */
+void can_request_response(struct can_frame *frame, size_t frame_length, struct can_frame request_frame)
+{
+    struct can_frame response_frame;
+
+    /* locking read write for can data synchronization */
+    pthread_mutex_lock(&can_module_lock);
+
+    transmit_can_data(sockfd, request_frame);
+
+    log_can_data(request_frame, CAN_REQUEST);
+
+    for (size_t i = 0; i < frame_length; i++)
+    {
+        receive_can_data(sockfd, &response_frame);
+        log_can_data(response_frame, CAN_RESPONSE);
+        frame[i] = response_frame;
+    }
+
+    pthread_mutex_unlock(&can_module_lock);
 }
 
 /*
@@ -124,20 +158,55 @@ bool validate_vin(char *vin)
  */
 void *read_can_id_number(void *arg)
 {
+    struct can_frame vin_frame[VIN_DATA_FRAME], request_frame;
     struct cloud_data_struct *cloud_data = (struct cloud_data_struct *)arg;
 
-    /* TBD: read from can module once we get CAN module. Hardcaded for testing*/
-    char *read_data = "A0000000000000001";
+    char read_data[VIN_LEN];
 
-    /*
-     *
-     * TBD: Write a function to Request the CAN module or virtual CAN for PID 0x02 VIN data,
-     * and get respose in read_data
-     *
-     */
+    /* prepare CAN request frame */
+    get_request_frame(&request_frame, VIN_PID, VIN_MODE);
 
-    /* Copy 17 byte VIN data to cloud struct member for displaying on screen from deiplay thread */
-    strncpy((char *)cloud_data->can_data.vin, read_data, MAX_LEN_VIN);
+    /* Send Request and get response for PID 0x02 */
+    can_request_response(vin_frame, VIN_DATA_FRAME, request_frame);
+
+    if (vin_frame[0].data[3] == VIN_PID)
+    {
+        vin_from_can_frame_data(vin_frame, read_data);
+
+        bool is_valid = validate_vin(read_data);
+
+        if (is_valid)
+        {
+            uint8_t wmi[WMI_LEN];
+
+            /* Extracting 1st 3 character from VIN for WMI details and assigning to wmi */
+            for (size_t i = 0; i < WMI_LEN; i++)
+            {
+                wmi[i] = read_data[i];
+            }
+
+            char *vehicle_detail = get_manufacturer_detail(wmi);
+
+            if (vehicle_detail != NULL)
+            {
+                strncpy(cloud_data->can_data.vehicle_type, vehicle_detail, WMI_STRING_LEN - 1);
+
+                /* Copy 17 byte VIN data to cloud struct member for displaying on screen from deiplay thread */
+                strncpy((char *)cloud_data->can_data.vin, read_data, MAX_LEN_VIN);
+
+                logger_info(CAN_LOG_MODULE_ID, "VALID CAN VIN: %s", cloud_data->can_data.vin);
+                logger_info(CAN_LOG_MODULE_ID, "VEHICLE TYPE: %s", cloud_data->can_data.vehicle_type);
+            }
+            else
+            {
+                logger_info(CAN_LOG_MODULE_ID, "INVALID CAN VIN: %s", read_data);
+            }
+        }
+        else
+        {
+            logger_info(CAN_LOG_MODULE_ID, "INVALID CAN VIN: %s", read_data);
+        }
+    }
 
     /* Retuning null to avoid control reaches end of non-void function warning */
     return NULL;
@@ -155,26 +224,30 @@ void *read_can_id_number(void *arg)
  */
 void *read_can_speed_pid(void *arg)
 {
+    struct can_frame speed_frame[SPEED_DATA_FRAME], request_frame;
     struct cloud_data_struct *cloud_data = (struct cloud_data_struct *)arg;
 
-    /* TBD: read from can once we get CAN module. Hardcaded for testing*/
-    char *read_data = "85";
+    /* prepare CAN request frame */
+    get_request_frame(&request_frame, SPEED_PID, LIVE_DATA_MODE);
 
     while (1)
     {
-        /*
-         *
-         * TBD: Write a function to Request the CAN module or virtual CAN for PID 0x0d vehicle speed data,
-         * and get respose in read_data
-         *
-         */
         /* Copy 1 byte (0-255) Vehicle speed data to cloud struct member for displaying on screen from deiplay thread */
 
-        cloud_data->can_data.speed = (uint8_t)atoi(read_data);
+        /* Send Request and get response for PID 0x0D */
+        can_request_response(speed_frame, SPEED_DATA_FRAME, request_frame);
 
-        /* request next data after 1sec */
+        if (speed_frame[0].data[2] == SPEED_PID)
+        {
+            cloud_data->can_data.speed = (uint8_t)speed_frame[0].data[3];
+
+            logger_info(CAN_LOG_MODULE_ID, "CAN VEHICLE SPEED: %d", cloud_data->can_data.speed);
+        }
+
+        /* request next data each 1sec */
         sleep(1);
     }
+    close_socket(&sockfd);
 }
 
 /*
@@ -189,26 +262,34 @@ void *read_can_speed_pid(void *arg)
  */
 void *read_can_supported_pid(void *arg)
 {
+    struct can_frame supported_frame[SUPPORTED_DATA_FRAME], request_frame;
     struct cloud_data_struct *cloud_data = (struct cloud_data_struct *)arg;
 
-    /* TBD: read from can once we get CAN module. Hardcaded for testing*/
-    char *read_data = "2147483647";
+    /* prepare CAN request frame */
+    get_request_frame(&request_frame, SUPPORTED_PID, LIVE_DATA_MODE);
 
     while (1)
     {
-        /*
-         *
-         * TBD: Write a function to Request the CAN module or virtual CAN for PID 0x00 Vehicle Supported PID data,
-         * and get respose in read_data
-         *
-         */
+        /* Send Request and get response for PID 0x00 */
+        can_request_response(supported_frame, SUPPORTED_DATA_FRAME, request_frame);
 
-        /* Copy 32 byte Vehicle Supported PID data to cloud struct member for displaying on screen from deiplay thread */
-        cloud_data->can_data.supported_pids = (uint32_t)atoi(read_data);
+        if (supported_frame[0].data[2] == SUPPORTED_PID)
+        {
+            uint8_t supported_binary_value[CAN_PID_LENGTH];
 
+            hex_to_binary(supported_frame[0], supported_binary_value);
+
+            for (size_t i = 0; i < CAN_PID_LENGTH; i++)
+            {
+                cloud_data->can_data.supported_pids[i] = supported_binary_value[i];
+            }
+
+            log_can_supported_data(supported_binary_value);
+        }
         /* request next data after 30sec */
         sleep(30);
     }
+    close_socket(&sockfd);
 }
 
 /*
@@ -226,10 +307,14 @@ void *read_can_supported_pid(void *arg)
  */
 void read_from_can(void *arg, pthread_t *read_can_supported_thread, pthread_t *read_can_speed_thread, pthread_t *read_can_vin_thread)
 {
-    /* Thread to fetch VIN. */
-    pthread_create(read_can_vin_thread, NULL, &read_can_id_number, arg);
-    /* Thread to fetch supported pid data. */
-    pthread_create(read_can_supported_thread, NULL, &read_can_supported_pid, arg);
-    /* Thread to fetch spedd pid data. */
-    pthread_create(read_can_speed_thread, NULL, &read_can_speed_pid, arg);
+    /* setup socket can */
+    if (setup_can_socket(&sockfd) == 0)
+    {
+        /* Thread to fetch VIN. */
+        pthread_create(read_can_vin_thread, NULL, &read_can_id_number, arg);
+        /* Thread to fetch supported pid data. */
+        pthread_create(read_can_supported_thread, NULL, &read_can_supported_pid, arg);
+        /* Thread to fetch spedd pid data. */
+        pthread_create(read_can_speed_thread, NULL, &read_can_speed_pid, arg);
+    }
 }

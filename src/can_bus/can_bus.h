@@ -12,6 +12,15 @@
 #include <pthread.h>
 #include <stdbool.h>
 
+#include <net/if.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+
+#include <linux/can.h>
+#include <linux/can/raw.h>
+
+#include "../../include/resource.h"
+
 /* ODB2 PID contain a 17-character VIN */
 #define MAX_LEN_VIN 24
 #define VIN_LEN 17
@@ -42,7 +51,8 @@ struct can_data_struct
 {
 	uint8_t vin[MAX_LEN_VIN];
 	uint8_t speed;
-	uint32_t supported_pids;
+	uint32_t supported_pids[CAN_PID_LENGTH];
+	char vehicle_type[WMI_STRING_LEN];
 };
 
 /* pthread to display all serial data */
@@ -50,5 +60,15 @@ void read_from_can(void *, pthread_t *, pthread_t *, pthread_t *);
 
 char *get_manufacturer_detail(uint8_t *);
 bool validate_vin(char *);
+
+void get_request_frame(struct can_frame *, int, int);
+void transmit_can_data(int, struct can_frame);
+void receive_can_data(int, struct can_frame *);
+int setup_can_socket(int *);
+void close_socket(int *);
+void log_can_data(struct can_frame, char *);
+void vin_from_can_frame_data(struct can_frame *, char *);
+void hex_to_binary(struct can_frame, uint8_t *);
+void log_can_supported_data(uint8_t *);
 
 #endif

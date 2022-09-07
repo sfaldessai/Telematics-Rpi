@@ -16,8 +16,8 @@
 #include "main.h"
 
 #define MAX_READ_SIZE 1
-#define CLIENT_CONTROLLER "/dev/ttyACM0"
-#define GPS_MODULE "/dev/ttyUSB0"
+#define CLIENT_CONTROLLER "/dev/ttyUSB0"
+#define GPS_MODULE "/dev/ttyUSB1"
 
 int main(int argc, char *argv[])
 {

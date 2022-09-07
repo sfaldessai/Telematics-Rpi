@@ -4,6 +4,8 @@
 #define WMI_LIST_LEN 1053
 #define WMI_STRING_LEN 80
 
+#define PID_SUPPORTED_LEN 32
+
 #define DEBUG
 
 /* VIN Numerical counterparts */
@@ -11,9 +13,45 @@ static const size_t values[] = {1, 2, 3, 4, 5, 6, 7, 8, 0, 1, 2, 3, 4, 5, 0, 7, 
 /* Weights */
 static const size_t weights[] = {8, 7, 6, 5, 4, 3, 2, 10, 0, 9, 8, 7, 6, 5, 4, 3, 2};
 
+/* All supported CAN PID list */
+static const char can_pids[PID_SUPPORTED_LEN][WMI_STRING_LEN] =
+    {
+        {"01 - Monitor status since DTCs cleared"},
+        {"02 - Freeze DTC"},
+        {"03 - Fuel system status"},
+        {"04 - Calculated engine load"},
+        {"05 - Engine coolant temperature"},
+        {"06 - Short term fuel trim (bank 1)"},
+        {"07 - Long term fuel trim (bank 1)"},
+        {"08 - Short term fuel trim (bank 2)"},
+        {"09 - Long term fuel trim (bank 2)"},
+        {"0A - Fuel pressure (gauge pressure)"},
+        {"0B - Intake manifold absolute pressure"},
+        {"0C - Engine speed"},
+        {"0D - Vehicle speed "},
+        {"0E - Timing advance"},
+        {"0F - Intake air temperature"},
+        {"10 - Mass air flow sensor air flow rate"},
+        {"11 - Throttle position"},
+        {"12 - Commanded secondary air status"},
+        {"13 - Oxygen sensors present (2 banks)"},
+        {"14 - Oxygen sensor 1 (voltage)"},
+        {"15 - Oxygen sensor 2 (voltage)"},
+        {"16 - Oxygen sensor 3 (voltage)"},
+        {"17 - Oxygen sensor 4 (voltage)"},
+        {"18 - Oxygen sensor 5 (voltage)"},
+        {"19 - Oxygen sensor 6 (voltage)"},
+        {"1A - Oxygen sensor 7 (voltage)"},
+        {"1B - Oxygen sensor 8 (voltage)"},
+        {"1C - OBD standards the vehicle conforms to"},
+        {"1D - Oxygen sensors present (4 banks)"},
+        {"1E - Auxiliary input status"},
+        {"1F - Run time since engine start"},
+        {"20 - PIDs supported [21 - 40]"}};
+
 /* TBD Update below list with vehicle type*/
 /* List of mainly commonly used WMIs */
-static char manufacturers[WMI_LIST_LEN][WMI_STRING_LEN] =
+static const char manufacturers[WMI_LIST_LEN][WMI_STRING_LEN] =
     {
         {"4TL=Toyota"},
         {"JMG=Mazda"},
