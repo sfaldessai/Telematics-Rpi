@@ -4,6 +4,7 @@
 #include "CppUTestExt/MockSupport.h"
 #include <string.h>
 #include <stdio.h>
+#include <stdint.h>
 
 extern "C"
 {
@@ -77,7 +78,7 @@ TEST(GPSTestGroup,getGprmcSpeedTest){
     
     /*arrange*/
     char *nmea_data = (char *)"$GPRMC,220516,A,5133.82,N,00042.24,W,173.8,231.8,130694,004.2,W*70";
-    int position = 7;
+    uint8_t position = 7;
     char *rmc_data=NULL;
 
     /*act*/
@@ -91,7 +92,7 @@ TEST(GPSTestGroup,getGpvtgSpeedTest){
     
     /*arrange*/
     char *nmea_data = (char *)"$GPVTG,054.7,T,034.4,M,005.5,N,010.2,K";
-    int position = 7;
+    uint8_t position = 7;
     char *vtg_data=NULL;
 
     /*act*/
