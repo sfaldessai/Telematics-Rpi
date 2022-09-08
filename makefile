@@ -8,6 +8,7 @@ GPS_MODULE_DIR = $(SRC_DIR)/gps_module
 SERIAL_INTERFACE_DIR = $(SRC_DIR)/serial_interface
 CAN_BUS = $(SRC_DIR)/can_bus
 LOGGER_MODULE_DIR = $(SRC_DIR)/logger
+DB_MODULE_DIR = $(SRC_DIR)/database
 GLOABL_DIR = $(SRC_DIR)/global
 UTILS_DIR = $(SRC_DIR)/utils
 
@@ -41,11 +42,14 @@ can_bus.o:
 cloud_write.o:
 	gcc -c $(CFLAGS) $(CLOUD_SERVER_DIR) $(CLOUD_SERVER_DIR)/cloud_write.c -o $(SRC_DIR)/cloud_write.o $(LIBS)
 
+db_handler.o:
+	gcc -c $(CFLAGS) $(DB_MODULE_DIR) $(DB_MODULE_DIR)/db_handler.c -o $(SRC_DIR)/db_handler.o $(LIBS) -lsqlite3
+
 common_utils.o:
 	gcc -c $(CFLAGS) $(UTILS_DIR) $(UTILS_DIR)/common_utils.c -o $(SRC_DIR)/common_utils.o
 
-main: serial_interface.o gps_module.o client_controller.o cloud_write.o global.o logger.o can_interface.o can_bus.o common_utils.o
-	gcc $(CFLAGS) $(SRC_DIR) $(SRC_DIR)/*.o $(SRC_DIR)/main.c -o $(OUT) $(LIBS)
+main: serial_interface.o gps_module.o client_controller.o cloud_write.o global.o logger.o can_interface.o can_bus.o common_utils.o db_handler.o
+	gcc $(CFLAGS) $(SRC_DIR) $(SRC_DIR)/*.o $(SRC_DIR)/main.c -o $(OUT) $(LIBS) -lsqlite3
 
 clean:
 	rm $(SRC_DIR)/*.o $(OUT)
