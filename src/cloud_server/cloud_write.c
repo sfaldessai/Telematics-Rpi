@@ -28,22 +28,27 @@ void *write_to_cloud(void *arg)
     /* Initializing logger */
     logger_setup();
 
-    initialize_db();
+    int rc = initialize_db();
     while (1)
     {
-        if (cloud_data != NULL) {
+        if (cloud_data != NULL)
+        {
             logger_info(CLOUD_LOG_MODULE_ID, "\tVIN = %s | SPEED = %d\n", cloud_data->can_data.vin,
-                cloud_data->can_data.speed);
+                        cloud_data->can_data.speed);
             logger_info(CLOUD_LOG_MODULE_ID, "\tMOTION = %d | VOLTAGE = %f | PTO = %d\n", cloud_data->client_controller_data.motion,
-                cloud_data->client_controller_data.voltage, cloud_data->client_controller_data.pto);
+                        cloud_data->client_controller_data.voltage, cloud_data->client_controller_data.pto);
             logger_info(CLOUD_LOG_MODULE_ID, "\tLAT: %.4f %c", cloud_data->gps_data.latitude, cloud_data->gps_data.lat_cardinal_sign);
             logger_info(CLOUD_LOG_MODULE_ID, "\tLONG: %.4f %c\n", cloud_data->gps_data.longitude, cloud_data->gps_data.long_cardinal_sign);
             logger_info(CLOUD_LOG_MODULE_ID, "\tPDOP:%.2f\tHDOP:%.2f\tVDOP:%.2f\n", cloud_data->gps_data.pdop,
-                cloud_data->gps_data.hdop, cloud_data->gps_data.vdop);
+                        cloud_data->gps_data.hdop, cloud_data->gps_data.vdop);
 
-            int result = insert_telematics_data(cloud_data);
-            if (result != 0) {
-                logger_info(CLOUD_LOG_MODULE_ID, "DB write failed, TODO: Write to file temporarily");
+            if (rc == SQLITE_OK)
+            {
+                int result = insert_telematics_data(cloud_data);
+                if (result != 0)
+                {
+                    logger_info(CLOUD_LOG_MODULE_ID, "DB write failed, TODO: Write to file temporarily");
+                }
             }
             sleep(2); /* Display data every 2 sec*/
         }
@@ -77,6 +82,7 @@ void initialize_cloud_data(struct cloud_data_struct *cloud_data)
 
     memset(can_data.vin, '\0', MAX_LEN_VIN);
     can_data.speed = 0;
+    memset(can_data.supported_pids, 0, CAN_PID_LENGTH * sizeof(uint32_t));
 
     cloud_data->gps_data = gps_data;
     cloud_data->client_controller_data = client_controller_data;

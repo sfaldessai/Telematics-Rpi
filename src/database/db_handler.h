@@ -12,9 +12,7 @@
 
 #define DEBUG
 
-int db_setup(sqlite3 *db);
-
-void initialize_db(void);
+int initialize_db(void);
 
 int insert_telematics_data(struct cloud_data_struct* inCloud_data);
 
