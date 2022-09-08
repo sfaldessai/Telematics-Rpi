@@ -11,16 +11,17 @@
 #include "db_handler.h"
 #include "../logger/logger.h"
 
-int initialize_db()
+#define SQL_CREATE_TABLE "CREATE TABLE IF NOT EXISTS TELEMATICS(ID INTEGER PRIMARY KEY AUTOINCREMENT, creation_time TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, Latitude FLOAT, LatSign Text, Longitude FLOAT, LongSign Text, PDOP FLOAT, HDOP FLOAT, VDOP FLOAT,"
+    "Serial TEXT, VIN TEXT, Speed INT, Dist_Travelled FLOAT, Idle_time FLOAT, Veh_in_Service FLOAT,Motion INT, Voltage FLOAT, PTO INT,AccX FLOAT, AccY FLOAT, AccZ FLOAT,RPM INT, Temperature FLOAT);"
+
+void initialize_db()
 {
     sqlite3 *db;
     int rc = db_setup(&db);
     if (rc)
     {
         logger_error(DB_LOG_MODULE_ID, "Cannot open database: %s\n", sqlite3_errmsg(db));
-        return (0);
     }
-    return rc;
 }
 
 int db_setup(sqlite3 *db)
@@ -39,14 +40,12 @@ int db_setup(sqlite3 *db)
     else
     {
         int result;
-        char *sql = "CREATE TABLE IF NOT EXISTS TELEMATICS(ID INTEGER PRIMARY KEY AUTOINCREMENT, creation_time TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, Lat FLOAT, LatSign Text, Long FLOAT, LongSign Text, PDOP FLOAT, HDOP FLOAT, VDOP FLOAT,"
-                    "Serial TEXT, VIN TEXT, Speed INT, Dist_Travelled TEXT, Idle_time TEXT, Veh_in_Service TEXT,Motion INT, Voltage FLOAT, PTO INT);"
-                    "INSERT INTO TELEMATICS (Lat,LatSign,Long,LongSign,PDOP,HDOP,VDOP,Serial,VIN,Speed,Dist_Travelled,Idle_time,Veh_in_Service,Motion,Voltage,PTO) VALUES ('12.9010', 'N', '97.0013', 'E', '2.95', '3.02', '2.15','12345', '12345', '45', '18km', '27mins', '86mins',1, 0.0, 0);";
+        char *sql = SQL_CREATE_TABLE;
         result = sqlite3_exec(db, sql, 0, 0, &err_msg);
 
         if (result != SQLITE_OK)
         {
-            fprintf(stderr, "SQL error: %s\n", err_msg);
+            logger_error(DB_LOG_MODULE_ID, "SQL error: %s\n", err_msg);
             sqlite3_free(err_msg);
             sqlite3_close(db);
             return 1;
@@ -61,15 +60,14 @@ int insert_telematics_data(struct cloud_data_struct *cloud_data)
     sqlite3 *db;
     int result;
     char sql[1024];
-    sprintf(sql, "INSERT INTO Telematics (Lat,LatSign,Long,LongSign,PDOP,HDOP,VDOP,Serial,VIN,Speed,Dist_Travelled,Idle_time,Veh_in_Service,Motion,Voltage,PTO) VALUES (%f,'%c',%f,'%c',%f,%f,%f,'%s','%s',%d,'%s','%s','%s',%d,%f,%d)", cloud_data->gps_data.latitude, cloud_data->gps_data.lat_cardinal_sign, cloud_data->gps_data.longitude, cloud_data->gps_data.long_cardinal_sign,
-            cloud_data->gps_data.pdop, cloud_data->gps_data.hdop, cloud_data->gps_data.vdop, "12345", "abcdef", 85, "180km", "27mins", "86mins", cloud_data->client_controller_data.motion, cloud_data->client_controller_data.voltage, cloud_data->client_controller_data.pto);
-    printf("\nquery is: %s\n", sql);
+    sprintf(sql, "INSERT INTO Telematics (Latitude,LatSign,Longitude,LongSign,PDOP,HDOP,VDOP,Serial,VIN,Speed,Dist_Travelled,Idle_time,Veh_in_Service,Motion,Voltage,PTO,AccX,AccY,AccZ,RPM,Temperature) VALUES (%f,'%c',%f,'%c',%f,%f,%f,'%s','%s',%d,'%f','%f','%f',%d,%f,%d,%f,%f,%f,%d,%f)", cloud_data->gps_data.latitude, cloud_data->gps_data.lat_cardinal_sign, cloud_data->gps_data.longitude, cloud_data->gps_data.long_cardinal_sign,
+            cloud_data->gps_data.pdop, cloud_data->gps_data.hdop, cloud_data->gps_data.vdop, "12345", "abcdef", 85,180.00, 27.00, 86.00, cloud_data->client_controller_data.motion, cloud_data->client_controller_data.voltage, cloud_data->client_controller_data.pto,0.00,0.00,0.00,0,0.00);
     int rc = sqlite3_open("test.db", &db);
     result = sqlite3_exec(db, sql, 0, 0, &err_msg);
 
     if (result != SQLITE_OK)
     {
-        fprintf(stderr, "SQL error: %s\n", err_msg);
+        logger_error(DB_LOG_MODULE_ID, "SQL error: %s\n", err_msg);
         sqlite3_free(err_msg);
         sqlite3_close(db);
         return 1;
@@ -80,4 +78,5 @@ int insert_telematics_data(struct cloud_data_struct *cloud_data)
     }
 
     sqlite3_close(db);
+    return 0;
 }

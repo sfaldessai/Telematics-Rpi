@@ -14,7 +14,7 @@
 
 int db_setup();
 
-int initialize_db();
+void initialize_db();
 
 int insert_telematics_data(struct cloud_data_struct* inCloud_data);
 
