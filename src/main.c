@@ -51,6 +51,9 @@ int main(int argc, char *argv[])
         }
     }
 
+    /* Get Master (RPI) MAC Address and update cloud_data.mac_address */
+    get_master_mac_address(cloud_data.mac_address);
+
     /* Pointer char initializing to null*/
     initialize_cloud_data(&cloud_data);
 

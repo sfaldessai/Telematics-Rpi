@@ -13,6 +13,7 @@
 #include "cloud_server/cloud_server.h"
 #include "can_bus/can_bus.h"
 #include "global/global.h"
+#include "utils/common_utils.h"
 
 #define DEBUG
 
