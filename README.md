@@ -125,6 +125,6 @@
 				./virtualcan &
 
 #Telematics DB schema
-|ID | creation_time | Latitude| LatSign | Longitude|LongSign |	PDOP |	HDOP |	VDOP |	Serial |	VIN	Speed |	Dist_Travelled |	Idle_time |	Veh_in_Service |	Motion |	Voltage |	PTO |	AccX |	AccY |	AccZ |	RPM |	Temperature |
-|---|---------------|---------|---------|----------|---------|--------|-------|-------|---------|--------------|----------------|--------------|----------------|-----------|------------|-------|--------|-------|-------|------|---------------|
+|ID | creation_time | Latitude| LatSign | Longitude|LongSign |	PDOP |	HDOP |	VDOP |	Serial |	VIN	Speed |  supported_Pids |Dist_Travelled |	Idle_time |	Veh_in_Service |	Motion |	Voltage |	PTO |	AccX |	AccY |	AccZ |	RPM |	Temperature |
+|---|---------------|---------|---------|----------|---------|--------|-------|-------|---------|--------------|----------------|--------------|----------------|-----------|------------|-------|--------|-------|-------|------|---------------|--------------|
 
