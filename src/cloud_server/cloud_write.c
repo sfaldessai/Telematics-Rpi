@@ -60,6 +60,7 @@ void initialize_cloud_data(struct cloud_data_struct *cloud_data)
     gps_data.hdop = 0.0;
     gps_data.pdop = 0.0;
     gps_data.vdop = 0.0;
+    gps_data.speed = 0.0;
 
     client_controller_data.pto = 0;
     client_controller_data.motion = 0;

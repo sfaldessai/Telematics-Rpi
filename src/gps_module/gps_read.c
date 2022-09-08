@@ -21,7 +21,7 @@
 #define SIXTY 60
 #define COMMA 0x2C
 #define CR 0x0d
-#define SPEED_POS 7
+#define SPEED_POS ((uint8_t)7)
 #define GPS_KMPH_PER_KNOT 1.852
 
 /* mutex to lock cloud_data struct for wirte */
@@ -69,11 +69,11 @@ void get_dops(char **gsa_data, char *nmea_data)
  * Descriptoin: The get_gps_param_by_position function is to get requested parameter from GPS sentence
  * Input parameters: char ** (extracted param)
  *                   char * (gps module sentence)
- *                   int    (param position)
+ *                   uint8_t    (param position)
  * Output parameters: void
  */
-void get_gps_param_by_position(char **param,char*nmea_data,int position){
-    unsigned int k = 0;
+void get_gps_param_by_position(char **param,char*nmea_data,uint8_t position){
+    uint8_t k = 0;
     if(position>0){
         *param = strchr(nmea_data, COMMA);
         
@@ -143,18 +143,18 @@ void get_gps_data(char *nmea_data, struct gps_data_struct *gps_data)
         gsa_data = strchr(gsa_data + 1, COMMA);
         gps_data->vdop = atof(gsa_data + 1);
     }
-    else if (nmea_data[3] == 'V' && nmea_data[4] == 'T' && nmea_data[5] == 'G')
-    {
-        /* Get Speed from VTG message*/
-        get_gps_param_by_position(&vtg_data,nmea_data,SPEED_POS);
-        gps_data->speed=atof(vtg_data);
-    }
     else if (nmea_data[3] == 'R' && nmea_data[4] == 'M' && nmea_data[5] == 'C')
     {
         /* Get Speed from RMC message*/
         get_gps_param_by_position(&rmc_data,nmea_data,SPEED_POS);
         gps_data->speed=atof(rmc_data)*GPS_KMPH_PER_KNOT;
     }
+    else if (nmea_data[3] == 'V' && nmea_data[4] == 'T' && nmea_data[5] == 'G')
+    {
+        /* Get Speed from VTG message*/
+        get_gps_param_by_position(&vtg_data,nmea_data,SPEED_POS);
+        gps_data->speed=atof(vtg_data);
+    }   
 }
 
 /*
