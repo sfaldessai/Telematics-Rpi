@@ -50,6 +50,7 @@ int db_setup(sqlite3 *db)
             return 1;
         }
     }
+    sqlite3_close(db);
     return rc;
 }
 
