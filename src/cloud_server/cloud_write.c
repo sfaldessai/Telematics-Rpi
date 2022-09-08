@@ -9,8 +9,12 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/time.h>
 #include "cloud_server.h"
 #include "../logger/logger.h"
+
+struct timeval tval_start, tval_stop, tval_inServiceTime;
+static bool isStartTime = false, isStopTime = false;
 
 /*
  * Name : write_to_cloud
@@ -25,6 +29,32 @@ void *write_to_cloud(void *arg)
     
     /* Initializing logger */
     logger_setup();
+    if (cloud_data->can_data.speed > 0 || cloud_data->gps_data.speed > 0 && !isStartTime) {
+        gettimeofday(&tval_start, NULL);
+        isStartTime = true;
+    }
+
+    if (cloud_data->can_data.speed <= 0 && cloud_data->gps_data.speed <= 0 && &tval_start > 0) {
+        gettimeofday(&tval_stop, NULL);
+        isStopTime = true;
+    }
+
+    /*if (&tval_stop < &tval_start) {
+
+    }*/
+
+    if (isStartTime && isStopTime) {
+        timersub(&tval_stop, &tval_start, &tval_inServiceTime);
+        cloud_data.service_time = (double)tval_inServiceTime.tv_sec + ((double)tval_inServiceTime.tv_usec / 1000000.0f);
+        printf("Vehicle In Service time:%f\n", cloud_data->service_time);
+        timerclear(&tval_start);
+        timerclear(&tval_stop);
+        isStartTime = false;
+        isStopTime = false;
+    }
+    else {
+        printf("Vehicle In Service time:%f\n", cloud_data->service_time);
+    }
 
     while (1)
     {
@@ -36,6 +66,8 @@ void *write_to_cloud(void *arg)
         logger_info(CLOUD_LOG_MODULE_ID, "\tLONG: %.4f %c\n", cloud_data->gps_data.longitude, cloud_data->gps_data.long_cardinal_sign);
         logger_info(CLOUD_LOG_MODULE_ID, "\tPDOP:%.2f\tHDOP:%.2f\tVDOP:%.2f\n", cloud_data->gps_data.pdop,
                     cloud_data->gps_data.hdop, cloud_data->gps_data.vdop);
+        logger_info(CLOUD_LOG_MODULE_ID, "\tVehicle In Service time:%f\n", cloud_data->service_time);
+
         sleep(2); /* Display data every 2 sec*/
     }
 }
@@ -71,4 +103,5 @@ void initialize_cloud_data(struct cloud_data_struct *cloud_data)
     cloud_data->gps_data = gps_data;
     cloud_data->client_controller_data = client_controller_data;
     cloud_data->can_data = can_data;
+    cloud_data->service_time = 0.0;
 }
