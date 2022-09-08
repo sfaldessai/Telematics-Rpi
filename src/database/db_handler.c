@@ -11,14 +11,15 @@
 #include "db_handler.h"
 #include "../logger/logger.h"
 
-#define SQL_CREATE_TABLE "CREATE TABLE IF NOT EXISTS TELEMATICS(ID INTEGER PRIMARY KEY AUTOINCREMENT, creation_time TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, Latitude FLOAT, LatSign Text, Longitude FLOAT, LongSign Text, PDOP FLOAT, HDOP FLOAT, VDOP FLOAT,Serial TEXT, VIN TEXT, Speed INT, Supported_Pids, Dist_Travelled FLOAT, Idle_time FLOAT, Veh_in_Service FLOAT,Motion INT, Voltage FLOAT, PTO INT,AccX FLOAT, AccY FLOAT, AccZ FLOAT,RPM INT, Temperature FLOAT);"
+#define TELEMATICS_DB_PATH "/usr/sbin/telematic.db"
+#define SQL_CREATE_TABLE "CREATE TABLE IF NOT EXISTS TELEMATICS(ID INTEGER PRIMARY KEY AUTOINCREMENT, creation_time TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, Latitude FLOAT, LatSign Text, Longitude FLOAT, LongSign Text, PDOP FLOAT, HDOP FLOAT, VDOP FLOAT,Serial TEXT, VIN TEXT, Speed INT, Supported_Pids TEXT, Dist_Travelled FLOAT, Idle_time FLOAT, Veh_in_Service FLOAT,Motion INT, Voltage FLOAT, PTO INT,AccX FLOAT, AccY FLOAT, AccZ FLOAT,RPM INT, Temperature FLOAT);"
 
 int initialize_db()
 {
     sqlite3 *db = NULL;
     char *err_msg = 0;
 
-    int rc = sqlite3_open("/usr/sbin/telematic.db", &db);
+    int rc = sqlite3_open(TELEMATICS_DB_PATH, &db);
 
     if (rc != SQLITE_OK)
     {
@@ -61,11 +62,11 @@ int insert_telematics_data(struct cloud_data_struct *cloud_data)
     supported_pids[i] = '\0';
 
     sprintf(sql, "INSERT INTO Telematics (Latitude,LatSign,Longitude,LongSign,PDOP,HDOP,VDOP,Serial,VIN,Speed,Supported_Pids,Dist_Travelled,Idle_time,Veh_in_Service,Motion,Voltage,PTO,AccX,AccY,AccZ,RPM,Temperature) VALUES (%f,'%c',%f,'%c',%f,%f,%f,'%s','%s',%d, '%s','%f','%f','%f',%d,%f,%d,%f,%f,%f,%d,%f)", cloud_data->gps_data.latitude, cloud_data->gps_data.lat_cardinal_sign, cloud_data->gps_data.longitude, cloud_data->gps_data.long_cardinal_sign,
-            cloud_data->gps_data.pdop, cloud_data->gps_data.hdop, cloud_data->gps_data.vdop, "12345", cloud_data->can_data.vin, cloud_data->can_data.speed, supported_pids, 180.00, 27.00, 86.00, cloud_data->client_controller_data.motion, cloud_data->client_controller_data.voltage, cloud_data->client_controller_data.pto, 0.00, 0.00, 0.00, 0, 0.00);
+            cloud_data->gps_data.pdop, cloud_data->gps_data.hdop, cloud_data->gps_data.vdop, cloud_data->mac_address, cloud_data->can_data.vin, cloud_data->can_data.speed, supported_pids, 180.00, 27.00, 86.00, cloud_data->client_controller_data.motion, cloud_data->client_controller_data.voltage, cloud_data->client_controller_data.pto, 0.00, 0.00, 0.00, 0, 0.00);
     
     logger_info(DB_LOG_MODULE_ID, "SQL QUERY: %s\n", sql);
 
-    int rc = sqlite3_open("/usr/sbin/telematic.db", &db);
+    int rc = sqlite3_open(TELEMATICS_DB_PATH, &db);
     if (rc != SQLITE_OK)
     {
         logger_error(DB_LOG_MODULE_ID, "Cannot open database: %s\n", sqlite3_errmsg(db));
