@@ -52,6 +52,7 @@ extern "C"
 #define LOGGER_EMPTY ""
 #define LOGGER_NUL '\0'
 
+#define MAIN_LOG_MODULE_ID 1
 #define GPS_LOG_MODULE_ID 2
 #define SERIAL_LOG_MODULE_ID 3
 #define CAN_LOG_MODULE_ID 4

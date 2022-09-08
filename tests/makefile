@@ -15,7 +15,7 @@ LD_LIBRARIES = -L$(CPPUTEST_HOME)/lib -pthread -lpthread
 
 SRC_DIRS = $(wildcard ./../src/*)
 
-TEST_SRC_DIRS = ./ ./gps_module/ ./client_controller/ ./can_bus/
+TEST_SRC_DIRS = ./ ./gps_module/ ./client_controller/ ./can_bus/ ./utils/
 
 INCLUDE_DIRS =\
   .\
