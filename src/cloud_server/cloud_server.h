@@ -14,9 +14,12 @@
 
 #define DEBUG
 
+#define MAX_LEN_MAC_ADDRESS 12
+
 /* cloud_data_struct struct to holds STM32, GPS, and CAN bus data*/
 struct cloud_data_struct
 {
+	uint8_t mac_address[MAX_LEN_MAC_ADDRESS];
 	struct gps_data_struct gps_data;
 	struct client_controller_data_struct client_controller_data;
 	struct can_data_struct can_data;
