@@ -52,6 +52,7 @@ void *write_to_cloud(void *arg)
 
         double current_inServiceTime = retrive_previous_inServiceTime() + cloud_data->service_time;
         insert_parameter_in_db(current_inServiceTime);
+        cloud_data->service_time = current_inServiceTime;
 
         timerclear(&tval_start);
         timerclear(&tval_stop);
