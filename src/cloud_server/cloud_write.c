@@ -31,6 +31,7 @@ void *write_to_cloud(void *arg)
 
     /* Initializing logger */
     logger_setup();
+
     if (cloud_data->can_data.speed > 0 || cloud_data->gps_data.speed > 0 && !isStartTime) {
         gettimeofday(&tval_start, NULL);
         isStartTime = true;
@@ -45,17 +46,17 @@ void *write_to_cloud(void *arg)
 
     }*/
 
-    if (isStartTime && isStopTime) {
+    if (isStopTime) {
         timersub(&tval_stop, &tval_start, &tval_inServiceTime);
-        cloud_data.service_time = (double)tval_inServiceTime.tv_sec + ((double)tval_inServiceTime.tv_usec / 1000000.0f);
-        printf("Vehicle In Service time:%f\n", cloud_data->service_time);
+        cloud_data->service_time = (double)tval_inServiceTime.tv_sec + ((double)tval_inServiceTime.tv_usec / 1000000.0f);
+
+        double current_inServiceTime = retrive_previous_inServiceTime() + cloud_data->service_time;
+        insert_parameter_in_db(current_inServiceTime);
+
         timerclear(&tval_start);
         timerclear(&tval_stop);
         isStartTime = false;
         isStopTime = false;
-    }
-    else {
-        printf("Vehicle In Service time:%f\n", cloud_data->service_time);
     }
 
     int rc = initialize_db();

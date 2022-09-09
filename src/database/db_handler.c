@@ -7,7 +7,6 @@
 
 #include <stdio.h>
 #include <unistd.h>
-#include <sqlite3.h>
 #include "db_handler.h"
 #include "../logger/logger.h"
 
@@ -90,4 +89,74 @@ int insert_telematics_data(struct cloud_data_struct *cloud_data)
 
     sqlite3_close(db);
     return 0;
+}
+
+void insert_parameter_in_db(double parameterData) {
+    char* err_msg = 0;
+    sqlite3* db;
+    int result;
+    char sql[256];
+
+    sprintf(sql, "INSERT INTO Telematics (Veh_in_Service) VALUES (%f)",parameterData);
+
+    logger_info(DB_LOG_MODULE_ID, "SQL QUERY: %s\n", sql);
+
+    int rc = sqlite3_open(TELEMATICS_DB_PATH, &db);
+    if (rc != SQLITE_OK)
+    {
+        logger_error(DB_LOG_MODULE_ID, "Cannot open database: %s\n", sqlite3_errmsg(db));
+        sqlite3_close(db);
+
+        return 1;
+    }
+    result = sqlite3_exec(db, sql, 0, 0, &err_msg);
+
+    if (result != SQLITE_OK)
+    {
+        logger_error(DB_LOG_MODULE_ID, "SQL error: %s\n", err_msg);
+        sqlite3_free(err_msg);
+        sqlite3_close(db);
+        return 1;
+    }
+    else
+    {
+        logger_info(CLOUD_LOG_MODULE_ID, "Data inserted successfully");
+    }
+
+    sqlite3_close(db);
+    return 0;
+}
+
+double retrive_previous_inServiceTime() {
+    sqlite3* db;
+    char* err_msg = 0;
+
+    int rc = sqlite3_open(TELEMATICS_DB_PATH, &db);
+
+    double db_VehInServiceTime = 0.00;
+
+    if (rc != SQLITE_OK) {
+
+        logger_error(DB_LOG_MODULE_ID, "Cannot open database: %s\n", sqlite3_errmsg(db));
+        sqlite3_close(db);
+
+        return 1;
+    }
+
+    char* sql = "SELECT Veh_in_Service FROM Telematics ORDER BY Veh_in_Service DESC LIMIT 1;";
+
+    rc = sqlite3_exec(db, sql, db_VehInServiceTime, 0, &err_msg);
+    printf("retrived VehInServiceTime is: %lf\n", db_VehInServiceTime);
+
+    if (rc != SQLITE_OK) {
+
+        logger_error(DB_LOG_MODULE_ID, "Failed to select data: %s\n", err_msg);
+        sqlite3_free(err_msg);
+        sqlite3_close(db);
+
+        return 1;
+    }
+
+    sqlite3_close(db);
+    return db_VehInServiceTime;
 }
