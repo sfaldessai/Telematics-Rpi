@@ -14,9 +14,18 @@
 #include "../logger/logger.h"
 #include "../database/db_handler.h"
 
+#define HOURS 3600
+#define RPM_OFFSET 0
+#define SPEED_THRESHOLD 0
+#define IDLE_THRESHOLD 10
+
+bool idle_timer_started = false;
+time_t begin,end;
+
+
 /*
  * Name : write_to_cloud
- * Descriptoin: The write_to_cloud function is for diplaying/monitoring vehicle informtion from
+ * Description: The write_to_cloud function is for diplaying/monitoring vehicle informtion from
  *              STM32 microcontroller, GPS Module, and CAN Bus over the UART protocol.
  * Input parameters: struct cloud_data_struct *
  * Output parameters: void
@@ -33,8 +42,9 @@ void *write_to_cloud(void *arg)
     {
         if (cloud_data != NULL)
         {
-            logger_info(CLOUD_LOG_MODULE_ID, "\tVIN = %s | CAN SPEED = %d | GPS SPEED = %f \n", cloud_data->can_data.vin,
-                cloud_data->can_data.speed, cloud_data->gps_data.speed);
+            calculate_idle_time(cloud_data);
+            logger_info(CLOUD_LOG_MODULE_ID, "\tVIN = %s | SPEED = %d | RPM = %2f | idle_time_sec = %.2f \n", cloud_data->can_data.vin,
+                    cloud_data->can_data.speed, cloud_data->can_data.rpm, cloud_data->idle_time_secs);
             logger_info(CLOUD_LOG_MODULE_ID, "\tMOTION = %d | VOLTAGE = %f | PTO = %d\n", cloud_data->client_controller_data.motion,
                         cloud_data->client_controller_data.voltage, cloud_data->client_controller_data.pto);
             logger_info(CLOUD_LOG_MODULE_ID, "\tLAT: %.4f %c", cloud_data->gps_data.latitude, cloud_data->gps_data.lat_cardinal_sign);
@@ -53,6 +63,39 @@ void *write_to_cloud(void *arg)
             sleep(2); /* Display data every 2 sec*/
         }
     }
+}
+
+/*
+ * Name : calculate_idle_time
+ * Description: This function calculates the idle time based on the speed and RPM
+ * Input parameters: struct cloud_data_struct *
+ * Output parameters: void
+ */
+void calculate_idle_time(struct cloud_data_struct *cloud_data)
+{
+    /* Start the Idle time when the speed is 0 and RPM is greater than some threshold when Ignition is ON */
+    if((cloud_data->can_data.speed  == SPEED_THRESHOLD) && 
+       (cloud_data->can_data.rpm >= RPM_OFFSET))
+    {
+        if(idle_timer_started == false)
+        {
+          idle_timer_started = true;
+          begin = time(NULL);
+        }
+    }
+    else if(idle_timer_started)
+    {
+        end = time(NULL);
+        int idle_time_sec = (end-begin);
+
+        /* Write to cloud idle time only if the minimulm threshold is greater than 10 seconds. Otherwise, ignore */
+        if(idle_time_sec > IDLE_THRESHOLD)
+        {
+          cloud_data->idle_time_secs += idle_time_sec;
+        }
+        idle_timer_started = false;
+    }
+    
 }
 
 /*
@@ -83,9 +126,11 @@ void initialize_cloud_data(struct cloud_data_struct *cloud_data)
 
     memset(can_data.vin, '\0', MAX_LEN_VIN);
     can_data.speed = 0;
+	can_data.rpm = 0.0;
     memset(can_data.supported_pids, 0, CAN_PID_LENGTH * sizeof(uint32_t));
 
     cloud_data->gps_data = gps_data;
     cloud_data->client_controller_data = client_controller_data;
     cloud_data->can_data = can_data;
+    cloud_data->idle_time_secs = 0;
 }

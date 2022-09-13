@@ -71,7 +71,27 @@ int main(void)
 		{
 			switch (request_frame.data[2])
 			{
-			case 0x0D:
+			case 0x0C: //RPM
+				frame.can_id = 0x7E8;
+				frame.can_dlc = 8;
+
+				frame.data[0] = 3;
+				frame.data[1] = 41;
+				frame.data[2] = 0x0C;
+
+				frame.data[3] = get_random_number(0, 40);
+				frame.data[4] = get_random_number(0, 99);
+				frame.data[5] = 0xAA;
+				frame.data[6] = 0xAA;
+				frame.data[7] = 0xAA;
+				if (write(s, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame))
+				{
+					perror("Write");
+					return 1;
+				}
+				break;
+				
+			case 0x0D: //SPEED
 				frame.can_id = 0x7E8;
 				frame.can_dlc = 8;
 

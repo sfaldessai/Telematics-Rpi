@@ -213,6 +213,42 @@ void *read_can_id_number(void *arg)
 }
 
 /*
+ * Name : read_can_rpm_pid
+ *
+ * Description: The read_can_rpm_pid function is for fetching Vehicle rpm PID data from the CAN module
+ *
+ * Input parameters:
+ *                  void *arg : cloud_data_struct to update vehicle rpm data
+ *
+ * Output parameters: void
+ */
+void *read_can_rpm_pid(void *arg)
+{
+    struct can_frame rpm_frame[RPM_DATA_FRAME], request_frame;
+    struct cloud_data_struct *cloud_data = (struct cloud_data_struct *)arg;
+    uint8_t read_rpm[8];
+    /* prepare CAN request frame */
+    get_request_frame(&request_frame, RPM_PID, LIVE_DATA_MODE);
+
+    while (1)
+    {
+        /* Copy 2 bytes of Vehicle RPM data to cloud struct member for displaying on screen from display thread */
+
+        /* Send Request and get response for PID 0x0C */
+        can_request_response(rpm_frame, RPM_DATA_FRAME, request_frame);
+        if (rpm_frame[0].data[2] == RPM_PID)
+        {
+            sprintf((char *)read_rpm, "%x%x", rpm_frame[0].data[3], rpm_frame[0].data[4]);
+            cloud_data->can_data.rpm = hex_to_decimal(read_rpm) * 0.25; // Engine speed Formula: (256 A + B)/4
+        }
+
+        /* request next data each 1sec */
+        sleep(1);
+    }
+    close_socket(&sockfd);
+}
+
+/*
  * Name : read_can_speed_pid
  *
  * Descriptoin: The read_can_speed_pid function is for fetching Vehicle speed PID data from the CAN module
@@ -295,18 +331,20 @@ void *read_can_supported_pid(void *arg)
 /*
  * Name : read_from_can
  *
- * Descriptoin: The read_from_can function is for fetching CAN data which contains VIN, SPEED, and supported PID data
+ * Description: The read_from_can function is for fetching CAN data which contains VIN, SPEED, and supported PID data
  *
  * Input parameters:
  *                  void *arg : cloud_data_struct to update CAN data
  *                  pthread_t *read_can_supported_thread
  *                  pthread_t *read_can_speed_thread
  *                  pthread_t *read_can_vin_thread
+ *                  pthread_t *read_can_rpm_thread
  *
  * Output parameters: void
+ * Note: TBD optimize the function to have only one thread for all the CAN PID requests
  */
-void read_from_can(void *arg, pthread_t *read_can_supported_thread, pthread_t *read_can_speed_thread, pthread_t *read_can_vin_thread)
-{
+void read_from_can(void *arg, pthread_t *read_can_supported_thread, pthread_t *read_can_speed_thread, pthread_t *read_can_vin_thread, pthread_t *read_can_rpm_thread)
+{ 
     /* setup socket can */
     if (setup_can_socket(&sockfd) == 0)
     {
@@ -314,7 +352,9 @@ void read_from_can(void *arg, pthread_t *read_can_supported_thread, pthread_t *r
         pthread_create(read_can_vin_thread, NULL, &read_can_id_number, arg);
         /* Thread to fetch supported pid data. */
         pthread_create(read_can_supported_thread, NULL, &read_can_supported_pid, arg);
-        /* Thread to fetch spedd pid data. */
+        /* Thread to fetch speed pid data. */
         pthread_create(read_can_speed_thread, NULL, &read_can_speed_pid, arg);
+        /* Thread to fetch rpm pid data. */
+        pthread_create(read_can_rpm_thread, NULL, &read_can_rpm_pid, arg);
     }
 }
