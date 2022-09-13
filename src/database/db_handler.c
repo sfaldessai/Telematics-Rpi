@@ -126,37 +126,3 @@ void insert_parameter_in_db(double parameterData) {
     sqlite3_close(db);
     return 0;
 }
-
-double retrive_previous_inServiceTime() {
-    sqlite3* db;
-    char* err_msg = 0;
-
-    int rc = sqlite3_open(TELEMATICS_DB_PATH, &db);
-
-    double db_VehInServiceTime = 0.00;
-
-    if (rc != SQLITE_OK) {
-
-        logger_error(DB_LOG_MODULE_ID, "Cannot open database: %s\n", sqlite3_errmsg(db));
-        sqlite3_close(db);
-
-        return 1;
-    }
-
-    char* sql = "SELECT Veh_in_Service FROM Telematics ORDER BY Veh_in_Service DESC LIMIT 1;";
-
-    rc = sqlite3_exec(db, sql, db_VehInServiceTime, 0, &err_msg);
-    printf("retrived VehInServiceTime is: %lf\n", db_VehInServiceTime);
-
-    if (rc != SQLITE_OK) {
-
-        logger_error(DB_LOG_MODULE_ID, "Failed to select data: %s\n", err_msg);
-        sqlite3_free(err_msg);
-        sqlite3_close(db);
-
-        return 1;
-    }
-
-    sqlite3_close(db);
-    return db_VehInServiceTime;
-}
