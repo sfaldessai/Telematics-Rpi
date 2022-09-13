@@ -98,7 +98,7 @@ void initialize_cloud_data(struct cloud_data_struct *cloud_data)
 
     uint8_t value[COLUMN_VALUE_MAX_LEN];
     get_single_column_value(VEHICLE_IN_SERVICE, SORT_BY_DESC, value);
-    cloud_data->service_time = atof((char*)value);
+    cloud_data->service_time = (float) atof((char*)value);
 }
 
 /*
@@ -117,7 +117,7 @@ void calculate_service_time(struct cloud_data_struct* cloud_data) {
     } else if (cloud_data->can_data.speed == SPEED_THRESHOLD && cloud_data->gps_data.speed == SPEED_THRESHOLD && service_timer_start) {
         tval_stop = time(NULL);
         int tval_inServiceTime = (tval_stop - tval_start);
-        cloud_data->service_time += tval_inServiceTime;
+        cloud_data->service_time = cloud_data->service_time + (float) tval_inServiceTime;
         service_timer_start = false;
     }
 }
