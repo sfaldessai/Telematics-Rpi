@@ -246,33 +246,32 @@ void vin_from_can_frame_data(struct can_frame *vin_frame, char *read_data)
  * Input parameters:
  *					uint8_t *read_data reference type, input hex bytes.
  *
- * Output parameters: converted decimal value
+ * Output parameters: uint16_t - converted decimal value
  */
 uint16_t hex_to_decimal(uint8_t *read_data)
 {
 	long long decimal =0;
 	int val =0;
-    size_t len = strlen((char *)read_data);
-    len --;
+	size_t len = strlen((char *)read_data);
+	len --;
 	
 	for (size_t i=0; read_data[i] !='\0'; i++)
 	{
-      if(read_data[i]>='0' && read_data[i]<='9')
-	  {
-        val = read_data[i] -48;
-      }
-      else if(read_data[i]>='a' && read_data[i]<='f')
-      {
-        val = read_data[i] -97 +10;
-      }
-      else if(read_data[i]>='A' && read_data[i]<='F')
-      {
-        val = read_data[i] -65 +10;
-      }
-      decimal += val * pow(16,len);
-      len--;
-
-    }
+		if(read_data[i]>='0' && read_data[i]<='9')
+		{
+			val = read_data[i] -48;
+    	}
+    	else if(read_data[i]>='a' && read_data[i]<='f')
+    	{
+    		val = read_data[i] -97 +10;
+    	}
+    	else if(read_data[i]>='A' && read_data[i]<='F')
+    	{
+    		val = read_data[i] -65 +10;
+    	}
+    	decimal += val * pow(16,len);
+    	len--;
+	}
 	return decimal;
 }
 
