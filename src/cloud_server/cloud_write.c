@@ -41,7 +41,7 @@ void *write_to_cloud(void *arg)
         {
             calculate_service_time(cloud_data);
             logger_info(CLOUD_LOG_MODULE_ID, "\tVIN = %s | CAN SPEED = %d | GPS SPEED = %f \n", cloud_data->can_data.vin,
-                cloud_data->can_data.speed, cloud_data->gps_data.speed);
+                        cloud_data->can_data.speed, cloud_data->gps_data.speed);
             logger_info(CLOUD_LOG_MODULE_ID, "\tMOTION = %d | VOLTAGE = %f | PTO = %d\n", cloud_data->client_controller_data.motion,
                         cloud_data->client_controller_data.voltage, cloud_data->client_controller_data.pto);
             logger_info(CLOUD_LOG_MODULE_ID, "\tLAT: %.4f %c", cloud_data->gps_data.latitude, cloud_data->gps_data.lat_cardinal_sign);
@@ -57,7 +57,7 @@ void *write_to_cloud(void *arg)
                     logger_info(CLOUD_LOG_MODULE_ID, "DB write failed, TODO: Write to file temporarily");
                 }
             }
-            sleep(2); /* Display data every 2 sec*/
+            sleep(1); /* Display data every 1 sec*/
         }
     }
 }
@@ -95,7 +95,10 @@ void initialize_cloud_data(struct cloud_data_struct *cloud_data)
     cloud_data->gps_data = gps_data;
     cloud_data->client_controller_data = client_controller_data;
     cloud_data->can_data = can_data;
-    cloud_data->service_time = 0.0; /*call the generic function to retrive db data based on the column name*/
+
+    uint8_t value[COLUMN_VALUE_MAX_LEN];
+    get_single_column_value(VEHICLE_IN_SERVICE, SORT_BY_DESC, value);
+    cloud_data->service_time = atof((char*)value);
 }
 
 /*
