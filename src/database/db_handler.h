@@ -12,7 +12,18 @@
 
 #define DEBUG
 
+#define QUERY_MAX_LEN 1024
+#define COLUMN_VALUE_MAX_LEN 16
+
+/* Table Name */
+#define TELEMATICS "TELEMATICS"
+
+/* DB Attributes */
+#define SORT_BY_DESC "DESC"
+#define SORT_BY_ASC "ASC"
+
 /* DB columns names */
+#define creation_time "creation_time"
 #define LATITUDE "Latitude"
 #define LATITUDE_SIGN "LatSign"
 #define LONGITUDE "Longitude"
@@ -43,5 +54,7 @@
 int initialize_db(void);
 
 int insert_telematics_data(struct cloud_data_struct* inCloud_data);
+
+int get_single_column_value(char *, char *, uint8_t *);
 
 #endif

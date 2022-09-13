@@ -53,7 +53,7 @@ int initialize_db()
 /*
  * Name : insert_telematics_data
  * Descriptoin: The insert_telematics_data function is for inserting CAN, STM32, GPS, & other consolidated data into a database.
- * Input parameters: struct cloud_data_struct: which contains CAN, STM32, GPS, & other consolidated data. 
+ * Input parameters: struct cloud_data_struct: which contains CAN, STM32, GPS, & other consolidated data.
  * Output parameters: int: returning sqlite success or error code
  */
 int insert_telematics_data(struct cloud_data_struct *cloud_data)
@@ -63,7 +63,7 @@ int insert_telematics_data(struct cloud_data_struct *cloud_data)
     char *err_msg = NULL;
     sqlite3 *db;
     int rc = 1;
-    char sql[1024];
+    char sql[QUERY_MAX_LEN];
 
     char supported_pids[CAN_PID_LENGTH + 1];
     size_t i = 0;
@@ -130,6 +130,62 @@ int insert_telematics_data(struct cloud_data_struct *cloud_data)
     }
 
     sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return 0;
+}
+
+/*
+ * Name : get_single_column_value
+ *
+ * Descriptoin: The get_single_column_value function is for fetching single column namd and returning string value. 
+ *
+ * Input parameters: char *column_name: column name
+ *                   char *sort_by: sort option 
+ *                   uint8_t *return_value: to update retuned column value and return
+ * 
+ * Output parameters: int: returning sqlite success or error code
+ */
+int get_single_column_value(char *column_name, char *sort_by, uint8_t *return_value)
+{
+    sqlite3 *db;
+    sqlite3_stmt *res;
+    char sql[QUERY_MAX_LEN];
+
+    int rc = sqlite3_open(TELEMATICS_DB_PATH, &db);
+
+    if (rc != SQLITE_OK)
+    {
+        logger_error(DB_LOG_MODULE_ID, "Cannot open database: %s:%d\n", sqlite3_errmsg(db), rc);
+        sqlite3_close(db);
+        return rc;
+    }
+
+    sprintf(sql, "SELECT %s FROM %s order by %s %s limit 1", column_name, TELEMATICS, creation_time, sort_by);
+
+    logger_info(DB_LOG_MODULE_ID, "SQL QUERY: %s\n", sql);
+
+    rc = sqlite3_prepare_v2(db, sql, -1, &res, 0);
+
+    if (rc == SQLITE_OK)
+    {
+
+        sqlite3_bind_int(res, 1, 1);
+    }
+    else
+    {
+
+        fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(db));
+    }
+
+    int step = sqlite3_step(res);
+
+    if (step == SQLITE_ROW)
+    {
+        strncpy((char *)return_value, (char *)sqlite3_column_text(res, 0), COLUMN_VALUE_MAX_LEN);
+    }
+
+    sqlite3_finalize(res);
     sqlite3_close(db);
 
     return 0;
