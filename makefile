@@ -49,7 +49,7 @@ common_utils.o:
 	gcc -c $(CFLAGS) $(UTILS_DIR) $(UTILS_DIR)/common_utils.c -o $(SRC_DIR)/common_utils.o
 
 main: serial_interface.o gps_module.o client_controller.o cloud_write.o global.o logger.o can_interface.o can_bus.o common_utils.o db_handler.o
-	gcc $(CFLAGS) $(SRC_DIR) $(SRC_DIR)/*.o $(SRC_DIR)/main.c -o $(OUT) $(LIBS) -lsqlite3
+	gcc $(CFLAGS) $(SRC_DIR) $(SRC_DIR)/*.o $(SRC_DIR)/main.c -o $(OUT) $(LIBS) -lm -lsqlite3
 
 clean:
 	rm $(SRC_DIR)/*.o $(OUT)

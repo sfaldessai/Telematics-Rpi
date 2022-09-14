@@ -101,3 +101,27 @@ TEST(GPSTestGroup,getGpvtgSpeedTest){
     /*assert*/
     STRCMP_EQUAL("010.2,K", vtg_data);
 }
+
+TEST(GPSTestGroup, NmeaVerifyChecksumValidTest)
+{
+     /*arrange*/
+    char *sentence = (char *)"$GNRMC,,V,,,,,,,,,,N*4D";
+
+    /*act*/
+    int result = nmea_verify_checksum(sentence);
+
+    /*assert*/
+    CHECK_EQUAL(0, result);
+}
+
+TEST(GPSTestGroup, NmeaVerifyChecksumInvalidTest)
+{
+     /*arrange*/
+    char *sentence = (char *)"$GNRMC,,V,,,,,N*4D";
+
+    /*act*/
+    int result = nmea_verify_checksum(sentence);
+
+    /*assert*/
+    CHECK_EQUAL(1, result);
+}
