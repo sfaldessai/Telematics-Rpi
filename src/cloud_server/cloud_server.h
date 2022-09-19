@@ -24,6 +24,7 @@ struct cloud_data_struct
 	struct client_controller_data_struct client_controller_data;
 	struct can_data_struct can_data;
 	float service_time;
+	int distance_travelled;
 };
 
 void *write_to_cloud(void *); /* pthread to display all serial data */

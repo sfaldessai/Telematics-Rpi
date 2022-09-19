@@ -17,8 +17,9 @@
 
 #define SPEED_THRESHOLD 0
 
-time_t tval_start, tval_stop;
-bool service_timer_start = false;
+time_t tval_start, tval_stop,dtval_start,dtval_stop;
+bool service_timer_start = false,distance_timer_start=false;
+int prev_speed = 0;
 
 /*
  * Name : write_to_cloud
@@ -99,6 +100,10 @@ void initialize_cloud_data(struct cloud_data_struct *cloud_data)
     uint8_t value[COLUMN_VALUE_MAX_LEN];
     get_single_column_value(VEHICLE_IN_SERVICE, SORT_BY_DESC, value);
     cloud_data->service_time = (float) atof((char*)value);
+
+    uint8_t value[COLUMN_VALUE_MAX_LEN];
+    get_single_column_value(DISTANCE_TRAVLLED, SORT_BY_DESC, value);
+    cloud_data->distance_travelled = (int)atoi((char*)value);
 }
 
 /*
@@ -119,5 +124,33 @@ void calculate_service_time(struct cloud_data_struct* cloud_data) {
         int tval_inServiceTime = (tval_stop - tval_start);
         cloud_data->service_time = cloud_data->service_time + (float) tval_inServiceTime;
         service_timer_start = false;
+    }
+}
+
+void calculate_distance_travelled(struct cloud_data_struct* cloud_data) {
+    if (cloud_data->can_data.speed != 0) {
+        distance_travelled_calculator(cloud_data->can_data.speed);
+    }
+    else if(cloud_data->gps_data.speed > SPEED_THRESHOLD != 0) {
+        distance_travelled_calculator(cloud_data->gps_data.speed);
+    }
+    else {
+        logger_error(CLOUD_LOG_MODULE_ID, "No speed data available");
+    }
+}
+
+void distance_travelled_calculator(int speed) {
+    if (speed > SPEED_THRESHOLD) {
+        if (!distance_timer_start) {
+            prev_speed = speed;
+            distance_timer_start = true;
+            dtval_start = time(NULL);
+        }
+    }
+    if (speed != prev_speed && distance_timer_start) {
+        dtval_stop = time(NULL);
+        int time_diff = (dtval_stop - dtval_start);
+        cloud_data->distance_travelled = cloud_data->distance_travelled + (prev_speed * time_diff);
+        distance_timer_start = false;
     }
 }

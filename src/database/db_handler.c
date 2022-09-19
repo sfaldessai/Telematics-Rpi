@@ -79,7 +79,7 @@ int insert_telematics_data(struct cloud_data_struct *cloud_data)
             cloud_data->gps_data.longitude, cloud_data->gps_data.long_cardinal_sign,
             cloud_data->gps_data.pdop, cloud_data->gps_data.hdop, cloud_data->gps_data.vdop,
             cloud_data->mac_address, cloud_data->can_data.vin, cloud_data->can_data.speed,
-            supported_pids, 180.00, 27.00, 86.00, cloud_data->client_controller_data.motion,
+            supported_pids, cloud_data->distance_travelled, 27.00, cloud_data->service_time, cloud_data->client_controller_data.motion,
             cloud_data->client_controller_data.voltage, cloud_data->client_controller_data.pto,
             0.00, 0.00, 0.00, 0, 0.00);
 
