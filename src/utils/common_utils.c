@@ -67,7 +67,8 @@ uint16_t hex_to_decimal(uint8_t *read_data)
     uint16_t decimal = 0;
     int val = 0;
     size_t len = strlen((char *)read_data);
-    len--;
+    len = len - 1;
+
     for (size_t i = 0; read_data[i] != '\0'; i++)
     {
         if (read_data[i] >= '0' && read_data[i] <= '9')
@@ -83,7 +84,7 @@ uint16_t hex_to_decimal(uint8_t *read_data)
             val = read_data[i] - 65 + 10;
         }
         decimal = (uint16_t)(decimal + (val * pow(16, len)));
-        len--;
+        len = len - 1;
     }
     return decimal;
 }
