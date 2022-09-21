@@ -72,7 +72,6 @@ void close_socket(int *);
 void log_can_data(struct can_frame, char *);
 void vin_from_can_frame_data(struct can_frame *, char *);
 void hex_to_binary(struct can_frame, uint8_t *);
-uint16_t hex_to_decimal(uint8_t *read_data);
 void log_can_supported_data(uint8_t *);
 
 #endif

@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <string.h>
+#include <math.h>
 #include "common_utils.h"
 #include "../logger/logger.h"
 
@@ -49,4 +50,41 @@ void get_master_mac_address(uint8_t *mac_address)
     logger_info(MAIN_LOG_MODULE_ID, "Master MAC Address: %s\n", mac_address);
 
     close(sock);
+}
+
+/*
+ * Name : hex_to_decimal
+ *
+ * Description: The hex_to_decimal function is for converting hex into decimal value.
+ *
+ * Input parameters:
+ *					uint8_t *read_data reference type, input hex bytes.
+ *
+ * Output parameters: converted decimal value
+ */
+uint16_t hex_to_decimal(uint8_t *read_data)
+{
+    uint16_t decimal = 0;
+    int val = 0;
+    size_t len = strlen((char *)read_data);
+    len = len - 1;
+
+    for (size_t i = 0; read_data[i] != '\0'; i++)
+    {
+        if (read_data[i] >= '0' && read_data[i] <= '9')
+        {
+            val = read_data[i] - 48;
+        }
+        else if (read_data[i] >= 'a' && read_data[i] <= 'f')
+        {
+            val = read_data[i] - 97 + 10;
+        }
+        else if (read_data[i] >= 'A' && read_data[i] <= 'F')
+        {
+            val = read_data[i] - 65 + 10;
+        }
+        decimal = (uint16_t)(decimal + (val * pow(16, len)));
+        len = len - 1;
+    }
+    return decimal;
 }

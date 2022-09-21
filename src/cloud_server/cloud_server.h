@@ -32,4 +32,6 @@ void initialize_cloud_data(struct cloud_data_struct *);
 
 void calculate_idle_time(struct cloud_data_struct *);
 
+void display_cloud_struct_data_logger(struct cloud_data_struct *);
+
 #endif

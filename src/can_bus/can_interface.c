@@ -9,7 +9,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <math.h>
 #include "can_bus.h"
 #include "../../include/resource.h"
 #include "../logger/logger.h"
@@ -236,44 +235,6 @@ void vin_from_can_frame_data(struct can_frame *vin_frame, char *read_data)
 		read_data[j] = (char)vin_frame[2].data[i];
 		j = j + 1;
 	}
-}
-
-/*
- * Name : hex_to_decimal
- *
- * Description: The hex_to_decimal function is for converting hex into decimal value.
- *
- * Input parameters:
- *					uint8_t *read_data reference type, input hex bytes.
- *
- * Output parameters: converted decimal value
- */
-uint16_t hex_to_decimal(uint8_t *read_data)
-{
-	long long decimal =0;
-	int val =0;
-    size_t len = strlen((char *)read_data);
-    len --;
-	
-	for (size_t i=0; read_data[i] !='\0'; i++)
-	{
-      if(read_data[i]>='0' && read_data[i]<='9')
-	  {
-        val = read_data[i] -48;
-      }
-      else if(read_data[i]>='a' && read_data[i]<='f')
-      {
-        val = read_data[i] -97 +10;
-      }
-      else if(read_data[i]>='A' && read_data[i]<='F')
-      {
-        val = read_data[i] -65 +10;
-      }
-      decimal += val * pow(16,len);
-      len--;
-
-    }
-	return decimal;
 }
 
 /*

@@ -239,7 +239,7 @@ void *read_can_rpm_pid(void *arg)
         if (rpm_frame[0].data[2] == RPM_PID)
         {
             sprintf((char *)read_rpm, "%x%x", rpm_frame[0].data[3], rpm_frame[0].data[4]);
-            cloud_data->can_data.rpm = hex_to_decimal(read_rpm) * 0.25; // Engine speed Formula: (256 A + B)/4
+            cloud_data->can_data.rpm = (float)(hex_to_decimal(read_rpm) * 0.25); // Engine speed Formula: (256 A + B)/4
         }
 
         /* request next data each 1sec */
@@ -344,7 +344,7 @@ void *read_can_supported_pid(void *arg)
  * Note: TBD optimize the function to have only one thread for all the CAN PID requests
  */
 void read_from_can(void *arg, pthread_t *read_can_supported_thread, pthread_t *read_can_speed_thread, pthread_t *read_can_vin_thread, pthread_t *read_can_rpm_thread)
-{ 
+{
     /* setup socket can */
     if (setup_can_socket(&sockfd) == 0)
     {
