@@ -226,7 +226,7 @@ void *read_can_rpm_pid(void *arg)
 {
     struct can_frame rpm_frame[RPM_DATA_FRAME], request_frame;
     struct cloud_data_struct *cloud_data = (struct cloud_data_struct *)arg;
-    uint8_t read_rpm[8];
+    uint8_t read_rpm[CAN_FRAME_LENGTH];
     /* prepare CAN request frame */
     get_request_frame(&request_frame, RPM_PID, LIVE_DATA_MODE);
 
@@ -238,8 +238,9 @@ void *read_can_rpm_pid(void *arg)
         can_request_response(rpm_frame, RPM_DATA_FRAME, request_frame);
         if (rpm_frame[0].data[2] == RPM_PID)
         {
-            sprintf((char *)read_rpm, "%x%x", rpm_frame[0].data[3], rpm_frame[0].data[4]);
-            cloud_data->can_data.rpm = (float)(hex_to_decimal(read_rpm) * 0.25); // Engine speed Formula: (256 A + B)/4
+            sprintf((char *)read_rpm, "%.2X%.2X", rpm_frame[0].data[3], rpm_frame[0].data[4]);
+            /* Engine speed Formula: (256 A + B)/4 */
+            cloud_data->can_data.rpm = (float)(hex_to_decimal(read_rpm) * 0.25);
         }
 
         /* request next data each 1sec */
