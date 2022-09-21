@@ -36,7 +36,7 @@ pthread_mutex_t cloud_data_gps_mutex = PTHREAD_MUTEX_INITIALIZER;
  * Descriptoin: The nmea_verify_checksum function is for verifying GPS checksum.
  * Input parameters:
  *                  const char *sentence : NMEA senetence
- *                                        
+ *
  * Output parameters: uint8_t: return 1 for invalid and 0 for valid
  */
 uint8_t nmea_verify_checksum(const char *sentence)
@@ -220,6 +220,28 @@ void get_gps_data(char *nmea_data, struct gps_data_struct *gps_data)
     }
 }
 
+void insert_error_code(struct gps_data_struct *gps_data, uint8_t error_code)
+{
+
+    gps_data->gps_time = error_code;
+
+    gps_data->latitude = error_code;
+
+    gps_data->lat_cardinal_sign = error_code;
+
+    gps_data->longitude = error_code;
+
+    gps_data->long_cardinal_sign = error_code;
+
+    gps_data->pdop = error_code;
+
+    gps_data->hdop = error_code;
+
+    gps_data->vdop = error_code;
+
+    gps_data->speed = error_code;
+}
+
 /*
  * Name : read_from_gps
  * Descriptoin: The read_from_gps function is for reading vehicle location
@@ -256,7 +278,113 @@ void *read_from_gps(void *arg)
                 cloud_data->gps_data = gps_data;
                 pthread_mutex_unlock(&cloud_data_gps_mutex);
             }
+            else
+            {
+            }
         }
     } while (1);
     uart_stop(&gps_device);
 }
+
+// void *read_from_gps(void *arg)
+// {
+//     char read_data[MAX_READ_SIZE];
+//     int read_data_len = 0;
+
+//     struct arg_struct *args = (struct arg_struct *)arg;
+//     struct uart_device_struct gps_device = args->uart_device;
+//     struct cloud_data_struct *cloud_data = args->cloud_data;
+//     struct gps_data_struct gps_data;
+
+//     do
+//     {
+//         static uint8_t setNMEAon[28] = {0xB5, 0x62, 0x06, 0x00, 0x14, 0x00, 0x01, 0x00, 0x00, 0x00, 0xD0, 0x08, 0x00, 0x00, 0x80, 0x25, 0x00, 0x00, 0x07, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0xA2, 0xB5};
+//         static uint8_t setGGArate_off[16] = {0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0xF0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0x23};
+//         static uint8_t setGLLrate_off[16] = {0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0xF0, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2A};
+//         static uint8_t setGSArate_off[16] = {0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0xF0, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x31};
+//         static uint8_t setGSVrate_off[16] = {0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0xF0, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+//         static uint8_t setGSVrate_on[16] = {0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0xF0, 0x03, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01};
+//         static uint8_t setRMCrate_off[16] = {0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0xF0, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x3F};
+//         static uint8_t setVTGrate_off[16] = {0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0xF0, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x46};
+
+//         static uint8_t setPowerSaveMode[10] = {0xB5, 0x62, 0x06, 0x11, 0x02, 0x00, 0x00, 0x01, 0x1A, 0x82};
+//         static uint8_t setONOFFoperation_10s[52] = {0xB5, 0x62, 0x06, 0x3B, 0x2C, 0x00, 0x01, 0x06, 0x00, 0x00, 0x00, 0x90, 0x01, 0x01, 0x10, 0x27, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2C, 0x01, 0x00, 0x00, 0x4F, 0xC1, 0x03, 0x00, 0x87, 0x02, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0x64, 0x40, 0x01, 0x00, 0xE1, 0x34};
+
+//         static uint8_t setGNSSstopped[16] = {0xB5, 0x62, 0x06, 0x57, 0x08, 0x00, 0x01, 0x00, 0x00, 0x00, 0x50, 0x4F, 0x54, 0x53, 0xAC, 0x85};
+//         static uint8_t setGNSSrunning[16] = {0xB5, 0x62, 0x06, 0x57, 0x08, 0x00, 0x01, 0x00, 0x00, 0x00, 0x20, 0x4E, 0x55, 0x52, 0x7B, 0xC3};
+//         static uint8_t setGNSSstart[12] = {0xB5, 0x62, 0x06, 0x04, 0x04, 0x00, 0x00, 0x00, 0x09, 0x00};
+//         static uint8_t setGNSSstop[12] = {0xB5, 0x62, 0x06, 0x04, 0x04, 0x00, 0xFF, 0xFF, 0x09, 0x00};
+
+//         int CK_A = 0, CK_B = 0;
+//         for (int I = 2; I < 10; I++)
+//         {
+//             CK_A = CK_A + setGNSSstop[I];
+//             CK_B = CK_B + CK_A;
+//         }
+//         setGNSSstop[10] = CK_A;
+//         setGNSSstop[11] = CK_B;
+//         int test = uart_writes(&gps_device, setGNSSstop, 12);
+//         printf("\n write === %d\n", test);
+//         read_data_len = uart_reads_chunk(&gps_device, read_data, MAX_READ_SIZE); /* read char from serial port */
+//         printf("\n READ === %d : %s\n", read_data_len, read_data);
+//     } while (1);
+//     uart_stop(&gps_device);
+// }
+
+
+// uint8_t UBX_Navigation_Expert_Config(void)
+// {
+// 	// ---- Expert Navigation has UBX-ACK-ACK return ----
+// 	uBlox_TX.Acknowlegde_Required = UBX_TRUE ;
+// 	// ----------------- "UBX-CFG-NAVX5" ------------------
+// 	uBlox_TX.uBlox_Structure.Header[0] = UBX_1 ;
+// 	uBlox_TX.uBlox_Structure.Header[1] = UBX_2 ;
+// 	uBlox_TX.uBlox_Structure.Class = Class_CFG;
+// 	uBlox_TX.uBlox_Structure.ID = ID_NAVX5;
+// 	uBlox_TX.uBlox_Structure.Length[0] = 0x28;
+// 	uBlox_TX.uBlox_Structure.Length[1] = 0x00;
+// 	uBlox_TX.uBlox_Structure.Data[0] = 0x02; 	// Version = 2;
+// 	uBlox_TX.uBlox_Structure.Data[1] = 0x00;
+// 	uBlox_TX.uBlox_Structure.Data[2] = 0x0C; 	// mask1 (aop=0;ppp=0;ackAid=0;wknRoll=1;initial3dfix=0;minCno=1;minMax=1;)
+// 	uBlox_TX.uBlox_Structure.Data[3] = 0x04;
+// 	uBlox_TX.uBlox_Structure.Data[4] = 0x80; 	// mask2 (sigAttenComp=1; adr=0;)
+// 	uBlox_TX.uBlox_Structure.Data[5] = 0x00;
+// 	uBlox_TX.uBlox_Structure.Data[6] = 0x00;
+// 	uBlox_TX.uBlox_Structure.Data[7] = 0x00;
+// 	uBlox_TX.uBlox_Structure.Data[8] = 0x00; 	// reserved [2]
+// 	uBlox_TX.uBlox_Structure.Data[9] = 0x00;
+// 	uBlox_TX.uBlox_Structure.Data[10] = 0x03; 	// minSVs = 3
+// 	uBlox_TX.uBlox_Structure.Data[11] = 0x10; 	// maxSVs = 16
+// 	uBlox_TX.uBlox_Structure.Data[12] = 0x00; 	// minCNO = 0 (dBHz); unsure about minimum signal level for navigation
+// 	uBlox_TX.uBlox_Structure.Data[13] = 0x00; 	// reserved
+// 	uBlox_TX.uBlox_Structure.Data[14] = 0x00; 	// iniFix3D=0;
+// 	uBlox_TX.uBlox_Structure.Data[15] = 0x00; 	// reserved[2]
+// 	uBlox_TX.uBlox_Structure.Data[16] = 0x00; 	//
+// 	uBlox_TX.uBlox_Structure.Data[17] = 0x00;	// ackAiding = 0; not available in SA
+// 	uBlox_TX.uBlox_Structure.Data[18] = 0x00; 	// wknRollover=1024
+// 	uBlox_TX.uBlox_Structure.Data[19] = 0x04;
+// 	uBlox_TX.uBlox_Structure.Data[20] = 0xFF; 	// sigAttenCompMode = 255 (Automatic)
+// 	uBlox_TX.uBlox_Structure.Data[21] = 0x00;
+// 	uBlox_TX.uBlox_Structure.Data[22] = 0x00; 	// reserved[2]
+// 	uBlox_TX.uBlox_Structure.Data[23] = 0x00;
+// 	uBlox_TX.uBlox_Structure.Data[24] = 0x00; 	// reserved[2]
+// 	uBlox_TX.uBlox_Structure.Data[25] = 0x00;
+// 	uBlox_TX.uBlox_Structure.Data[26] = 0x00; 	// usePPP = 0; disabled
+// 	uBlox_TX.uBlox_Structure.Data[27] = 0x00; 	// aopCfg = 0; disabled
+// 	uBlox_TX.uBlox_Structure.Data[28] = 0x00; 	// reserved[2]
+// 	uBlox_TX.uBlox_Structure.Data[29] = 0x00;
+// 	uBlox_TX.uBlox_Structure.Data[30] = 0x00; 	// Maximum acceptable AssistNowAutonomous orbit error= 0 (firmware default);
+// 	uBlox_TX.uBlox_Structure.Data[31] = 0x00;
+// 	uBlox_TX.uBlox_Structure.Data[32] = 0x00; 	// reserved[4]
+// 	uBlox_TX.uBlox_Structure.Data[33] = 0x00;
+// 	uBlox_TX.uBlox_Structure.Data[34] = 0x00;
+// 	uBlox_TX.uBlox_Structure.Data[35] = 0x00;
+// 	uBlox_TX.uBlox_Structure.Data[36] = 0x00; 	// reserved[3]
+// 	uBlox_TX.uBlox_Structure.Data[37] = 0x00;
+// 	uBlox_TX.uBlox_Structure.Data[38] = 0x00;
+// 	uBlox_TX.uBlox_Structure.Data[39] = 0x00; 	// useAdr = disabled
+// 	uBlox_TX.Size = UBX_Checksum(&uBlox_TX); 	// Calculate Checksum
+
+// 	// ---- Transmit Message ----
+// 	return UBX_Transmit();
+// }

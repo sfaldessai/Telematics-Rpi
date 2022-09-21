@@ -79,7 +79,7 @@ void *write_to_cloud(void *arg)
 void calculate_idle_time(struct cloud_data_struct *cloud_data)
 {
     /* Start the Idle time when the speed is 0 and RPM is greater than some threshold when Ignition is ON */
-    if ((cloud_data->can_data.speed == SPEED_THRESHOLD) &&
+    if ((cloud_data->can_data.speed == SPEED_THRESHOLD && cloud_data->gps_data.speed == SPEED_THRESHOLD) &&
         (cloud_data->can_data.rpm >= RPM_OFFSET))
     {
         if (idle_timer_started == false)

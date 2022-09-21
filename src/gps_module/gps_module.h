@@ -12,6 +12,8 @@
 
 #define DEBUG
 
+#define GPS_INVALID_CHECKSUM_ERROR 16
+
 /* gps_data_struct struct to holds GPS data*/
 struct gps_data_struct
 {

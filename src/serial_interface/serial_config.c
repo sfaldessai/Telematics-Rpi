@@ -195,6 +195,19 @@ int uart_writes(struct uart_device_struct *device, char *string)
 }
 
 /*
+ * Name : uart_writes
+ * Descriptoin: The uart_writen function is for send data to serail port.
+ * Input parameters: struct uart_device_struct * (for serial device information)
+ * 					 char * (buffer to hold serail data)
+ * 					 size_t (buffer size)
+ * Output parameters: int
+ */
+int uart_gps_write(struct uart_device_struct *device, const unsigned char* const *string, int size)
+{
+	return write(device->fd, string, size);
+}
+
+/*
  * Name : uart_stop
  * Descriptoin: The uart_stop function is for closing serail port.
  * Input parameters: struct uart_device_struct * (for serial device information)
