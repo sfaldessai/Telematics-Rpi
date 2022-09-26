@@ -99,11 +99,11 @@ void initialize_cloud_data(struct cloud_data_struct *cloud_data)
 
     uint8_t value[COLUMN_VALUE_MAX_LEN];
     get_single_column_value(VEHICLE_IN_SERVICE, SORT_BY_DESC, value);
-    cloud_data->service_time = (float) atof((char*)value);
+    cloud_data->service_time = (int) atoi((char*)value);
 
     uint8_t value[COLUMN_VALUE_MAX_LEN];
     get_single_column_value(DISTANCE_TRAVLLED, SORT_BY_DESC, value);
-    cloud_data->distance_travelled = (int)atoi((char*)value);
+    cloud_data->distance_travelled = (float)atof((char*)value);
 }
 
 /*
@@ -119,19 +119,20 @@ void calculate_service_time(struct cloud_data_struct* cloud_data) {
             service_timer_start = true;
             tval_start = time(NULL);
         }
-    } else if (cloud_data->can_data.speed == SPEED_THRESHOLD && cloud_data->gps_data.speed == SPEED_THRESHOLD && service_timer_start) {
+    } /* Test and check if both CAN and GPS speed is required to handle stop timer when either of the modules malfunction */
+    else if (cloud_data->can_data.speed == SPEED_THRESHOLD && cloud_data->gps_data.speed == SPEED_THRESHOLD && service_timer_start) {
         tval_stop = time(NULL);
         int tval_inServiceTime = (tval_stop - tval_start);
-        cloud_data->service_time = cloud_data->service_time + (float) tval_inServiceTime;
+        cloud_data->service_time = cloud_data->service_time +  tval_inServiceTime;
         service_timer_start = false;
     }
 }
 
 void calculate_distance_travelled(struct cloud_data_struct* cloud_data) {
-    if (cloud_data->can_data.speed != 0) {
+    if (cloud_data->can_data.speed > SPEED_THRESHOLD) {
         distance_travelled_calculator(cloud_data->can_data.speed);
     }
-    else if(cloud_data->gps_data.speed > SPEED_THRESHOLD != 0) {
+    else if(cloud_data->gps_data.speed > SPEED_THRESHOLD) {
         distance_travelled_calculator(cloud_data->gps_data.speed);
     }
     else {
