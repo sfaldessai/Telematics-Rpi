@@ -202,7 +202,7 @@ int uart_writes(struct uart_device_struct *device, char *string)
  * 					 size_t (buffer size)
  * Output parameters: int
  */
-int uart_gps_write(struct uart_device_struct *device, const unsigned char* const *string, int size)
+int uart_gps_write(struct uart_device_struct *device,  const uint8_t *string, int size)
 {
 	return write(device->fd, string, size);
 }

@@ -16,8 +16,8 @@
 #include "main.h"
 
 #define MAX_READ_SIZE 1
-#define CLIENT_CONTROLLER "/dev/ttyUSB0"
-#define GPS_MODULE "/dev/ttyUSB1"
+#define CLIENT_CONTROLLER "/dev/ttyACM0"
+#define GPS_MODULE "/dev/ttyUSB0"
 
 int main(int argc, char *argv[])
 {
@@ -28,10 +28,6 @@ int main(int argc, char *argv[])
     pthread_t read_can_supported_thread, read_can_speed_thread, read_can_vin_thread, read_can_rpm_thread;
     int opt;
 
-    client_controller_device.file_name = "/dev/ttyACM0";
-    gps_device.file_name = "/dev/ttyUSB0"; /* connected neo gps module to rapi using UART to USB converter */
-    client_controller_device.baud_rate = B115200;
-    gps_device.baud_rate = B9600;
     /* uart set-up*/
     uart_setup(&client_controller_device, CLIENT_CONTROLLER, B115200, true);
     uart_setup(&gps_device, GPS_MODULE, B9600, true);
