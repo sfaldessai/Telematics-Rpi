@@ -41,6 +41,7 @@ void *write_to_cloud(void *arg)
         if (cloud_data != NULL)
         {
             calculate_service_time(cloud_data);
+            calculate_distance_travelled(cloud_data);
             logger_info(CLOUD_LOG_MODULE_ID, "\tVIN = %s | CAN SPEED = %d | GPS SPEED = %f \n", cloud_data->can_data.vin,
                         cloud_data->can_data.speed, cloud_data->gps_data.speed);
             logger_info(CLOUD_LOG_MODULE_ID, "\tMOTION = %d | VOLTAGE = %f | PTO = %d\n", cloud_data->client_controller_data.motion,
