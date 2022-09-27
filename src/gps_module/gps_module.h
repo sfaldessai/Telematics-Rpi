@@ -18,8 +18,6 @@ struct gps_data_struct
 	double latitude;
 	double longitude;
 	char *gps_time;
-	char lat_cardinal_sign;
-	char long_cardinal_sign;
 	double pdop;
 	double vdop;
 	double hdop;

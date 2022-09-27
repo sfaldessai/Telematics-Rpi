@@ -181,7 +181,11 @@ void get_gps_data(char *nmea_data, struct gps_data_struct *gps_data)
 
         /* Get Latitude cardinal sign from GGA message */
         gga_data = strchr(gga_data + 1, COMMA);
-        gps_data->lat_cardinal_sign = gga_data[1];
+
+        if(gga_data[1] == 'S' || gga_data[1] == 's')
+        {
+            gps_data->latitude = -1 * gps_data->latitude;
+        }
 
         /* Get Longitude from GGA message */
         gga_data = strchr(gga_data + 1, COMMA);
@@ -190,7 +194,11 @@ void get_gps_data(char *nmea_data, struct gps_data_struct *gps_data)
 
         /* Get Longitude cardinal sign from GGA message */
         gga_data = strchr(gga_data + 1, COMMA);
-        gps_data->long_cardinal_sign = gga_data[1];
+        
+         if(gga_data[1] == 'W' || gga_data[1] == 'w')
+        {
+            gps_data->longitude = -1 * gps_data->longitude;
+        }
     }
     else if (nmea_data[3] == 'G' && nmea_data[4] == 'S' && nmea_data[5] == 'A')
     {
