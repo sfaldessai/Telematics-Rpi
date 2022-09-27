@@ -228,11 +228,11 @@ void get_gps_data(char *nmea_data, struct gps_data_struct *gps_data)
  *
  * Input parameters: struct uart_device_struct gps_device : serial port
  *                   const uint8_t *cmd : ubx command
- *                   int size : message length
+ *                   uint8_t size : message length
  *
  * Output parameters: int : # byte written
  */
-int send_ubx_cfg_command(struct uart_device_struct gps_device, const uint8_t *cmd, int size)
+int send_ubx_cfg_command(struct uart_device_struct gps_device, const uint8_t *cmd, uint8_t size)
 {
     uint8_t ubx_cmd[size];
 
@@ -241,12 +241,14 @@ int send_ubx_cfg_command(struct uart_device_struct gps_device, const uint8_t *cm
         ubx_cmd[i] = cmd[i];
     }
 
-    int CK_A = 0, CK_B = 0;
+    /* chesum calculation */
+    uint8_t CK_A = 0, CK_B = 0;
     for (int i = 2; i < size - 2; i++)
     {
         CK_A = CK_A + ubx_cmd[i];
         CK_B = CK_B + CK_A;
     }
+    /* adding checksum */
     ubx_cmd[size - 2] = CK_A;
     ubx_cmd[size - 1] = CK_B;
 
