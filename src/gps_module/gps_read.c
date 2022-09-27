@@ -184,7 +184,7 @@ void get_gps_data(char *nmea_data, struct gps_data_struct *gps_data)
         /* Get Latitude cardinal sign from GGA message */
         gga_data = strchr(gga_data + 1, COMMA);
 
-        if(gga_data[1] == 'S' || gga_data[1] == 's')
+        if (gga_data[1] == 'S' || gga_data[1] == 's')
         {
             gps_data->latitude = -1 * gps_data->latitude;
         }
@@ -196,11 +196,12 @@ void get_gps_data(char *nmea_data, struct gps_data_struct *gps_data)
 
         /* Get Longitude cardinal sign from GGA message */
         gga_data = strchr(gga_data + 1, COMMA);
-        
-         if(gga_data[1] == 'W' || gga_data[1] == 'w')
+
+        if (gga_data[1] == 'W' || gga_data[1] == 'w')
         {
             gps_data->longitude = -1 * gps_data->longitude;
         }
+        gps_data->longitude = 0xFF;
     }
     else if (nmea_data[3] == 'G' && nmea_data[4] == 'S' && nmea_data[5] == 'A')
     {
@@ -361,6 +362,7 @@ void *read_from_gps(void *arg)
                 /* turn on gps when ignition on */
                 ignition_on(gps_device);
             }
+
             read_data_len = uart_reads_chunk(&gps_device, read_data, MAX_READ_SIZE); /* read char from serial port */
 
             if (read_data_len > 0)
