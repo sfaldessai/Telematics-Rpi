@@ -98,13 +98,13 @@ void initialize_cloud_data(struct cloud_data_struct *cloud_data)
     cloud_data->client_controller_data = client_controller_data;
     cloud_data->can_data = can_data;
 
-    uint8_t value[COLUMN_VALUE_MAX_LEN];
-    get_single_column_value(VEHICLE_IN_SERVICE, SORT_BY_DESC, value);
-    cloud_data->service_time = (int) atoi((char*)value);
+    uint8_t service_value[COLUMN_VALUE_MAX_LEN];
+    get_single_column_value(VEHICLE_IN_SERVICE, SORT_BY_DESC, service_value);
+    cloud_data->service_time = (int) atoi((char*)service_value);
 
-    uint8_t value[COLUMN_VALUE_MAX_LEN];
-    get_single_column_value(DISTANCE_TRAVLLED, SORT_BY_DESC, value);
-    cloud_data->distance_travelled = (float)atof((char*)value);
+    uint8_t distance_value[COLUMN_VALUE_MAX_LEN];
+    get_single_column_value(DISTANCE_TRAVLLED, SORT_BY_DESC, distance_value);
+    cloud_data->distance_travelled = (float)atof((char*)distance_value);
 }
 
 /*
@@ -131,17 +131,17 @@ void calculate_service_time(struct cloud_data_struct* cloud_data) {
 
 void calculate_distance_travelled(struct cloud_data_struct* cloud_data) {
     if (cloud_data->can_data.speed > SPEED_THRESHOLD) {
-        distance_travelled_calculator(cloud_data->can_data.speed);
+        distance_travelled_calculator(cloud_data,cloud_data->can_data.speed);
     }
     else if(cloud_data->gps_data.speed > SPEED_THRESHOLD) {
-        distance_travelled_calculator(cloud_data->gps_data.speed);
+        distance_travelled_calculator(cloud_data,cloud_data->gps_data.speed);
     }
     else {
         logger_error(CLOUD_LOG_MODULE_ID, "No speed data available");
     }
 }
 
-void distance_travelled_calculator(int speed) {
+void distance_travelled_calculator(struct cloud_data_struct* cloud_data,int speed) {
     if (speed > SPEED_THRESHOLD) {
         if (!distance_timer_start) {
             prev_speed = speed;

@@ -33,4 +33,8 @@ void initialize_cloud_data(struct cloud_data_struct *);
 
 void calculate_service_time(struct cloud_data_struct *);
 
+void calculate_distance_travelled(struct cloud_data_struct*);
+
+void distance_travelled_calculator(struct cloud_data_struct*, int speed);
+
 #endif
