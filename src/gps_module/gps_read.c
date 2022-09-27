@@ -201,7 +201,6 @@ void get_gps_data(char *nmea_data, struct gps_data_struct *gps_data)
         {
             gps_data->longitude = -1 * gps_data->longitude;
         }
-        gps_data->longitude = 0xFF;
     }
     else if (nmea_data[3] == 'G' && nmea_data[4] == 'S' && nmea_data[5] == 'A')
     {
