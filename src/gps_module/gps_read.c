@@ -376,9 +376,6 @@ void *read_from_gps(void *arg)
         {
             /* turn on gps when ignition off */
             ignition_off(gps_device);
-        }
-        else
-        {
             logger_info(GPS_LOG_MODULE_ID, "GNSS POWER OFF, voltage value %f\n", cloud_data->client_controller_data.voltage);
         }
     } while (1);
