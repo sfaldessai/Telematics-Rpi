@@ -13,6 +13,7 @@ GLOABL_DIR = $(SRC_DIR)/global
 UTILS_DIR = $(SRC_DIR)/utils
 
 CFLAGS = -g -O2 -Wall -I
+CWFLAGS = -Werror
 LIBS = -lpthread
 
 
@@ -22,13 +23,13 @@ logger.o:
 	gcc -c $(CFLAGS) $(LOGGER_MODULE_DIR) $(LOGGER_MODULE_DIR)/logger.c -o $(SRC_DIR)/logger.o $(LIBS)
 	
 global.o:
-	gcc -c $(CFLAGS) $(GLOABL_DIR) $(GLOABL_DIR)/global.c -o $(SRC_DIR)/global.o $(LIBS)
+	gcc -c $(CFLAGS) $(GLOABL_DIR) $(GLOABL_DIR)/global.c -o $(SRC_DIR)/global.o
 
 gps_module.o:
 	gcc -c $(CFLAGS) $(GPS_MODULE_DIR) $(GPS_MODULE_DIR)/gps_read.c -o $(SRC_DIR)/gps_module.o $(LIBS)
 
 serial_interface.o:
-	gcc -c $(CFLAGS) $(SERIAL_INTERFACE_DIR) $(SERIAL_INTERFACE_DIR)/serial_config.c -o $(SRC_DIR)/serial_interface.o $(LIBS)
+	gcc -c $(CFLAGS) $(SERIAL_INTERFACE_DIR) $(SERIAL_INTERFACE_DIR)/serial_config.c -o $(SRC_DIR)/serial_interface.o
 
 client_controller.o:
 	gcc -c $(CFLAGS) $(CLIENT_CONTROLLER_DIR) $(CLIENT_CONTROLLER_DIR)/client_controller.c -o $(SRC_DIR)/client_controller.o $(LIBS)
@@ -43,13 +44,13 @@ cloud_write.o:
 	gcc -c $(CFLAGS) $(CLOUD_SERVER_DIR) $(CLOUD_SERVER_DIR)/cloud_write.c -o $(SRC_DIR)/cloud_write.o $(LIBS)
 
 db_handler.o:
-	gcc -c $(CFLAGS) $(DB_MODULE_DIR) $(DB_MODULE_DIR)/db_handler.c -o $(SRC_DIR)/db_handler.o $(LIBS) -lsqlite3
+	gcc -c $(CFLAGS) $(DB_MODULE_DIR) $(DB_MODULE_DIR)/db_handler.c -o $(SRC_DIR)/db_handler.o -lsqlite3
 
 common_utils.o:
 	gcc -c $(CFLAGS) $(UTILS_DIR) $(UTILS_DIR)/common_utils.c -o $(SRC_DIR)/common_utils.o
 
 main: serial_interface.o gps_module.o client_controller.o cloud_write.o global.o logger.o can_interface.o can_bus.o common_utils.o db_handler.o
-	gcc $(CFLAGS) $(SRC_DIR) $(SRC_DIR)/*.o $(SRC_DIR)/main.c -o $(OUT) $(LIBS) -lm -lsqlite3
+	gcc $(CWFLAGS) $(CFLAGS) $(SRC_DIR) $(SRC_DIR)/*.o $(SRC_DIR)/main.c -o $(OUT) $(LIBS) -lm -lsqlite3
 
 clean:
 	rm $(SRC_DIR)/*.o $(OUT)
