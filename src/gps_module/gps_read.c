@@ -274,10 +274,16 @@ int send_ubx_cfg_command(struct uart_device_struct gps_device, const uint8_t *cm
  */
 void initialize_gps_module(struct uart_device_struct gps_device)
 {
-
+    /* Start GNSS with hot boot */
+    send_ubx_cfg_command(gps_device, set_gnss_start, GNSS_STOP_START_CMD_LEN);
+    /* Turn on NMEA sentence */
     send_ubx_cfg_command(gps_device, set_NMEA_sentence_on, NMEA_SENTENCE_CMD_LEN);
+    /* Turn on power save mode */
     send_ubx_cfg_command(gps_device, set_power_save_mode, POWER_SAVE_MODE_CMD_LEN);
+    /* Turn on assistnow feature */
     send_ubx_cfg_command(gps_device, set_assistNow_autonomous, ASSIST_NOW_AUTONOMOUS_CMD_LEN);
+    /* Save Configuration */
+    send_ubx_cfg_command(gps_device, save_configuration, SAVE_CONFIG_CMD_LEN);
 }
 
 /*
@@ -340,7 +346,6 @@ void *read_from_gps(void *arg)
     {
         if (cloud_data->client_controller_data.voltage < VOLTAGE_THRESHOLD)
         {
-            printf("\ncloud_data->client_controller_data.voltage %f\n", cloud_data->client_controller_data.voltage);
             if (IGNITION_ON != is_ignition_on)
             {
                 /* turn on gps when ignition on */
