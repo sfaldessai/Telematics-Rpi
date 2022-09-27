@@ -355,7 +355,7 @@ void *read_from_gps(void *arg)
 
     do
     {
-        if (cloud_data->client_controller_data.voltage < VOLTAGE_THRESHOLD)
+        if (cloud_data->client_controller_data.voltage <= VOLTAGE_THRESHOLD)
         {
             if (IGNITION_ON != is_ignition_on)
             {
@@ -382,11 +382,15 @@ void *read_from_gps(void *arg)
                 }
             }
         }
-        else if (cloud_data->client_controller_data.voltage > VOLTAGE_THRESHOLD && is_ignition_on != IGNITION_OFF)
+        else if (is_ignition_on != IGNITION_OFF)
         {
             /* turn on gps when ignition off */
             ignition_off(gps_device);
-            logger_info(GPS_LOG_MODULE_ID, "GNSS POWER OFF, voltage value %f\n", cloud_data->client_controller_data.voltage);
+            logger_info(GPS_LOG_MODULE_ID, "GNSS POWER OFF, and voltage value %f\n", cloud_data->client_controller_data.voltage);
+        }
+        else
+        {
+            logger_info(GPS_LOG_MODULE_ID, "GNSS POWER is OFF, and voltage value %f\n", cloud_data->client_controller_data.voltage);
         }
     } while (1);
     uart_stop(&gps_device);
