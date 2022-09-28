@@ -32,7 +32,7 @@ static const char error_codes[ERROR_CODE_LEN][ERROR_CODE_STRING_LEN] =
         {"908 = GPS LATITUDE EMPTY DATA"},
         {"909 = GPS LONGITUDE EMPTY DATA"},
         {"910 = GPS SPEED EMPTY DATA"},
-        {"910 = GPS DOP EMPTY DATA"},
+        {"911 = GPS DOP EMPTY DATA"},
 
         /* STM32 ERROR CODE */
         {"921 = FAILED TO OPEN STM32 DEVICE"},
@@ -41,33 +41,24 @@ static const char error_codes[ERROR_CODE_LEN][ERROR_CODE_STRING_LEN] =
         {"924 = PTO READ ERROR"},
         {"925 = VOLTAGE READ ERROR"},
         {"926 = STM32 DEVICE DISCONNECTED"},
-        {"-927 = MEMS ERROR"}
+        {"927 = MEMS ERROR"}
 
         /* CAN ERROR CODE */
         {"941 = CAN SOCKET ERROR"},
         {"942 = CAN READ ERROR"},
-        {"943 = VIN READ ERROR"},
-        {"944 = SUPPORTED READ ERROR"},
-        {"-945 = CAN RPM READ ERROR"},
-        {"946 = CAN SPEED READ ERROR"},
-        {"947 = CAN DISCONNECTED"},
-
-        /* CAN ERROR CODE */
-        {"931 = CAN SOCKET ERROR"},
-        {"932 = CAN READ ERROR"},
-        {"933 = INVALID VIN ERROR"},
-        {"934 = INVALID WMIs ERROR"},
-        {"935 = SUPPORTED READ ERROR"},
-        {"936 = CAN RPM READ ERROR"},
-        {"937 = CAN SPEED READ ERROR"},
-        {"938 = CAN DISCONNECTED"},
+        {"943 = INVALID VIN ERROR"},
+        {"944 = INVALID WMIs ERROR"},
+        {"945 = SUPPORTED READ ERROR"},
+        {"946 = CAN RPM READ ERROR"},
+        {"947 = CAN SPEED READ ERROR"},
+        {"948 = CAN DISCONNECTED"},
 
         /* RPI ERROR CODE */
-        {"931 = MAC ADDRESS READ ERROR"},
-        {"932 = SERVICE TIME ERROR"},
-        {"933 = IDLING TIME ERROR"},
-        {"934 = INVALID WMIs ERROR"},
-        {"935 = DISTANCE TRAVELED ERROR"}
+        {"961 = MAC ADDRESS READ ERROR"},
+        {"-962 = SERVICE TIME ERROR"},
+        {"-963 = IDLING TIME ERROR"},
+        {"-964 = INVALID WMIs ERROR"},
+        {"-965 = DISTANCE TRAVELED ERROR"}
 
         // END
 };
