@@ -16,7 +16,7 @@ static const size_t values[] = {1, 2, 3, 4, 5, 6, 7, 8, 0, 1, 2, 3, 4, 5, 0, 7, 
 /* Weights */
 static const size_t weights[] = {8, 7, 6, 5, 4, 3, 2, 10, 0, 9, 8, 7, 6, 5, 4, 3, 2};
 
-/* All supported CAN PID list */
+/* All ERROR CODE LIST WITH ERROR MESSAGE */
 static const char error_codes[ERROR_CODE_LEN][ERROR_CODE_STRING_LEN] =
     {
         {"900 = NO ERROR"},
@@ -33,6 +33,9 @@ static const char error_codes[ERROR_CODE_LEN][ERROR_CODE_STRING_LEN] =
         {"909 = GPS LONGITUDE EMPTY DATA"},
         {"910 = GPS SPEED EMPTY DATA"},
         {"911 = GPS DOP EMPTY DATA"},
+        {"912 = GPS INITIAL CONFIGURATION WRITE FAILED"},
+        {"913 = GPS GNSS FAILED TURN ON POWER"},
+        {"914 = GPS GNSS FAILED TURN OFF POWER"},
 
         /* STM32 ERROR CODE */
         {"921 = FAILED TO OPEN STM32 DEVICE"},

@@ -269,6 +269,7 @@ int send_ubx_cfg_command(struct uart_device_struct gps_device, const uint8_t *cm
     else
     {
         logger_error(GPS_LOG_MODULE_ID, "failed to write %d bytes to the gps\n", size);
+        update_gps_error_code(cloud_data, GPS_INITIAL_CONFIGURATION_WRITE_FAILED);
     }
     return bytes;
 }
@@ -312,6 +313,10 @@ void ignition_on(struct uart_device_struct gps_device)
     {
         is_ignition_on = IGNITION_ON;
     }
+    else
+    {
+        update_gps_error_code(cloud_data, GPS_GNSS_FAILED_TURN_ON_POWER);
+    }
 }
 
 /*
@@ -329,6 +334,10 @@ void ignition_off(struct uart_device_struct gps_device)
     if (byte == GNSS_STOP_START_CMD_LEN)
     {
         is_ignition_on = IGNITION_OFF;
+    }
+    else
+    {
+        update_gps_error_code(cloud_data, GPS_GNSS_FAILED_TURN_OFF_POWER);
     }
 }
 
@@ -351,7 +360,7 @@ void gps_data_processing(struct cloud_data_struct *cloud_data, char *read_data)
     }
     else
     {
-        update_gps_error_code(cloud_data, 905);
+        update_gps_error_code(cloud_data, GPS_NMEA_SENTENCE_CHECKSUM_ERROR);
     }
 }
 
@@ -393,7 +402,7 @@ void *read_from_gps(void *arg)
             else if (read_data_len == 0 && gps_device.fd > 0)
             {
                 uart_stop(&gps_device);
-                update_gps_error_code(cloud_data, 905);
+                update_gps_error_code(cloud_data, GPS_DEVICE_DISCONNECTED);
             }
             else if (gps_device.fd <= 0)
             {
@@ -401,7 +410,7 @@ void *read_from_gps(void *arg)
                 uart_setup(&gps_device, GPS_MODULE, B9600, true);
                 if (gps_device.fd <= 0)
                 {
-                    update_gps_error_code(cloud_data, 907);
+                    update_gps_error_code(cloud_data, FAILED_TO_OPEN_GPS_DEVICE);
                 }
             }
         }
@@ -411,7 +420,7 @@ void *read_from_gps(void *arg)
             ignition_off(gps_device);
             logger_info(GPS_LOG_MODULE_ID, "GNSS POWER OFF, and voltage value %f\n", cloud_data->client_controller_data.voltage);
 
-            update_gps_error_code(cloud_data, 904);
+            update_gps_error_code(cloud_data, GPS_POWERED_OFF);
         }
         else
         {
