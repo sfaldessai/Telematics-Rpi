@@ -6,12 +6,71 @@
 
 #define PID_SUPPORTED_LEN 32
 
+#define ERROR_CODE_LEN 32
+#define ERROR_CODE_STRING_LEN 80
+
 #define DEBUG
 
 /* VIN Numerical counterparts */
 static const size_t values[] = {1, 2, 3, 4, 5, 6, 7, 8, 0, 1, 2, 3, 4, 5, 0, 7, 0, 9, 2, 3, 4, 5, 6, 7, 8, 9};
 /* Weights */
 static const size_t weights[] = {8, 7, 6, 5, 4, 3, 2, 10, 0, 9, 8, 7, 6, 5, 4, 3, 2};
+
+/* All supported CAN PID list */
+static const char error_codes[ERROR_CODE_LEN][ERROR_CODE_STRING_LEN] =
+    {
+        {"900 = NO ERROR"},
+        {"901 = DEVICE INITIALIZING..."},
+
+        /* GPS ERROR CODE */
+        {"902 = GPS WRITE/TRANSMIT ERROR"},
+        {"903 = GPS NMEA SENTENCE CHECKSUM ERROR"},
+        {"904 = GPS POWERED OFF"},
+        {"905 = GPS BAD SIGNAL"},
+        {"906 = GPS DEVICE DISCONNECTED"},
+        {"907 = FAILED TO OPEN GPS DEVICE"},
+        {"908 = GPS LATITUDE EMPTY DATA"},
+        {"909 = GPS LONGITUDE EMPTY DATA"},
+        {"910 = GPS SPEED EMPTY DATA"},
+        {"910 = GPS DOP EMPTY DATA"},
+
+        /* STM32 ERROR CODE */
+        {"921 = FAILED TO OPEN STM32 DEVICE"},
+        {"922 = STM32 CHECKSUM ERROR"},
+        {"923 = MOTION READ ERROR"},
+        {"924 = PTO READ ERROR"},
+        {"925 = VOLTAGE READ ERROR"},
+        {"926 = STM32 DEVICE DISCONNECTED"},
+        {"-927 = MEMS ERROR"}
+
+        /* CAN ERROR CODE */
+        {"941 = CAN SOCKET ERROR"},
+        {"942 = CAN READ ERROR"},
+        {"943 = VIN READ ERROR"},
+        {"944 = SUPPORTED READ ERROR"},
+        {"-945 = CAN RPM READ ERROR"},
+        {"946 = CAN SPEED READ ERROR"},
+        {"947 = CAN DISCONNECTED"},
+
+        /* CAN ERROR CODE */
+        {"931 = CAN SOCKET ERROR"},
+        {"932 = CAN READ ERROR"},
+        {"933 = INVALID VIN ERROR"},
+        {"934 = INVALID WMIs ERROR"},
+        {"935 = SUPPORTED READ ERROR"},
+        {"936 = CAN RPM READ ERROR"},
+        {"937 = CAN SPEED READ ERROR"},
+        {"938 = CAN DISCONNECTED"},
+
+        /* RPI ERROR CODE */
+        {"931 = MAC ADDRESS READ ERROR"},
+        {"932 = SERVICE TIME ERROR"},
+        {"933 = IDLING TIME ERROR"},
+        {"934 = INVALID WMIs ERROR"},
+        {"935 = DISTANCE TRAVELED ERROR"}
+
+        // END
+};
 
 /* All supported CAN PID list */
 static const char can_pids[PID_SUPPORTED_LEN][WMI_STRING_LEN] =

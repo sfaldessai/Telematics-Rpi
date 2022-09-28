@@ -332,6 +332,29 @@ void ignition_off(struct uart_device_struct gps_device)
     }
 }
 
+void gps_data_processing(struct cloud_data_struct *cloud_data, char *read_data)
+{
+    struct gps_data_struct gps_data;
+
+    logger_info(GPS_LOG_MODULE_ID, "COMPLETE GPS DATA: %s\n", read_data);
+
+    uint8_t is_valid_checksum = nmea_verify_checksum(read_data);
+
+    if (is_valid_checksum == SUCESS_CODE)
+    {
+        get_gps_data(read_data, &gps_data);
+
+        /* update gps_data to cloud_data struct */
+        pthread_mutex_lock(&cloud_data_gps_mutex);
+        cloud_data->gps_data = gps_data;
+        pthread_mutex_unlock(&cloud_data_gps_mutex);
+    }
+    else
+    {
+        update_gps_error_code(cloud_data, 905);
+    }
+}
+
 /*
  * Name : read_from_gps
  * Descriptoin: The read_from_gps function is for reading vehicle location
@@ -347,7 +370,6 @@ void *read_from_gps(void *arg)
     struct arg_struct *args = (struct arg_struct *)arg;
     struct uart_device_struct gps_device = args->uart_device;
     struct cloud_data_struct *cloud_data = args->cloud_data;
-    struct gps_data_struct gps_data;
 
     /* gps initial configuration */
     initialize_gps_module(gps_device);
@@ -366,18 +388,20 @@ void *read_from_gps(void *arg)
 
             if (read_data_len > 0)
             {
-                logger_info(GPS_LOG_MODULE_ID, "COMPLETE GPS DATA: %s\n", read_data);
-
-                uint8_t is_valid_checksum = nmea_verify_checksum(read_data);
-
-                if (is_valid_checksum == SUCESS_CODE)
+                gps_data_processing(cloud_data, read_data);
+            }
+            else if (read_data_len == 0 && gps_device.fd > 0)
+            {
+                uart_stop(&gps_device);
+                update_gps_error_code(cloud_data, 905);
+            }
+            else if (gps_device.fd <= 0)
+            {
+                sleep(3); /* Re-connecting in 3 seconds */
+                uart_setup(&gps_device, GPS_MODULE, B9600, true);
+                if (gps_device.fd <= 0)
                 {
-                    get_gps_data(read_data, &gps_data);
-
-                    /* update gps_data to cloud_data struct */
-                    pthread_mutex_lock(&cloud_data_gps_mutex);
-                    cloud_data->gps_data = gps_data;
-                    pthread_mutex_unlock(&cloud_data_gps_mutex);
+                    update_gps_error_code(cloud_data, 907);
                 }
             }
         }
@@ -386,6 +410,8 @@ void *read_from_gps(void *arg)
             /* turn on gps when ignition off */
             ignition_off(gps_device);
             logger_info(GPS_LOG_MODULE_ID, "GNSS POWER OFF, and voltage value %f\n", cloud_data->client_controller_data.voltage);
+
+            update_gps_error_code(cloud_data, 904);
         }
         else
         {
