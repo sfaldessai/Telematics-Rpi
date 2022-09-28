@@ -152,7 +152,7 @@ void distance_travelled_calculator(struct cloud_data_struct* cloud_data,int spee
     if (speed != prev_speed && distance_timer_start) {
         dtval_stop = time(NULL);
         int time_diff = (dtval_stop - dtval_start);
-        cloud_data->distance_travelled = cloud_data->distance_travelled + (prev_speed * time_diff);
+        cloud_data->distance_travelled = cloud_data->distance_travelled + (float)(prev_speed * time_diff);
         distance_timer_start = false;
     }
 }

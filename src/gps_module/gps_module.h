@@ -23,7 +23,7 @@ struct gps_data_struct
 	double pdop;
 	double vdop;
 	double hdop;
-	double speed;
+	int speed;
 };
 
 void *read_from_gps(void *); /* pthread to handle gps read */
