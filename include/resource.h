@@ -36,32 +36,40 @@ static const char error_codes[ERROR_CODE_LEN][ERROR_CODE_STRING_LEN] =
         {"912 = GPS INITIAL CONFIGURATION WRITE FAILED"},
         {"913 = GPS GNSS FAILED TURN ON POWER"},
         {"914 = GPS GNSS FAILED TURN OFF POWER"},
+        {"915 = NO/LOST GPS SIGNAL"},
+        {"916 = GPS SIGNAL IS IDEAL"},
+        {"917 = GPS SIGNAL IS EXCELLENT"},
+        {"918 = GPS SIGNAL IS GOOD"},
+        {"919 = GPS SIGNAL IS MODERATE"},
+        {"920 = GPS SIGNAL IS FAIR"},
+        {"921 = GPS SIGNAL IS POOR"},
+        {"922 = INVALID NMEA SENTENCES"},
 
         /* STM32 ERROR CODE */
-        {"921 = FAILED TO OPEN STM32 DEVICE"},
-        {"922 = STM32 CHECKSUM ERROR"},
-        {"923 = MOTION READ ERROR"},
-        {"924 = PTO READ ERROR"},
-        {"925 = VOLTAGE READ ERROR"},
-        {"926 = STM32 DEVICE DISCONNECTED"},
-        {"927 = MEMS ERROR"}
+        {"1001 = FAILED TO OPEN STM32 DEVICE"},
+        {"1002 = STM32 CHECKSUM ERROR"},
+        {"1003 = MOTION READ ERROR"},
+        {"1004 = PTO READ ERROR"},
+        {"1005 = VOLTAGE READ ERROR"},
+        {"1006 = STM32 DEVICE DISCONNECTED"},
+        {"1007 = MEMS ERROR"}
 
         /* CAN ERROR CODE */
-        {"941 = CAN SOCKET ERROR"},
-        {"942 = CAN READ ERROR"},
-        {"943 = INVALID VIN ERROR"},
-        {"944 = INVALID WMIs ERROR"},
-        {"945 = SUPPORTED READ ERROR"},
-        {"946 = CAN RPM READ ERROR"},
-        {"947 = CAN SPEED READ ERROR"},
-        {"948 = CAN DISCONNECTED"},
+        {"801 = CAN SOCKET ERROR"},
+        {"802 = CAN READ ERROR"},
+        {"803 = INVALID VIN ERROR"},
+        {"804 = INVALID WMIs ERROR"},
+        {"805 = SUPPORTED READ ERROR"},
+        {"806 = CAN RPM READ ERROR"},
+        {"807 = CAN SPEED READ ERROR"},
+        {"808 = CAN DISCONNECTED"},
 
         /* RPI ERROR CODE */
-        {"961 = MAC ADDRESS READ ERROR"},
-        {"-962 = SERVICE TIME ERROR"},
-        {"-963 = IDLING TIME ERROR"},
-        {"-964 = INVALID WMIs ERROR"},
-        {"-965 = DISTANCE TRAVELED ERROR"}
+        {"701 = MAC ADDRESS READ ERROR"},
+        {"-701 = SERVICE TIME ERROR"},
+        {"-702 = IDLING TIME ERROR"},
+        {"-703 = INVALID WMIs ERROR"},
+        {"-704 = DISTANCE TRAVELED ERROR"}
 
         // END
 };

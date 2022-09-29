@@ -48,6 +48,7 @@ uint8_t nmea_verify_checksum(const char *sentence)
     if (strlen(sentence) > MAX_READ_SIZE || strchr(sentence, ASTERISK_SIGN) == NULL || strchr(sentence, DOLLAR_SIGN) == NULL)
     {
         logger_info(GPS_LOG_MODULE_ID, "Invalid NMEA sentence: %s\n", __func__);
+        update_gps_error_code(cloud_data, GPS_NMEA_SENTENCE_CHECKSUM_ERROR);
         return 1;
     }
     while ('*' != *sentence && NMEA_END_CHAR != *sentence)
@@ -60,6 +61,7 @@ uint8_t nmea_verify_checksum(const char *sentence)
         if ('\0' == *sentence)
         {
             logger_info(GPS_LOG_MODULE_ID, "Invalid NMEA sentence: %s\n", __func__);
+            update_gps_error_code(cloud_data, GPS_NMEA_SENTENCE_CHECKSUM_ERROR);
             return 1;
         }
         checksum = checksum ^ (uint8_t)*sentence;
@@ -76,6 +78,7 @@ uint8_t nmea_verify_checksum(const char *sentence)
     else
     {
         logger_info(GPS_LOG_MODULE_ID, " Invalid Checksum from GPS: %s\n", __func__);
+        update_gps_error_code(cloud_data, GPS_NMEA_SENTENCE_CHECKSUM_ERROR);
         return 1;
     }
 
