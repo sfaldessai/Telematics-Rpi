@@ -168,8 +168,8 @@ void *read_from_gps(void *); /* pthread to handle gps read */
 
 void get_lat_log(double *);
 void get_dops(char **, char *);
-void get_gps_data(char *, struct gps_data_struct *);
+int get_gps_data(char *, struct gps_data_struct *);
 void get_gps_param_by_position(char **, char *, uint8_t);
-uint8_t nmea_verify_checksum(const char *);
+int nmea_verify_checksum(const char *);
 
 #endif

@@ -83,8 +83,9 @@ int main(int argc, char *argv[])
     }
     else
     {
-        update_gps_error_code(cloud_data, 907);
+        gps_error_codes(&cloud_data, FAILED_TO_OPEN_GPS_DEVICE);
     }
+
     pthread_join(serial_write_thread, NULL);
     pthread_join(read_can_supported_thread, NULL);
     pthread_join(read_can_speed_thread, NULL);

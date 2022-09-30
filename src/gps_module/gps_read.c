@@ -11,6 +11,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <termios.h>
+#include <math.h>
 #include <pthread.h>
 #include "gps_module.h"
 #include "../serial_interface/serial_config.h"
@@ -34,6 +35,30 @@ uint8_t is_ignition_on = IGNITION_ON;
 pthread_mutex_t cloud_data_gps_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /*
+ * Name : update_gps_error_code
+ * Descriptoin: The update_gps_error_code function is for updating erro codes for gps struct member
+ * Input parameters: struct cloud_data_struct * : clout struct to update gps data member
+ *                   int error_code : error code to update
+ * Output parameters: void
+ */
+void update_gps_error_code(struct cloud_data_struct *cloud_data, int error_code)
+{
+    struct gps_data_struct gps_data;
+
+    gps_data.hdop = error_code;
+    gps_data.vdop = error_code;
+    gps_data.pdop = error_code;
+    gps_data.latitude = error_code;
+    gps_data.longitude = error_code;
+    gps_data.speed = error_code;
+
+    /* update gps_data to cloud_data struct */
+    pthread_mutex_lock(&cloud_data_gps_mutex);
+    cloud_data->gps_data = gps_data;
+    pthread_mutex_unlock(&cloud_data_gps_mutex);
+}
+
+/*
  * Name : nmea_verify_checksum
  * Descriptoin: The nmea_verify_checksum function is for verifying GPS checksum.
  * Input parameters:
@@ -41,15 +66,15 @@ pthread_mutex_t cloud_data_gps_mutex = PTHREAD_MUTEX_INITIALIZER;
  *
  * Output parameters: uint8_t: return 1 for invalid and 0 for valid
  */
-uint8_t nmea_verify_checksum(const char *sentence)
+int nmea_verify_checksum(const char *sentence)
 {
-    uint8_t checksum = 0, gps_checksum_hex[8];
+    int checksum = 0;
+    uint8_t gps_checksum_hex[8];
 
     if (strlen(sentence) > MAX_READ_SIZE || strchr(sentence, ASTERISK_SIGN) == NULL || strchr(sentence, DOLLAR_SIGN) == NULL)
     {
         logger_info(GPS_LOG_MODULE_ID, "Invalid NMEA sentence: %s\n", __func__);
-        update_gps_error_code(cloud_data, GPS_NMEA_SENTENCE_CHECKSUM_ERROR);
-        return 1;
+        return GPS_NMEA_SENTENCE_CHECKSUM_ERROR;
     }
     while ('*' != *sentence && NMEA_END_CHAR != *sentence)
     {
@@ -61,8 +86,7 @@ uint8_t nmea_verify_checksum(const char *sentence)
         if ('\0' == *sentence)
         {
             logger_info(GPS_LOG_MODULE_ID, "Invalid NMEA sentence: %s\n", __func__);
-            update_gps_error_code(cloud_data, GPS_NMEA_SENTENCE_CHECKSUM_ERROR);
-            return 1;
+            return GPS_NMEA_SENTENCE_CHECKSUM_ERROR;
         }
         checksum = checksum ^ (uint8_t)*sentence;
         sentence = sentence + 1;
@@ -78,18 +102,17 @@ uint8_t nmea_verify_checksum(const char *sentence)
     else
     {
         logger_info(GPS_LOG_MODULE_ID, " Invalid Checksum from GPS: %s\n", __func__);
-        update_gps_error_code(cloud_data, GPS_NMEA_SENTENCE_CHECKSUM_ERROR);
-        return 1;
+        return GPS_NMEA_SENTENCE_CHECKSUM_ERROR;
     }
 
     uint16_t gps_checksum_dec = hex_to_decimal(gps_checksum_hex);
     if (checksum == gps_checksum_dec)
     {
-        return 0;
+        return SUCESS_CODE;
     }
     else
     {
-        return 1;
+        return GPS_NMEA_SENTENCE_CHECKSUM_ERROR;
     }
 }
 
@@ -164,9 +187,9 @@ void get_gps_param_by_position(char **param, char *nmea_data, uint8_t position)
  *              RMC sentence is for speed
  * Input parameters: char * (gps module sentence)
  *                   struct gps_data_struct *
- * Output parameters: void
+ * Output parameters: int return success/error code
  */
-void get_gps_data(char *nmea_data, struct gps_data_struct *gps_data)
+int get_gps_data(char *nmea_data, struct gps_data_struct *gps_data)
 {
     char *gga_data = NULL;
     char *gsa_data = NULL;
@@ -213,20 +236,19 @@ void get_gps_data(char *nmea_data, struct gps_data_struct *gps_data)
         gga_data = strchr(gga_data + 1, COMMA);
 
         /* Number of satellites in use [not those in view] */
-        int number_of_satellites = atoi(gga_data + 1);
+        /* int number_of_satellites = atoi(gga_data + 1); */
 
         gga_data = strchr(gga_data + 1, COMMA);
 
         /* Horizontal dilution of position */
-        double hdop = atoi(gga_data + 1);
-
+        double hdop = atof(gga_data + 1);
         if (gps_quality <= 0 || hdop >= INVALID_DOP_VALUE)
         {
-            update_gps_error_code(cloud_data, GPS_INVALID_QUALITY);
+            return GPS_INVALID_QUALITY;
         }
         else if (hdop == NO_SIGNAL_DOP_VALUE)
         {
-            update_gps_error_code(cloud_data, LOST_GPS_SIGNAL_ERROR);
+            return LOST_GPS_SIGNAL_ERROR;
         }
     }
     else if (nmea_data[3] == 'G' && nmea_data[4] == 'S' && nmea_data[5] == 'A')
@@ -243,13 +265,13 @@ void get_gps_data(char *nmea_data, struct gps_data_struct *gps_data)
         gsa_data = strchr(gsa_data + 1, COMMA);
         gps_data->vdop = atof(gsa_data + 1);
 
-        if (gps_data->vdop >= INVALID_DOP_VALUE)
+        if (gps_data->hdop == NO_SIGNAL_DOP_VALUE)
         {
-            update_gps_error_code(cloud_data, GPS_INVALID_QUALITY);
+            return LOST_GPS_SIGNAL_ERROR;
         }
-        else if (gps_data->vdop == NO_SIGNAL_DOP_VALUE)
+        else if (gps_data->hdop >= INVALID_DOP_VALUE)
         {
-            update_gps_error_code(cloud_data, LOST_GPS_SIGNAL_ERROR);
+            return GPS_INVALID_QUALITY;
         }
     }
     else if (nmea_data[3] == 'R' && nmea_data[4] == 'M' && nmea_data[5] == 'C')
@@ -264,6 +286,7 @@ void get_gps_data(char *nmea_data, struct gps_data_struct *gps_data)
         get_gps_param_by_position(&vtg_data, nmea_data, SPEED_POS);
         gps_data->speed = atof(vtg_data);
     }
+    return SUCESS_CODE;
 }
 
 /*
@@ -297,7 +320,6 @@ int send_ubx_cfg_command(struct uart_device_struct gps_device, const uint8_t *cm
     ubx_cmd[size - 1] = CK_B;
 
     int bytes = uart_gps_write(&gps_device, ubx_cmd, size);
-
     if (bytes == size)
     {
         logger_info(GPS_LOG_MODULE_ID, "%d bytes written to the gps\n", size);
@@ -305,9 +327,9 @@ int send_ubx_cfg_command(struct uart_device_struct gps_device, const uint8_t *cm
     else
     {
         logger_error(GPS_LOG_MODULE_ID, "failed to write %d bytes to the gps\n", size);
-        update_gps_error_code(cloud_data, GPS_INITIAL_CONFIGURATION_WRITE_FAILED);
+        return GPS_INITIAL_CONFIGURATION_WRITE_FAILED;
     }
-    return bytes;
+    return SUCESS_CODE;
 }
 
 /*
@@ -317,20 +339,39 @@ int send_ubx_cfg_command(struct uart_device_struct gps_device, const uint8_t *cm
  * Input parameters: struct uart_device_struct gps_device : serial port
  *
  *
- * Output parameters: void
+ * Output parameters: int
  */
-void initialize_gps_module(struct uart_device_struct gps_device)
+int initialize_gps_module(struct uart_device_struct gps_device)
 {
     /* Start GNSS with hot boot */
-    send_ubx_cfg_command(gps_device, set_gnss_start, GNSS_STOP_START_CMD_LEN);
-    /* Turn on NMEA sentence */
-    send_ubx_cfg_command(gps_device, set_NMEA_sentence_on, NMEA_SENTENCE_CMD_LEN);
-    /* Turn on power save mode */
-    send_ubx_cfg_command(gps_device, set_power_save_mode, POWER_SAVE_MODE_CMD_LEN);
-    /* Turn on assistnow feature */
-    send_ubx_cfg_command(gps_device, set_assistNow_autonomous, ASSIST_NOW_AUTONOMOUS_CMD_LEN);
-    /* Save Configuration */
-    send_ubx_cfg_command(gps_device, save_configuration, SAVE_CONFIG_CMD_LEN);
+    int bytes = send_ubx_cfg_command(gps_device, set_gnss_start, GNSS_STOP_START_CMD_LEN);
+
+    if (bytes == SUCESS_CODE)
+    {
+        /* Turn on NMEA sentence */
+        send_ubx_cfg_command(gps_device, set_NMEA_sentence_on, NMEA_SENTENCE_CMD_LEN);
+    }
+    if (bytes == SUCESS_CODE)
+    {
+        /* Turn on power save mode */
+        send_ubx_cfg_command(gps_device, set_power_save_mode, POWER_SAVE_MODE_CMD_LEN);
+    }
+    if (bytes == SUCESS_CODE)
+    {
+        /* Turn on assistnow feature */
+        send_ubx_cfg_command(gps_device, set_assistNow_autonomous, ASSIST_NOW_AUTONOMOUS_CMD_LEN);
+    }
+    if (bytes == SUCESS_CODE)
+    {
+        /* Save Configuration */
+        send_ubx_cfg_command(gps_device, save_configuration, SAVE_CONFIG_CMD_LEN);
+    }
+
+    if (bytes == GPS_INITIAL_CONFIGURATION_WRITE_FAILED)
+    {
+        return GPS_INITIAL_CONFIGURATION_WRITE_FAILED;
+    }
+    return SUCESS_CODE;
 }
 
 /*
@@ -348,10 +389,6 @@ void ignition_on(struct uart_device_struct gps_device)
     if (byte == GNSS_STOP_START_CMD_LEN)
     {
         is_ignition_on = IGNITION_ON;
-    }
-    else
-    {
-        update_gps_error_code(cloud_data, GPS_GNSS_FAILED_TURN_ON_POWER);
     }
 }
 
@@ -371,10 +408,6 @@ void ignition_off(struct uart_device_struct gps_device)
     {
         is_ignition_on = IGNITION_OFF;
     }
-    else
-    {
-        update_gps_error_code(cloud_data, GPS_GNSS_FAILED_TURN_OFF_POWER);
-    }
 }
 
 /*
@@ -382,28 +415,21 @@ void ignition_off(struct uart_device_struct gps_device)
  * Descriptoin: The gps_data_processing function is for processing NMEA sentence
  * Input parameters: struct cloud_data_struct *cloud_data : cloud_data member to update gps data
  *                   char *read_data : NMEA sentence data
- * Output parameters: void
+ * Output parameters: int
  */
-void gps_data_processing(struct cloud_data_struct *cloud_data, char *read_data)
+int gps_data_processing(char *read_data, struct gps_data_struct *gps_data)
 {
-    struct gps_data_struct gps_data;
-
     logger_info(GPS_LOG_MODULE_ID, "COMPLETE GPS DATA: %s\n", read_data);
 
-    uint8_t is_valid_checksum = nmea_verify_checksum(read_data);
+    int is_valid_checksum = nmea_verify_checksum(read_data);
 
     if (is_valid_checksum == SUCESS_CODE)
     {
-        get_gps_data(read_data, &gps_data);
-
-        /* update gps_data to cloud_data struct */
-        pthread_mutex_lock(&cloud_data_gps_mutex);
-        cloud_data->gps_data = gps_data;
-        pthread_mutex_unlock(&cloud_data_gps_mutex);
+        return get_gps_data(read_data, gps_data);
     }
     else
     {
-        update_gps_error_code(cloud_data, GPS_NMEA_SENTENCE_CHECKSUM_ERROR);
+        return is_valid_checksum;
     }
 }
 
@@ -422,9 +448,14 @@ void *read_from_gps(void *arg)
     struct arg_struct *args = (struct arg_struct *)arg;
     struct uart_device_struct gps_device = args->uart_device;
     struct cloud_data_struct *cloud_data = args->cloud_data;
+    struct gps_data_struct gps_data;
 
     /* gps initial configuration */
-    initialize_gps_module(gps_device);
+    int rc = initialize_gps_module(gps_device);
+    if (rc != SUCESS_CODE)
+    {
+        update_gps_error_code(cloud_data, rc);
+    }
 
     do
     {
@@ -440,7 +471,19 @@ void *read_from_gps(void *arg)
 
             if (read_data_len > 0)
             {
-                gps_data_processing(cloud_data, read_data);
+                rc = gps_data_processing(read_data, &gps_data);
+                if (rc != SUCESS_CODE)
+                {
+                    update_gps_error_code(cloud_data, rc);
+                    gps_data = cloud_data->gps_data;
+                }
+                else
+                {
+                    /* update gps_data to cloud_data struct */
+                    pthread_mutex_lock(&cloud_data_gps_mutex);
+                    cloud_data->gps_data = gps_data;
+                    pthread_mutex_unlock(&cloud_data_gps_mutex);
+                }
             }
             else if (read_data_len == 0 && gps_device.fd > 0)
             {

@@ -15,6 +15,5 @@
 void get_master_mac_address(uint8_t *);
 
 uint16_t hex_to_decimal(uint8_t *);
-void update_gps_error_code(struct cloud_data_struct *, int);
 
 #endif

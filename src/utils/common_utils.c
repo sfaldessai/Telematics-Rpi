@@ -88,22 +88,3 @@ uint16_t hex_to_decimal(uint8_t *read_data)
     }
     return decimal;
 }
-
-
-
-void update_gps_error_code(struct cloud_data_struct *cloud_data, int error_code)
-{
-    struct gps_data_struct gps_data;
-
-    gps_data.hdop = error_code;
-    gps_data.vdop = error_code;
-    gps_data.pdop = error_code;
-    gps_data.latitude = error_code;
-    gps_data.longitude = error_code;
-    gps_data.speed = error_code;
-
-    /* update gps_data to cloud_data struct */
-    pthread_mutex_lock(&cloud_data_gps_mutex);
-    cloud_data->gps_data = gps_data;
-    pthread_mutex_unlock(&cloud_data_gps_mutex);
-}
