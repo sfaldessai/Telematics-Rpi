@@ -137,8 +137,8 @@ void *start_can_communication(void *arg)
 				frame.data[1] = 41;
 				frame.data[2] = 0x0C;
 
-				frame.data[3] = get_random_number(0, 40);
-				frame.data[4] = get_random_number(0, 99);
+				frame.data[3] = (uint8_t)rpm_byte_1; // get_random_number(0, 40);
+				frame.data[4] = (uint8_t)rpm_byte_2; // get_random_number(0, 99);
 				frame.data[5] = 0xAA;
 				frame.data[6] = 0xAA;
 				frame.data[7] = 0xAA;
@@ -156,7 +156,7 @@ void *start_can_communication(void *arg)
 				frame.data[1] = 41;
 				frame.data[2] = 0x0D;
 
-				frame.data[3] = (uint8_t) speed_value; // get_random_number(0, 255);
+				frame.data[3] = (uint8_t)speed_value; // get_random_number(0, 255);
 				frame.data[4] = 0xAA;
 				frame.data[5] = 0xAA;
 				frame.data[6] = 0xAA;
