@@ -204,6 +204,30 @@ void get_gps_data(char *nmea_data, struct gps_data_struct *gps_data)
         {
             gps_data->longitude = -1 * gps_data->longitude;
         }
+
+        gga_data = strchr(gga_data + 1, COMMA);
+
+        /* GPS quality indicator (0=invalid; 1=GPS fix; 2=Diff. GPS fix) */
+        int gps_quality = atoi(gga_data + 1);
+
+        gga_data = strchr(gga_data + 1, COMMA);
+
+        /* Number of satellites in use [not those in view] */
+        int number_of_satellites = atoi(gga_data + 1);
+
+        gga_data = strchr(gga_data + 1, COMMA);
+
+        /* Horizontal dilution of position */
+        double hdop = atoi(gga_data + 1);
+
+        if (gps_quality <= 0 || hdop >= INVALID_DOP_VALUE)
+        {
+            update_gps_error_code(cloud_data, GPS_INVALID_QUALITY);
+        }
+        else if (hdop == NO_SIGNAL_DOP_VALUE)
+        {
+            update_gps_error_code(cloud_data, LOST_GPS_SIGNAL_ERROR);
+        }
     }
     else if (nmea_data[3] == 'G' && nmea_data[4] == 'S' && nmea_data[5] == 'A')
     {
@@ -218,6 +242,15 @@ void get_gps_data(char *nmea_data, struct gps_data_struct *gps_data)
         /* Get gps VDOP from GGA message */
         gsa_data = strchr(gsa_data + 1, COMMA);
         gps_data->vdop = atof(gsa_data + 1);
+
+        if (gps_data->vdop >= INVALID_DOP_VALUE)
+        {
+            update_gps_error_code(cloud_data, GPS_INVALID_QUALITY);
+        }
+        else if (gps_data->vdop == NO_SIGNAL_DOP_VALUE)
+        {
+            update_gps_error_code(cloud_data, LOST_GPS_SIGNAL_ERROR);
+        }
     }
     else if (nmea_data[3] == 'R' && nmea_data[4] == 'M' && nmea_data[5] == 'C')
     {
@@ -344,6 +377,13 @@ void ignition_off(struct uart_device_struct gps_device)
     }
 }
 
+/*
+ * Name : gps_data_processing
+ * Descriptoin: The gps_data_processing function is for processing NMEA sentence
+ * Input parameters: struct cloud_data_struct *cloud_data : cloud_data member to update gps data
+ *                   char *read_data : NMEA sentence data
+ * Output parameters: void
+ */
 void gps_data_processing(struct cloud_data_struct *cloud_data, char *read_data)
 {
     struct gps_data_struct gps_data;

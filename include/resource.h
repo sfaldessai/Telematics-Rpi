@@ -44,6 +44,7 @@ static const char error_codes[ERROR_CODE_LEN][ERROR_CODE_STRING_LEN] =
         {"920 = GPS SIGNAL IS FAIR"},
         {"921 = GPS SIGNAL IS POOR"},
         {"922 = INVALID NMEA SENTENCES"},
+        {"923 = GPS INVALID QUALITY"},
 
         /* STM32 ERROR CODE */
         {"1001 = FAILED TO OPEN STM32 DEVICE"},
