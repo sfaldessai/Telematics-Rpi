@@ -72,17 +72,19 @@ void get_dops(char **gsa_data, char *nmea_data)
  *                   uint8_t    (param position)
  * Output parameters: void
  */
-void get_gps_param_by_position(char **param,char*nmea_data,uint8_t position){
+void get_gps_param_by_position(char **param, char *nmea_data, uint8_t position)
+{
     uint8_t k = 0;
-    if(position>0){
+    if (position > 0)
+    {
         *param = strchr(nmea_data, COMMA);
-        
-        while (k < position-1)
+
+        while (k < position - 1)
         {
             *param = strchr(*param + 1, COMMA);
             k++;
         }
-        *param=*param+1;
+        *param = *param + 1;
     }
 }
 
@@ -93,7 +95,7 @@ void get_gps_param_by_position(char **param,char*nmea_data,uint8_t position){
  *              GGA sentence is for latitude & longitude.
  *              GSA sentence is for DOP
  *              VTG sentence is for speed
- *              RMC sentence is for speed 
+ *              RMC sentence is for speed
  * Input parameters: char * (gps module sentence)
  *                   struct gps_data_struct *
  * Output parameters: void
@@ -146,15 +148,15 @@ void get_gps_data(char *nmea_data, struct gps_data_struct *gps_data)
     else if (nmea_data[3] == 'R' && nmea_data[4] == 'M' && nmea_data[5] == 'C')
     {
         /* Get Speed from RMC message*/
-        get_gps_param_by_position(&rmc_data,nmea_data,SPEED_POS);
-        gps_data->speed=atof(rmc_data)*GPS_KMPH_PER_KNOT;
+        get_gps_param_by_position(&rmc_data, nmea_data, SPEED_POS);
+        gps_data->speed = (int)(atof(rmc_data) * GPS_KMPH_PER_KNOT);
     }
     else if (nmea_data[3] == 'V' && nmea_data[4] == 'T' && nmea_data[5] == 'G')
     {
         /* Get Speed from VTG message*/
-        get_gps_param_by_position(&vtg_data,nmea_data,SPEED_POS);
-        gps_data->speed=atof(vtg_data);
-    }   
+        get_gps_param_by_position(&vtg_data, nmea_data, SPEED_POS);
+        gps_data->speed = atoi(vtg_data);
+    }
 }
 
 /*
