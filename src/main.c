@@ -15,6 +15,11 @@
 #include <ctype.h>
 #include "main.h"
 #include "mqtt_demo_mutual_auth.h"
+
+#define MAX_READ_SIZE 1
+#define CLIENT_CONTROLLER "/dev/ttyUSB0"
+#define GPS_MODULE "/dev/ttyUSB1"
+
 int main(int argc, char *argv[])
 {
     struct uart_device_struct client_controller_device, gps_device;
@@ -23,6 +28,11 @@ int main(int argc, char *argv[])
     pthread_t client_controller_read_thread, gps_read_thread, serial_write_thread;
     pthread_t read_can_supported_thread, read_can_speed_thread, read_can_vin_thread, read_can_rpm_thread, cloud_send_thread;
     int opt;
+
+    client_controller_device.file_name = "/dev/ttyACM0";
+    gps_device.file_name = "/dev/ttyUSB0"; /* connected neo gps module to rapi using UART to USB converter */
+    client_controller_device.baud_rate = B115200;
+    gps_device.baud_rate = B9600;
     /* uart set-up*/
     uart_setup(&client_controller_device, CLIENT_CONTROLLER, B115200, true);
     uart_setup(&gps_device, GPS_MODULE, B9600, true);
@@ -65,6 +75,7 @@ int main(int argc, char *argv[])
     }
     /* Cloud Write Thread */
     pthread_create(&serial_write_thread, NULL, &write_to_cloud, &cloud_data);
+
     pthread_create(&cloud_send_thread, NULL, &mqtt_send, NULL);
 
     /* CAN Module Read Thread */
@@ -81,10 +92,7 @@ int main(int argc, char *argv[])
     {
         pthread_join(gps_read_thread, NULL);
     }
-    else
-    {
-        gps_error_codes(&cloud_data, FAILED_TO_OPEN_GPS_DEVICE);
-    }
+    pthread_join(serial_write_thread, NULL);
     pthread_join(read_can_supported_thread, NULL);
     pthread_join(read_can_speed_thread, NULL);
     pthread_join(read_can_vin_thread, NULL);
