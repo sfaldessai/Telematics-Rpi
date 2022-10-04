@@ -161,3 +161,22 @@ void gps_error_codes(struct cloud_data_struct *cloud_data, int error_code)
     
     cloud_data->gps_data = gps_data;
 }
+
+/*
+ * Name : can_error_codes
+ * Descriptoin: The can_error_codes function is for updating erro codes for can struct member
+ * Input parameters: struct cloud_data_struct * : clout struct to update can data member
+ *                   int error_code : error code to update
+ * Output parameters: void
+ */
+void can_error_codes(struct cloud_data_struct *cloud_data, int error_code)
+{
+    struct can_data_struct can_data;
+
+    sprintf(can_data.vin, "%d", error_code);
+    can_data.speed = error_code;
+    can_data.rpm = error_code;
+    sprintf(can_data.vehicle_type, "%d", error_code);
+    
+    cloud_data->can_data = can_data;
+}
