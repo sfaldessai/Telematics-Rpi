@@ -29,31 +29,49 @@ char *jsonObj(struct cloud_data_struct *cloud_data)
     cJSON *cjson_telematic = NULL;
     cJSON *cjson_can = NULL;
     cJSON *cjson_location = NULL;
+    cJSON *cjson_client_controller = NULL;
     char *str = NULL;
 
     cjson_telematic = cJSON_CreateObject();
     cjson_can = cJSON_CreateObject();
     cjson_vehicle = cJSON_CreateObject();
+    cjson_location = cJSON_CreateObject();
+    cjson_client_controller = cJSON_CreateObject();
 
-    // change these values in json file
-    cJSON_AddStringToObject(cjson_can, "serial", (char *)cloud_data->mac_address);
-    cJSON_AddStringToObject(cjson_can, "from", "SHREE");
+    char supported_pids[CAN_PID_LENGTH + 1];
+    size_t i = 0;
+
+    /* Prepare Query String START */
+    for (i = 0; i < CAN_PID_LENGTH; i++)
+    {
+        sprintf(&supported_pids[i], "%d", cloud_data->can_data.supported_pids[i]);
+    }
+    supported_pids[i] = '\0';
+
     cJSON_AddStringToObject(cjson_can, "vin", (char *)cloud_data->can_data.vin);
     cJSON_AddNumberToObject(cjson_can, "speed", cloud_data->can_data.speed);
-    // cJSON_AddNumberToObject(cjson_can, "distance_travelled", distanceTravelled);
-    cJSON_AddNumberToObject(cjson_can, "idle_time", cloud_data->idle_time_secs);
-    // cJSON_AddNumberToObject(cjson_can,"veh_in_service", inService);
+    cJSON_AddNumberToObject(cjson_can, "rpm", cloud_data->can_data.rpm);
+    cJSON_AddStringToObject(cjson_can, "supportedPid", supported_pids);
     cJSON_AddItemToObject(cjson_telematic, "can", cjson_can);
 
-    cjson_location = cJSON_CreateObject();
-    cJSON_AddNumberToObject(cjson_location, "lat", cloud_data->gps_data.longitude);
-    cJSON_AddNumberToObject(cjson_location, "long", cloud_data->gps_data.longitude);
-    cJSON_AddNumberToObject(cjson_location, "dop", cloud_data->gps_data.hdop);
+    cJSON_AddNumberToObject(cjson_location, "latitude", cloud_data->gps_data.longitude);
+    cJSON_AddNumberToObject(cjson_location, "longitude", cloud_data->gps_data.longitude);
+    cJSON_AddNumberToObject(cjson_location, "hdop", cloud_data->gps_data.hdop);
+    cJSON_AddNumberToObject(cjson_location, "vdop", cloud_data->gps_data.vdop);
+    cJSON_AddNumberToObject(cjson_location, "pdop", cloud_data->gps_data.pdop);
     cJSON_AddItemToObject(cjson_telematic, "location", cjson_location);
 
-    cJSON_AddNumberToObject(cjson_telematic, "motion", cloud_data->client_controller_data.motion);
-    cJSON_AddNumberToObject(cjson_telematic, "pto", cloud_data->client_controller_data.pto);
-    cJSON_AddNumberToObject(cjson_telematic, "battery", cloud_data->client_controller_data.voltage);
+    cJSON_AddNumberToObject(cjson_client_controller, "motion", cloud_data->client_controller_data.motion);
+    cJSON_AddNumberToObject(cjson_client_controller, "pto", cloud_data->client_controller_data.pto);
+    cJSON_AddNumberToObject(cjson_client_controller, "battery", cloud_data->client_controller_data.voltage);
+    cJSON_AddItemToObject(cjson_telematic, "clientController", cjson_client_controller);
+
+    cJSON_AddStringToObject(cjson_telematic, "serial", (char *)cloud_data->mac_address);
+    cJSON_AddNumberToObject(cjson_telematic, "idleTime", (double)cloud_data->idle_time_secs);
+    /* TODO:  vehicle in service & Distance Travel
+    cJSON_AddNumberToObject(cjson_telematic, "serviceTime", inService);
+    cJSON_AddNumberToObject(cjson_telematic, "distance", inService);
+    */
 
     cJSON_AddItemToObject(cjson_vehicle, "telematic", cjson_telematic);
 
@@ -95,7 +113,6 @@ void *write_to_cloud(void *arg)
             display_cloud_struct_data_logger(cloud_data);
 
             send_data = jsonObj(cloud_data);
-            // printf("\n TEST DATA======%s\n", send_data);
 
             calculate_idle_time(cloud_data);
 
