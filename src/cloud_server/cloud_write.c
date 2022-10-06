@@ -28,8 +28,8 @@ void display_cloud_struct_data_logger(struct cloud_data_struct *cloud_data)
                 cloud_data->can_data.speed, cloud_data->gps_data.speed, cloud_data->idle_time_secs);
     logger_info(CLOUD_LOG_MODULE_ID, "\tMOTION = %d | VOLTAGE = %f | PTO = %d\n", cloud_data->client_controller_data.motion,
                 cloud_data->client_controller_data.voltage, cloud_data->client_controller_data.pto);
-    logger_info(CLOUD_LOG_MODULE_ID, "\tLAT: %.4f %c", cloud_data->gps_data.latitude, cloud_data->gps_data.lat_cardinal_sign);
-    logger_info(CLOUD_LOG_MODULE_ID, "\tLONG: %.4f %c\n", cloud_data->gps_data.longitude, cloud_data->gps_data.long_cardinal_sign);
+    logger_info(CLOUD_LOG_MODULE_ID, "\tLAT: %.4f", cloud_data->gps_data.latitude);
+    logger_info(CLOUD_LOG_MODULE_ID, "\tLONG: %.4f\n", cloud_data->gps_data.longitude);
     logger_info(CLOUD_LOG_MODULE_ID, "\tPDOP:%.2f\tHDOP:%.2f\tVDOP:%.2f\n", cloud_data->gps_data.pdop,
                 cloud_data->gps_data.hdop, cloud_data->gps_data.vdop);
 }
@@ -116,9 +116,7 @@ void initialize_cloud_data(struct cloud_data_struct *cloud_data)
 
     gps_data.gps_time = "";
     gps_data.latitude = 0.0;
-    gps_data.lat_cardinal_sign = 'N';
     gps_data.longitude = 0.0;
-    gps_data.long_cardinal_sign = 'E';
     gps_data.hdop = 0.0;
     gps_data.pdop = 0.0;
     gps_data.vdop = 0.0;
