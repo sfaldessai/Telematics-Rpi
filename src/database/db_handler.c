@@ -75,11 +75,11 @@ int insert_telematics_data(struct cloud_data_struct *cloud_data)
     }
     supported_pids[i] = '\0';
 
-    sprintf(sql, DB_QUERY, cloud_data->gps_data.latitude, cloud_data->gps_data.lat_cardinal_sign,
-            cloud_data->gps_data.longitude, cloud_data->gps_data.long_cardinal_sign,
+    sprintf(sql, DB_QUERY, cloud_data->gps_data.latitude,
+            cloud_data->gps_data.longitude,
             cloud_data->gps_data.pdop, cloud_data->gps_data.hdop, cloud_data->gps_data.vdop,
             cloud_data->mac_address, cloud_data->can_data.vin, cloud_data->can_data.speed,
-            supported_pids, 180.00, 27.00, 86.00, cloud_data->client_controller_data.motion,
+            supported_pids, 180.00, cloud_data->idle_time_secs, 86, cloud_data->client_controller_data.motion,
             cloud_data->client_controller_data.voltage, cloud_data->client_controller_data.pto,
             0.00, 0.00, 0.00, 0, 0.00);
 

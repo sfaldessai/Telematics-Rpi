@@ -25,9 +25,7 @@
 /* DB columns names */
 #define creation_time "creation_time"
 #define LATITUDE "Latitude"
-#define LATITUDE_SIGN "LatSign"
 #define LONGITUDE "Longitude"
-#define LONGITUDE_SIGN "LongSign"
 #define PDOP "PDOP"
 #define HDOP "HDOP"
 #define VDOP "VDOP"
@@ -48,8 +46,8 @@
 #define TEMPERATURE "Temperature"
 
 #define TELEMATICS_DB_PATH "/usr/sbin/telematic.db"
-#define SQL_CREATE_TABLE "CREATE TABLE IF NOT EXISTS TELEMATICS(ID INTEGER PRIMARY KEY AUTOINCREMENT, creation_time TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, Latitude FLOAT, LatSign Text, Longitude FLOAT, LongSign Text, PDOP FLOAT, HDOP FLOAT, VDOP FLOAT,Serial TEXT, VIN TEXT, Speed INT, Supported_Pids TEXT, Dist_Travelled FLOAT, Idle_time FLOAT, Veh_in_Service FLOAT,Motion INT, Voltage FLOAT, PTO INT,AccX FLOAT, AccY FLOAT, AccZ FLOAT,RPM INT, Temperature FLOAT);"
-#define DB_QUERY "INSERT INTO TELEMATICS (Latitude,LatSign,Longitude,LongSign,PDOP,HDOP,VDOP,Serial,VIN,Speed,Supported_Pids,Dist_Travelled,Idle_time,Veh_in_Service,Motion,Voltage,PTO,AccX,AccY,AccZ,RPM,Temperature) VALUES (%f,'%c',%f,'%c',%f,%f,%f,'%s','%s',%d, '%s','%f','%f','%f',%d,%f,%d,%f,%f,%f,%d,%f)"
+#define SQL_CREATE_TABLE "CREATE TABLE IF NOT EXISTS TELEMATICS(ID INTEGER PRIMARY KEY AUTOINCREMENT, creation_time TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, Latitude FLOAT, Longitude FLOAT, PDOP FLOAT, HDOP FLOAT, VDOP FLOAT,Serial TEXT, VIN TEXT, Speed INT, Supported_Pids TEXT, Dist_Travelled FLOAT, Idle_time INT, Veh_in_Service INT,Motion INT, Voltage FLOAT, PTO INT,AccX FLOAT, AccY FLOAT, AccZ FLOAT,RPM INT, Temperature FLOAT);"
+#define DB_QUERY "INSERT INTO TELEMATICS (Latitude,Longitude,PDOP,HDOP,VDOP,Serial,VIN,Speed,Supported_Pids,Dist_Travelled,Idle_time,Veh_in_Service,Motion,Voltage,PTO,AccX,AccY,AccZ,RPM,Temperature) VALUES (%f,%f,%f,%f,%f,'%s','%s',%d, '%s','%f','%lld','%d',%d,%f,%d,%f,%f,%f,%d,%f)"
 
 int initialize_db(void);
 
