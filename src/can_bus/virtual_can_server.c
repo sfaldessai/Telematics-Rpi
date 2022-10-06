@@ -26,6 +26,7 @@
 int speed_value = 40; /* default set to 40 */
 int rpm_byte_1 = 20;
 int rpm_byte_2 = 20;
+int temperature_value = 20;
 
 uint8_t get_random_number(uint8_t lower, uint8_t upper)
 {
@@ -38,13 +39,12 @@ void *user_input(void *arg)
 {
 	long tid;
 	tid = (long)arg;
-	printf("Thread ID, %ld\n", tid);
 	do
 	{
 		printf("\nPlease select the below option to update the value:\n");
-		printf("\n\t1: SPEED\t2: RPM\n");
+		printf("\n\t1: SPEED\t2: RPM\t3:TEMPERATURE\n");
 
-		int speed, rpm, option;
+		int speed, rpm, option, temp;
 		while (scanf("%d", &option) != 1)
 		{
 			getchar();
@@ -79,11 +79,21 @@ void *user_input(void *arg)
 			rpm_byte_2 = rpm;
 			printf("\nset to %d %d\n", rpm_byte_1, rpm_byte_2);
 			break;
-
+		case 3:
+			printf("\nPlease enter temeprature value between -40-215\n");
+			while (scanf("%d", &temp) != 1)
+			{
+				getchar();
+				printf("Must be an integer value\n");
+			}
+			temperature_value = temp;
+			printf("\nset to %d\n", speed_value);
+			break;
 		default:
 			break;
 		}
 	} while (1);
+	printf("Thread ID %ld EXIT\n", tid);
 }
 
 void *start_can_communication(void *arg)
@@ -97,7 +107,6 @@ void *start_can_communication(void *arg)
 
 	long tid;
 	tid = (long)arg;
-	printf("Thread ID, %ld\n", tid);
 	if ((s = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0)
 	{
 		perror("Socket");
@@ -229,7 +238,24 @@ void *start_can_communication(void *arg)
 					perror("Write");
 				}
 				break;
+			case 0x05: // TEMPERATURE
+				frame.can_id = 0x7E8;
+				frame.can_dlc = 8;
 
+				frame.data[0] = 3;
+				frame.data[1] = 41;
+				frame.data[2] = 0x05;
+
+				frame.data[3] = (uint8_t)temperature_value; // get_random_number(0, 40);
+				frame.data[4] = 0xAA; // get_random_number(0, 99);
+				frame.data[5] = 0xAA;
+				frame.data[6] = 0xAA;
+				frame.data[7] = 0xAA;
+				if (write(s, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame))
+				{
+					perror("Write");
+				}
+				break;
 			default:
 				break;
 			}
@@ -240,6 +266,8 @@ void *start_can_communication(void *arg)
 	{
 		perror("Close");
 	}
+
+	printf("Thread ID %ld EXIT\n", tid);
 }
 
 int main(void)

@@ -288,6 +288,44 @@ void *read_can_speed_pid(void *arg)
 }
 
 /*
+ * Name : read_can_speed_pid
+ *
+ * Descriptoin: The read_can_speed_pid function is for fetching Vehicle speed PID data from the CAN module
+ *
+ * Input parameters:
+ *                  void *arg : cloud_data_struct to update vehicle speed data
+ *
+ * Output parameters: void
+ */
+void *read_can_temperature_pid(void *arg)
+{
+    struct can_frame temperature_frame[TEMPERATURE_DATA_FRAME], request_frame;
+    struct cloud_data_struct *cloud_data = (struct cloud_data_struct *)arg;
+
+    /* prepare CAN request frame */
+    get_request_frame(&request_frame, TEMPERATURE_PID, LIVE_DATA_MODE);
+
+    while (1)
+    {
+        /* Copy 1 byte (0-255) Vehicle speed data to cloud struct member for displaying on screen from deiplay thread */
+
+        /* Send Request and get response for PID 0x0D */
+        can_request_response(temperature_frame, TEMPERATURE_DATA_FRAME, request_frame);
+
+        if (temperature_frame[0].data[2] == TEMPERATURE_PID)
+        {
+            cloud_data->can_data.temperature = temperature_frame[0].data[3];
+
+            logger_info(CAN_LOG_MODULE_ID, "CAN VEHICLE TEMPERATURE: %d", cloud_data->can_data.temperature);
+        }
+
+        /* request next data each 1sec */
+        sleep(1);
+    }
+    close_socket(&sockfd);
+}
+
+/*
  * Name : read_can_supported_pid
  *
  * Descriptoin: The read_can_supported_pid function is for fetching supported PID data from the CAN module
@@ -340,11 +378,12 @@ void *read_can_supported_pid(void *arg)
  *                  pthread_t *read_can_speed_thread
  *                  pthread_t *read_can_vin_thread
  *                  pthread_t *read_can_rpm_thread
+ *                  pthread_t *read_can_temperature_thread
  *
  * Output parameters: void
  * Note: TBD optimize the function to have only one thread for all the CAN PID requests
  */
-void read_from_can(void *arg, pthread_t *read_can_supported_thread, pthread_t *read_can_speed_thread, pthread_t *read_can_vin_thread, pthread_t *read_can_rpm_thread)
+void read_from_can(void *arg, pthread_t *read_can_supported_thread, pthread_t *read_can_speed_thread, pthread_t *read_can_vin_thread, pthread_t *read_can_rpm_thread, pthread_t *read_can_temperature_thread)
 {
     /* setup socket can */
     if (setup_can_socket(&sockfd) == 0)
@@ -357,5 +396,7 @@ void read_from_can(void *arg, pthread_t *read_can_supported_thread, pthread_t *r
         pthread_create(read_can_speed_thread, NULL, &read_can_speed_pid, arg);
         /* Thread to fetch rpm pid data. */
         pthread_create(read_can_rpm_thread, NULL, &read_can_rpm_pid, arg);
+        /* Thread to fetch temperature pid data. */
+        pthread_create(read_can_temperature_thread, NULL, &read_can_temperature_pid, arg);
     }
 }

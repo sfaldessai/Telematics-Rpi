@@ -14,6 +14,7 @@
 #include <getopt.h>
 #include <ctype.h>
 #include "main.h"
+#include "mqtt_demo_mutual_auth.h"
 
 #define MAX_READ_SIZE 1
 #define CLIENT_CONTROLLER "/dev/ttyUSB0"
@@ -25,7 +26,7 @@ int main(int argc, char *argv[])
     struct cloud_data_struct cloud_data;
     struct arg_struct client_controller_args, gps_args;
     pthread_t client_controller_read_thread, gps_read_thread, serial_write_thread;
-    pthread_t read_can_supported_thread, read_can_speed_thread, read_can_vin_thread, read_can_rpm_thread;
+    pthread_t read_can_supported_thread, read_can_speed_thread, read_can_vin_thread, read_can_rpm_thread, cloud_send_thread, read_can_temperature_thread;
     int opt;
 
     client_controller_device.file_name = "/dev/ttyACM0";
@@ -75,8 +76,10 @@ int main(int argc, char *argv[])
     /* Cloud Write Thread */
     pthread_create(&serial_write_thread, NULL, &write_to_cloud, &cloud_data);
 
+    pthread_create(&cloud_send_thread, NULL, &mqtt_send, NULL);
+
     /* CAN Module Read Thread */
-    read_from_can(&cloud_data, &read_can_supported_thread, &read_can_speed_thread, &read_can_vin_thread, &read_can_rpm_thread);
+    read_from_can(&cloud_data, &read_can_supported_thread, &read_can_speed_thread, &read_can_vin_thread, &read_can_rpm_thread, &read_can_temperature_thread);
 
     /* Thread Creation End */
 
@@ -94,6 +97,8 @@ int main(int argc, char *argv[])
     pthread_join(read_can_speed_thread, NULL);
     pthread_join(read_can_vin_thread, NULL);
     pthread_join(read_can_rpm_thread, NULL);
+    pthread_join(read_can_temperature_thread, NULL);
+    pthread_join(cloud_send_thread, NULL);
     /* Join Thread End*/
 
     return 0;
