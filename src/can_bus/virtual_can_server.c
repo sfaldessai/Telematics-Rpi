@@ -36,6 +36,9 @@ uint8_t get_random_number(uint8_t lower, uint8_t upper)
 
 void *user_input(void *arg)
 {
+	long tid;
+	tid = (long)arg;
+	printf("Thread ID, %ld\n", tid);
 	do
 	{
 		printf("\nPlease select the below option to update the value:\n");
@@ -83,14 +86,18 @@ void *user_input(void *arg)
 	} while (1);
 }
 
-void *start_can_communication()
+void *start_can_communication(void *arg)
 {
-	int s, i;
+
+	int s;
 	int nbytes;
 	struct sockaddr_can addr;
 	struct ifreq ifr;
 	struct can_frame frame, request_frame;
 
+	long tid;
+	tid = (long)arg;
+	printf("Thread ID, %ld\n", tid);
 	if ((s = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0)
 	{
 		perror("Socket");
@@ -130,8 +137,8 @@ void *start_can_communication()
 				frame.data[1] = 41;
 				frame.data[2] = 0x0C;
 
-				frame.data[3] = rpm_byte_1; // get_random_number(0, 40);
-				frame.data[4] = rpm_byte_2; ////get_random_number(0, 99);
+				frame.data[3] = (uint8_t)rpm_byte_1; // get_random_number(0, 40);
+				frame.data[4] = (uint8_t)rpm_byte_2; // get_random_number(0, 99);
 				frame.data[5] = 0xAA;
 				frame.data[6] = 0xAA;
 				frame.data[7] = 0xAA;
@@ -149,7 +156,7 @@ void *start_can_communication()
 				frame.data[1] = 41;
 				frame.data[2] = 0x0D;
 
-				frame.data[3] = speed_value; // get_random_number(0, 255);
+				frame.data[3] = (uint8_t)speed_value; // get_random_number(0, 255);
 				frame.data[4] = 0xAA;
 				frame.data[5] = 0xAA;
 				frame.data[6] = 0xAA;
