@@ -49,9 +49,11 @@ char *jsonObj(struct cloud_data_struct *cloud_data)
     supported_pids[i] = '\0';
 
     cJSON_AddStringToObject(cjson_can, "vin", (char *)cloud_data->can_data.vin);
+    cJSON_AddStringToObject(cjson_can, "vehicleType", (char *)cloud_data->can_data.vehicle_type);
     cJSON_AddNumberToObject(cjson_can, "speed", cloud_data->can_data.speed);
     cJSON_AddNumberToObject(cjson_can, "rpm", cloud_data->can_data.rpm);
     cJSON_AddStringToObject(cjson_can, "supportedPid", supported_pids);
+    cJSON_AddNumberToObject(cjson_can, "temperature", cloud_data->can_data.temperature);
     cJSON_AddItemToObject(cjson_telematic, "can", cjson_can);
 
     cJSON_AddNumberToObject(cjson_location, "latitude", cloud_data->gps_data.longitude);
@@ -82,8 +84,8 @@ char *jsonObj(struct cloud_data_struct *cloud_data)
 
 void display_cloud_struct_data_logger(struct cloud_data_struct *cloud_data)
 {
-    logger_info(CLOUD_LOG_MODULE_ID, "\tVIN = %s | CAN SPEED = %d | GPS SPEED = %f |  idle_time_sec = %lld \n", cloud_data->can_data.vin,
-                cloud_data->can_data.speed, cloud_data->gps_data.speed, cloud_data->idle_time_secs);
+    logger_info(CLOUD_LOG_MODULE_ID, "\tVIN = %s | CAN SPEED = %d | GPS SPEED = %f |  idle_time_sec = %lld | CAN TEMPERATURE = %d\n", cloud_data->can_data.vin,
+                cloud_data->can_data.speed, cloud_data->gps_data.speed, cloud_data->idle_time_secs, cloud_data->can_data.temperature);
     logger_info(CLOUD_LOG_MODULE_ID, "\tMOTION = %d | VOLTAGE = %f | PTO = %d\n", cloud_data->client_controller_data.motion,
                 cloud_data->client_controller_data.voltage, cloud_data->client_controller_data.pto);
     logger_info(CLOUD_LOG_MODULE_ID, "\tLAT: %.4f", cloud_data->gps_data.latitude);
@@ -187,6 +189,7 @@ void initialize_cloud_data(struct cloud_data_struct *cloud_data)
 
     memset(can_data.vin, '\0', MAX_LEN_VIN);
     can_data.speed = 0;
+    can_data.temperature = 0;
     can_data.rpm = 0.0;
     memset(can_data.supported_pids, 0, CAN_PID_LENGTH * sizeof(uint32_t));
 
