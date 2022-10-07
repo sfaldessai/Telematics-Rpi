@@ -54,7 +54,7 @@ struct can_data_struct
 	uint8_t vin[MAX_LEN_VIN];
 	uint8_t speed;
 	float rpm;
-	uint32_t supported_pids[CAN_PID_LENGTH];
+	uint8_t supported_pids[CAN_PID_LENGTH];
 	char vehicle_type[WMI_STRING_LEN];
 };
 

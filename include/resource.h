@@ -6,7 +6,7 @@
 
 #define PID_SUPPORTED_LEN 32
 
-#define ERROR_CODE_LEN 32
+#define ERROR_CODE_LEN 80
 #define ERROR_CODE_STRING_LEN 80
 
 #define DEBUG
@@ -53,7 +53,7 @@ static const char error_codes[ERROR_CODE_LEN][ERROR_CODE_STRING_LEN] =
         {"1004 = PTO READ ERROR"},
         {"1005 = VOLTAGE READ ERROR"},
         {"1006 = STM32 DEVICE DISCONNECTED"},
-        {"1007 = MEMS ERROR"}
+        {"1007 = MEMS ERROR"},
 
         /* CAN ERROR CODE */
         {"801 = CAN SOCKET ERROR"},

@@ -129,7 +129,7 @@ void initialize_cloud_data(struct cloud_data_struct *cloud_data)
     memset(can_data.vin, '\0', MAX_LEN_VIN);
     can_data.speed = 0;
     can_data.rpm = 0.0;
-    memset(can_data.supported_pids, 0, CAN_PID_LENGTH * sizeof(uint32_t));
+    memset(can_data.supported_pids, '\0', CAN_PID_LENGTH * sizeof(uint8_t));
 
     cloud_data->gps_data = gps_data;
     cloud_data->client_controller_data = client_controller_data;
@@ -158,7 +158,7 @@ void gps_error_codes(struct cloud_data_struct *cloud_data, int error_code)
     gps_data.latitude = error_code;
     gps_data.longitude = error_code;
     gps_data.speed = error_code;
-    
+
     cloud_data->gps_data = gps_data;
 }
 
@@ -173,10 +173,11 @@ void can_error_codes(struct cloud_data_struct *cloud_data, int error_code)
 {
     struct can_data_struct can_data;
 
-    sprintf(can_data.vin, "%d", error_code);
+    sprintf((char *)can_data.vin, "%d", error_code);
     can_data.speed = error_code;
     can_data.rpm = error_code;
     sprintf(can_data.vehicle_type, "%d", error_code);
-    
+    sprintf((char *)can_data.supported_pids, "%d", error_code);
+
     cloud_data->can_data = can_data;
 }
