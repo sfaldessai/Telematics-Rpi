@@ -351,21 +351,24 @@ void *read_can_supported_pid(void *arg)
 
     while (1)
     {
-        /* Send Request and get response for PID 0x00 */
-        can_request_response(supported_frame, SUPPORTED_DATA_FRAME, request_frame);
-
-        if (supported_frame[0].data[2] == SUPPORTED_PID)
+        if (cloud_data->can_data.supported_pids[CAN_SPEED_PID_POSITION] == 1)
         {
-            uint8_t supported_binary_value[CAN_PID_LENGTH];
+            /* Send Request and get response for PID 0x00 */
+            can_request_response(supported_frame, SUPPORTED_DATA_FRAME, request_frame);
 
-            hex_to_binary(supported_frame[0], supported_binary_value);
-
-            for (size_t i = 0; i < CAN_PID_LENGTH; i++)
+            if (supported_frame[0].data[2] == SUPPORTED_PID)
             {
-                cloud_data->can_data.supported_pids[i] = supported_binary_value[i];
-            }
+                uint8_t supported_binary_value[CAN_PID_LENGTH];
 
-            log_can_supported_data(supported_binary_value);
+                hex_to_binary(supported_frame[0], supported_binary_value);
+
+                for (size_t i = 0; i < CAN_PID_LENGTH; i++)
+                {
+                    cloud_data->can_data.supported_pids[i] = supported_binary_value[i];
+                }
+
+                log_can_supported_data(supported_binary_value);
+            }
         }
         /* request next data after 30sec */
         sleep(30);
