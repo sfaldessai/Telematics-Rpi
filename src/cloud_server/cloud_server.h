@@ -15,6 +15,7 @@
 #define DEBUG
 
 #define MAX_LEN_MAC_ADDRESS 12
+#define MAX_SPEED 255
 
 /* cloud_data_struct struct to holds STM32, GPS, and CAN bus data*/
 struct cloud_data_struct

@@ -50,7 +50,16 @@ char *jsonObj(struct cloud_data_struct *cloud_data)
 
     cJSON_AddStringToObject(cjson_can, "vin", (char *)cloud_data->can_data.vin);
     cJSON_AddStringToObject(cjson_can, "vehicleType", (char *)cloud_data->can_data.vehicle_type);
-    cJSON_AddNumberToObject(cjson_can, "speed", cloud_data->can_data.speed);
+
+    if (cloud_data->gps_data.speed > 0 && cloud_data->gps_data.speed <= MAX_SPEED)
+    {
+        cJSON_AddNumberToObject(cjson_can, "speed", cloud_data->gps_data.speed);
+    }
+    else
+    {
+        cJSON_AddNumberToObject(cjson_can, "speed", cloud_data->can_data.speed);
+    }
+
     cJSON_AddNumberToObject(cjson_can, "rpm", cloud_data->can_data.rpm);
     cJSON_AddStringToObject(cjson_can, "supportedPid", supported_pids);
     cJSON_AddNumberToObject(cjson_can, "temperature", cloud_data->can_data.temperature);
