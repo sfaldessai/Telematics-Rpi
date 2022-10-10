@@ -66,14 +66,17 @@ void get_request_frame(struct can_frame *request_frame, int pid, int mode)
  *                  int sockfd: can socket file descriptor
  * 					struct can_frame request_frame:  Request frame for PID data
  *
- * Output parameters: void
+ * Output parameters: int : return number of bytes write
  */
-void transmit_can_data(int sockfd, struct can_frame request_frame)
+int transmit_can_data(int sockfd, struct can_frame request_frame)
 {
-	if (write(sockfd, &request_frame, sizeof(struct can_frame)) != sizeof(struct can_frame))
+	int rc = write(sockfd, &request_frame, sizeof(struct can_frame));
+	if (rc != sizeof(struct can_frame))
 	{
 		logger_error(CAN_LOG_MODULE_ID, "Error: Write failed- %s\r\n", __func__);
+		return rc;
 	}
+	return rc;
 }
 
 /*
@@ -85,16 +88,16 @@ void transmit_can_data(int sockfd, struct can_frame request_frame)
  *                  int sockfd: can socket file descriptor
  * 					struct can_frame *frame:  response frame for PID data
  *
- * Output parameters: void
+ * Output parameters: int return received bytes
  */
-void receive_can_data(int sockfd, struct can_frame *frame)
+int receive_can_data(int sockfd, struct can_frame *frame)
 {
-	int nbytes;
-	nbytes = read(sockfd, frame, sizeof(struct can_frame));
+	int nbytes = read(sockfd, frame, sizeof(struct can_frame));
 	if (nbytes < 0)
 	{
 		logger_error(CAN_LOG_MODULE_ID, "Error: Read failed- %s\r\n", __func__);
 	}
+	return nbytes
 }
 
 /*

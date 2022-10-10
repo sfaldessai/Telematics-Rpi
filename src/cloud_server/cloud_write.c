@@ -24,8 +24,8 @@ time_t begin, end;
 
 void display_cloud_struct_data_logger(struct cloud_data_struct *cloud_data)
 {
-    logger_info(CLOUD_LOG_MODULE_ID, "\tVIN = %s | CAN SPEED = %d | GPS SPEED = %f |  idle_time_sec = %lld \n", cloud_data->can_data.vin,
-                cloud_data->can_data.speed, cloud_data->gps_data.speed, cloud_data->idle_time_secs);
+    logger_info(CLOUD_LOG_MODULE_ID, "\tVIN = %s | CAN SPEED = %d | GPS SPEED = %f |  idle_time_sec = %lld | SUPPORTED PID: %s\n", cloud_data->can_data.vin,
+                cloud_data->can_data.speed, cloud_data->gps_data.speed, cloud_data->idle_time_secs, cloud_data->can_data.supported_pids);
     logger_info(CLOUD_LOG_MODULE_ID, "\tMOTION = %d | VOLTAGE = %f | PTO = %d\n", cloud_data->client_controller_data.motion,
                 cloud_data->client_controller_data.voltage, cloud_data->client_controller_data.pto);
     logger_info(CLOUD_LOG_MODULE_ID, "\tLAT: %.4f", cloud_data->gps_data.latitude);

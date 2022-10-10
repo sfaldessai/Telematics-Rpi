@@ -21,6 +21,29 @@ pthread_mutex_t can_module_lock = PTHREAD_MUTEX_INITIALIZER;
 int sockfd = 0;
 
 /*
+ * Name : update_can_error_code
+ * Descriptoin: The update_can_error_code function is for updating erro codes for can struct member
+ * Input parameters: struct cloud_data_struct * : clout struct to update can data member
+ *                   int error_code : error code to update
+ * Output parameters: void
+ */
+void update_can_error_code(struct cloud_data_struct *cloud_data, int error_code)
+{
+    struct can_data_struct can_data;
+
+    sprintf((char *)can_data.vin, "%d", error_code);
+    can_data.speed = error_code;
+    can_data.rpm = error_code;
+    sprintf(can_data.vehicle_type, "%d", error_code);
+    sprintf((char *)can_data.supported_pids, "%d", error_code);
+
+    /* update gps_data to cloud_data struct */
+    pthread_mutex_lock(&can_module_lock);
+    cloud_data->can_data = can_data;
+    pthread_mutex_unlock(&can_module_lock);
+}
+
+/*
  * Name : get_manufacturer_detail
  * Descriptoin: The get_manufacturer_detail function is for fetching manufaturer detail & vehicle type.
  * Input parameters:
@@ -200,11 +223,13 @@ void *read_can_id_number(void *arg)
             else
             {
                 logger_info(CAN_LOG_MODULE_ID, "INVALID CAN VIN: %s", read_data);
+                sprintf((char *)cloud_data->can_data.vin, "%d", INVALID_VIN_ERROR);
             }
         }
         else
         {
             logger_info(CAN_LOG_MODULE_ID, "INVALID CAN VIN: %s", read_data);
+            sprintf((char *)cloud_data->can_data.vin, "%d", INVALID_VIN_ERROR);
         }
     }
 
@@ -318,8 +343,9 @@ void *read_can_supported_pid(void *arg)
 
             for (size_t i = 0; i < CAN_PID_LENGTH; i++)
             {
-                cloud_data->can_data.supported_pids[i] = supported_binary_value[i];
+                cloud_data->can_data.supported_pids[i] = supported_binary_value[i] + '0';
             }
+            cloud_data->can_data.supported_pids[CAN_PID_LENGTH + 1] = '\0';
 
             log_can_supported_data(supported_binary_value);
         }
