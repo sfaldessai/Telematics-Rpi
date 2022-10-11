@@ -146,27 +146,37 @@ bool validate_vin(char *vin)
  *                  struct can_frame * : response frame, updating from can response frame
  *                  size_t frame_length : number of can response frames - 3 frames for VIN, 1 frame for speed and supported pid
  *                  struct can_frame : can request frame which contains requets PID details
- * Output parameters: void
+ * Output parameters: int retun code 0 for success and >0 value for error
  */
-void can_request_response(struct can_frame *frame, size_t frame_length, struct can_frame request_frame)
+int can_request_response(struct can_frame *frame, size_t frame_length, struct can_frame request_frame)
 {
     struct can_frame response_frame;
 
     /* locking read write for can data synchronization */
     pthread_mutex_lock(&can_module_lock);
 
-    transmit_can_data(sockfd, request_frame);
+    int rc = transmit_can_data(sockfd, request_frame);
+
+    if (rc <= 0)
+    {
+        return CAN_WRITE_ERROR;
+    }
 
     log_can_data(request_frame, CAN_REQUEST);
 
     for (size_t i = 0; i < frame_length; i++)
     {
-        receive_can_data(sockfd, &response_frame);
+        rc = receive_can_data(sockfd, &response_frame);
+        if (rc <= 0)
+        {
+            return CAN_READ_ERROR;
+        }
         log_can_data(response_frame, CAN_RESPONSE);
         frame[i] = response_frame;
     }
 
     pthread_mutex_unlock(&can_module_lock);
+    return CAN_SUCESS;
 }
 
 /*
@@ -189,48 +199,57 @@ void *read_can_id_number(void *arg)
     /* prepare CAN request frame */
     get_request_frame(&request_frame, VIN_PID, VIN_MODE);
 
-    /* Send Request and get response for PID 0x02 */
-    can_request_response(vin_frame, VIN_DATA_FRAME, request_frame);
-
-    if (vin_frame[0].data[3] == VIN_PID)
+    while (1)
     {
-        vin_from_can_frame_data(vin_frame, read_data);
-
-        bool is_valid = validate_vin(read_data);
-
-        if (is_valid)
+        /* Send Request and get response for PID 0x02 */
+        int rc = can_request_response(vin_frame, VIN_DATA_FRAME, request_frame);
+        if (rc != CAN_SUCESS)
         {
-            uint8_t wmi[WMI_LEN];
+            sprintf((char *)cloud_data->can_data.vin, "%d", rc);
+        }
+        else if (vin_frame[0].data[3] == VIN_PID)
+        {
+            vin_from_can_frame_data(vin_frame, read_data);
 
-            /* Extracting 1st 3 character from VIN for WMI details and assigning to wmi */
-            for (size_t i = 0; i < WMI_LEN; i++)
+            bool is_valid = validate_vin(read_data);
+
+            if (is_valid)
             {
-                wmi[i] = read_data[i];
-            }
+                uint8_t wmi[WMI_LEN];
 
-            char *vehicle_detail = get_manufacturer_detail(wmi);
+                /* Extracting 1st 3 character from VIN for WMI details and assigning to wmi */
+                for (size_t i = 0; i < WMI_LEN; i++)
+                {
+                    wmi[i] = read_data[i];
+                }
 
-            if (vehicle_detail != NULL)
-            {
-                strncpy(cloud_data->can_data.vehicle_type, vehicle_detail, WMI_STRING_LEN - 1);
+                char *vehicle_detail = get_manufacturer_detail(wmi);
 
-                /* Copy 17 byte VIN data to cloud struct member for displaying on screen from deiplay thread */
-                strncpy((char *)cloud_data->can_data.vin, read_data, MAX_LEN_VIN);
+                if (vehicle_detail != NULL)
+                {
+                    strncpy(cloud_data->can_data.vehicle_type, vehicle_detail, WMI_STRING_LEN - 1);
 
-                logger_info(CAN_LOG_MODULE_ID, "VALID CAN VIN: %s", cloud_data->can_data.vin);
-                logger_info(CAN_LOG_MODULE_ID, "VEHICLE TYPE: %s", cloud_data->can_data.vehicle_type);
+                    /* Copy 17 byte VIN data to cloud struct member for displaying on screen from deiplay thread */
+                    strncpy((char *)cloud_data->can_data.vin, read_data, MAX_LEN_VIN);
+
+                    logger_info(CAN_LOG_MODULE_ID, "VALID CAN VIN: %s", cloud_data->can_data.vin);
+                    logger_info(CAN_LOG_MODULE_ID, "VEHICLE TYPE: %s", cloud_data->can_data.vehicle_type);
+                }
+                else
+                {
+                    logger_info(CAN_LOG_MODULE_ID, "INVALID CAN VIN: %s", read_data);
+                    sprintf((char *)cloud_data->can_data.vin, "%d", INVALID_VIN_ERROR);
+                }
             }
             else
             {
                 logger_info(CAN_LOG_MODULE_ID, "INVALID CAN VIN: %s", read_data);
                 sprintf((char *)cloud_data->can_data.vin, "%d", INVALID_VIN_ERROR);
             }
+            break;
         }
-        else
-        {
-            logger_info(CAN_LOG_MODULE_ID, "INVALID CAN VIN: %s", read_data);
-            sprintf((char *)cloud_data->can_data.vin, "%d", INVALID_VIN_ERROR);
-        }
+        /* Retrying after 3 seconds if vin pid request faild */
+        sleep(3);
     }
 
     /* Retuning null to avoid control reaches end of non-void function warning */
@@ -260,8 +279,13 @@ void *read_can_rpm_pid(void *arg)
         /* Copy 2 bytes of Vehicle RPM data to cloud struct member for displaying on screen from display thread */
 
         /* Send Request and get response for PID 0x0C */
-        can_request_response(rpm_frame, RPM_DATA_FRAME, request_frame);
-        if (rpm_frame[0].data[2] == RPM_PID)
+        int rc = can_request_response(rpm_frame, RPM_DATA_FRAME, request_frame);
+
+        if (rc != CAN_SUCESS)
+        {
+            cloud_data->can_data.rpm = rc;
+        }
+        else if (rpm_frame[0].data[2] == RPM_PID)
         {
             sprintf((char *)read_rpm, "%.2X%.2X", rpm_frame[0].data[3], rpm_frame[0].data[4]);
             /* Engine speed Formula: (256 A + B)/4 */
@@ -272,6 +296,7 @@ void *read_can_rpm_pid(void *arg)
         sleep(1);
     }
     close_socket(&sockfd);
+    update_can_error_code(cloud_data, CAN_SOCKET_CLOSED);
 }
 
 /*
@@ -297,9 +322,13 @@ void *read_can_speed_pid(void *arg)
         /* Copy 1 byte (0-255) Vehicle speed data to cloud struct member for displaying on screen from deiplay thread */
 
         /* Send Request and get response for PID 0x0D */
-        can_request_response(speed_frame, SPEED_DATA_FRAME, request_frame);
+        int rc = can_request_response(speed_frame, SPEED_DATA_FRAME, request_frame);
 
-        if (speed_frame[0].data[2] == SPEED_PID)
+        if (rc != CAN_SUCESS)
+        {
+            cloud_data->can_data.speed = rc;
+        }
+        else if (speed_frame[0].data[2] == SPEED_PID)
         {
             cloud_data->can_data.speed = (uint8_t)speed_frame[0].data[3];
 
@@ -310,6 +339,7 @@ void *read_can_speed_pid(void *arg)
         sleep(1);
     }
     close_socket(&sockfd);
+    update_can_error_code(cloud_data, CAN_SOCKET_CLOSED);
 }
 
 /*
@@ -333,9 +363,13 @@ void *read_can_supported_pid(void *arg)
     while (1)
     {
         /* Send Request and get response for PID 0x00 */
-        can_request_response(supported_frame, SUPPORTED_DATA_FRAME, request_frame);
+        int rc = can_request_response(supported_frame, SUPPORTED_DATA_FRAME, request_frame);
 
-        if (supported_frame[0].data[2] == SUPPORTED_PID)
+        if (rc != CAN_SUCESS)
+        {
+            sprintf((char *)can_data.supported_pids, "%d", rc);
+        }
+        else if (supported_frame[0].data[2] == SUPPORTED_PID)
         {
             uint8_t supported_binary_value[CAN_PID_LENGTH];
 
@@ -353,6 +387,7 @@ void *read_can_supported_pid(void *arg)
         sleep(30);
     }
     close_socket(&sockfd);
+    update_can_error_code(cloud_data, CAN_SOCKET_CLOSED);
 }
 
 /*
@@ -372,6 +407,7 @@ void *read_can_supported_pid(void *arg)
  */
 void read_from_can(void *arg, pthread_t *read_can_supported_thread, pthread_t *read_can_speed_thread, pthread_t *read_can_vin_thread, pthread_t *read_can_rpm_thread)
 {
+    struct cloud_data_struct *cloud_data = (struct cloud_data_struct *)arg;
     /* setup socket can */
     if (setup_can_socket(&sockfd) == 0)
     {
@@ -383,5 +419,9 @@ void read_from_can(void *arg, pthread_t *read_can_supported_thread, pthread_t *r
         pthread_create(read_can_speed_thread, NULL, &read_can_speed_pid, arg);
         /* Thread to fetch rpm pid data. */
         pthread_create(read_can_rpm_thread, NULL, &read_can_rpm_pid, arg);
+    }
+    else
+    {
+        update_can_error_code(cloud_data, CAN_SOCKET_ERROR);
     }
 }

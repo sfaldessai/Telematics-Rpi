@@ -24,14 +24,34 @@ time_t begin, end;
 
 void display_cloud_struct_data_logger(struct cloud_data_struct *cloud_data)
 {
-    logger_info(CLOUD_LOG_MODULE_ID, "\tVIN = %s | CAN SPEED = %d | GPS SPEED = %f |  idle_time_sec = %lld | SUPPORTED PID: %s\n", cloud_data->can_data.vin,
-                cloud_data->can_data.speed, cloud_data->gps_data.speed, cloud_data->idle_time_secs, cloud_data->can_data.supported_pids);
-    logger_info(CLOUD_LOG_MODULE_ID, "\tMOTION = %d | VOLTAGE = %f | PTO = %d\n", cloud_data->client_controller_data.motion,
-                cloud_data->client_controller_data.voltage, cloud_data->client_controller_data.pto);
-    logger_info(CLOUD_LOG_MODULE_ID, "\tLAT: %.4f", cloud_data->gps_data.latitude);
-    logger_info(CLOUD_LOG_MODULE_ID, "\tLONG: %.4f\n", cloud_data->gps_data.longitude);
-    logger_info(CLOUD_LOG_MODULE_ID, "\tPDOP:%.2f\tHDOP:%.2f\tVDOP:%.2f\n", cloud_data->gps_data.pdop,
-                cloud_data->gps_data.hdop, cloud_data->gps_data.vdop);
+    /* GPS Data Logger */
+    logger_info(CLOUD_LOG_MODULE_ID, "\tLAT: %.4f |\ttLONG: %.4f |\tPDOP: %.2f |\tHDOP: %.2f |\tVDOP: %.2f |\tGPS SPEED = %f\n",
+                cloud_data->gps_data.latitude,
+                cloud_data->gps_data.longitude, c loud_data->gps_data.pdop,
+                cloud_data->gps_data.hdop,
+                cloud_data->gps_data.vdop,
+                cloud_data->gps_data.speed);
+
+    /* CAN Data Logger */
+    logger_info(CLOUD_LOG_MODULE_ID, "\tVIN: %s |\tCAN SPEED: %d |\tRPM: %f |\tIDLE TIME: %lld sec |\tSUPPORTED PID: %s\n",
+                cloud_data->can_data.vin,
+                cloud_data->can_data.speed,
+                cloud_data->can_data.rpm,
+                cloud_data->idle_time_secs,
+                cloud_data->can_data.supported_pids);
+
+    /* STM32 Data Logger */
+    logger_info(CLOUD_LOG_MODULE_ID, "\tMOTION: %d |\tVOLTAGE: %f |\tPTO: %d |\tACC_X: %d |\tACC_Y: %d |\tACC_Z: %d\n",
+                cloud_data->client_controller_data.motion,
+                cloud_data->client_controller_data.voltage,
+                cloud_data->client_controller_data.pto,
+                cloud_data->client_controller_data.acc_x,
+                cloud_data->client_controller_data.acc_y,
+                cloud_data->client_controller_data.acc_z);
+
+    /* RPI Data Processing Logger */
+    logger_info(CLOUD_LOG_MODULE_ID, "\tIDLE TIME: %lld\n",
+                cloud_data->idle_time_secs);
 }
 
 /*
@@ -125,6 +145,9 @@ void initialize_cloud_data(struct cloud_data_struct *cloud_data)
     client_controller_data.pto = 0;
     client_controller_data.motion = 0;
     client_controller_data.voltage = 0.0;
+    client_controller_data.acc_x = 0;
+    client_controller_data.acc_y = 0;
+    client_controller_data.acc_z = 0;
 
     memset(can_data.vin, '\0', MAX_LEN_VIN);
     can_data.speed = 0;
@@ -163,21 +186,22 @@ void gps_error_codes(struct cloud_data_struct *cloud_data, int error_code)
 }
 
 /*
- * Name : can_error_codes
- * Descriptoin: The can_error_codes function is for updating erro codes for can struct member
- * Input parameters: struct cloud_data_struct * : clout struct to update can data member
+ * Name : client_controller_error_codes
+ * Descriptoin: The client_controller_error_codes function is for updating erro codes for STM32 struct member
+ * Input parameters: struct cloud_data_struct * : clout struct to update STM32 data member
  *                   int error_code : error code to update
  * Output parameters: void
  */
-void can_error_codes(struct cloud_data_struct *cloud_data, int error_code)
+void client_controller_error_codes(struct cloud_data_struct *cloud_data, int error_code)
 {
-    struct can_data_struct can_data;
+    struct client_controller_data_struct cc_data;
 
-    sprintf((char *)can_data.vin, "%d", error_code);
-    can_data.speed = error_code;
-    can_data.rpm = error_code;
-    sprintf(can_data.vehicle_type, "%d", error_code);
-    sprintf((char *)can_data.supported_pids, "%d", error_code);
+    cc_data.motion = error_code;
+    cc_data.pto = error_code;
+    cc_data.voltage = error_code;
+    cc_data.acc_x = error_code;
+    cc_data.acc_y = error_code;
+    cc_data.acc_z = error_code;
 
-    cloud_data->can_data = can_data;
+    cloud_data->client_controller_data = cc_data;
 }

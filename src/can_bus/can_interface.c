@@ -93,7 +93,7 @@ int transmit_can_data(int sockfd, struct can_frame request_frame)
 int receive_can_data(int sockfd, struct can_frame *frame)
 {
 	int nbytes = read(sockfd, frame, sizeof(struct can_frame));
-	if (nbytes < 0)
+	if (nbytes <= 0)
 	{
 		logger_error(CAN_LOG_MODULE_ID, "Error: Read failed- %s\r\n", __func__);
 	}

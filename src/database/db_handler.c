@@ -65,13 +65,24 @@ int insert_telematics_data(struct cloud_data_struct *cloud_data)
     int rc = 1;
     char sql[QUERY_MAX_LEN];
 
+    char supported_pids[CAN_PID_LENGTH + 1];
+    size_t i = 0;
+
+    /* Prepare Query String START */
+    for (i = 0; i < CAN_PID_LENGTH; i++)
+    {
+        sprintf(&supported_pids[i], "%d", cloud_data->can_data.supported_pids[i]);
+    }
+    supported_pids[i] = '\0';
+
     sprintf(sql, DB_QUERY, cloud_data->gps_data.latitude,
             cloud_data->gps_data.longitude,
             cloud_data->gps_data.pdop, cloud_data->gps_data.hdop, cloud_data->gps_data.vdop,
-            cloud_data->mac_address, cloud_data->can_data.vin, cloud_data->can_data.speed,
-            cloud_data->can_data.supported_pids, 180.00, cloud_data->idle_time_secs, 86, cloud_data->client_controller_data.motion,
+            cloud_data->mac_address, cloud_data->can_data.vin, cloud_data->can_data.vehicle_type, cloud_data->can_data.speed,
+            supported_pids, 180.00, cloud_data->idle_time_secs, 86, cloud_data->client_controller_data.motion,
             cloud_data->client_controller_data.voltage, cloud_data->client_controller_data.pto,
-            0.00, 0.00, 0.00, 0, 0.00);
+            cloud_data->client_controller_data.acc_x, cloud_data->client_controller_data.acc_y, cloud_data->client_controller_data.acc_x,
+            cloud_data->can_data.rpm, cloud_data->can_data.temperature);
 
     logger_info(DB_LOG_MODULE_ID, "SQL QUERY: %s\n", sql);
     /* Prepare Query String END */

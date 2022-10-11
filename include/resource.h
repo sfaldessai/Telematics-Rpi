@@ -64,6 +64,8 @@ static const char error_codes[ERROR_CODE_LEN][ERROR_CODE_STRING_LEN] =
         {"806 = CAN RPM READ ERROR"},
         {"807 = CAN SPEED READ ERROR"},
         {"808 = CAN DISCONNECTED"},
+        {"809 = CAN WRITE ERROR"},
+        {"810 = CAN SOCKET CLOSED"},
 
         /* RPI ERROR CODE */
         {"701 = MAC ADDRESS READ ERROR"},

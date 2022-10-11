@@ -77,6 +77,10 @@ int main(int argc, char *argv[])
     {
         pthread_join(client_controller_read_thread, NULL);
     }
+    else
+    {
+        client_controller_error_codes(&cloud_data, FAILED_TO_OPEN_STM32_DEVICE);
+    }
     if (gps_device.fd > 0)
     {
         pthread_join(gps_read_thread, NULL);
