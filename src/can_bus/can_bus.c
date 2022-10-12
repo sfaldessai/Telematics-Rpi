@@ -205,10 +205,11 @@ void *read_can_id_number(void *arg)
     {
         /* Send Request and get response for PID 0x02 */
         int rc = can_request_response(vin_frame, VIN_DATA_FRAME, request_frame);
-        
+
         if (rc != CAN_SUCESS)
         {
             sprintf((char *)cloud_data->can_data.vin, "%d", rc);
+            sprintf(cloud_data->can_data.vehicle_type, "%d", rc);
         }
         else if (vin_frame[0].data[3] == VIN_PID)
         {
@@ -242,12 +243,14 @@ void *read_can_id_number(void *arg)
                 {
                     logger_info(CAN_LOG_MODULE_ID, "INVALID CAN VIN: %s", read_data);
                     sprintf((char *)cloud_data->can_data.vin, "%d", INVALID_VIN_ERROR);
+                    sprintf(cloud_data->can_data.vehicle_type, "%d", INVALID_VIN_ERROR);
                 }
             }
             else
             {
                 logger_info(CAN_LOG_MODULE_ID, "INVALID CAN VIN: %s", read_data);
                 sprintf((char *)cloud_data->can_data.vin, "%d", INVALID_VIN_ERROR);
+                sprintf(cloud_data->can_data.vehicle_type, "%d", INVALID_VIN_ERROR);
             }
             break;
         }
@@ -370,7 +373,7 @@ void *read_can_supported_pid(void *arg)
 
         if (rc != CAN_SUCESS)
         {
-            sprintf((char *)cloud_data->can_data.supported_pids, "%d", rc);
+            memset(cloud_data->can_data.supported_pids, 0, CAN_PID_LENGTH * sizeof(uint8_t));
         }
         else if (supported_frame[0].data[2] == SUPPORTED_PID)
         {
