@@ -15,10 +15,6 @@
 #include <ctype.h>
 #include "main.h"
 
-#define MAX_READ_SIZE 1
-#define CLIENT_CONTROLLER "/dev/ttyACM0"
-#define GPS_MODULE "/dev/ttyUSB0"
-
 int main(int argc, char *argv[])
 {
     struct uart_device_struct client_controller_device, gps_device;
@@ -85,6 +81,11 @@ int main(int argc, char *argv[])
     {
         pthread_join(gps_read_thread, NULL);
     }
+    else
+    {
+        gps_error_codes(&cloud_data, FAILED_TO_OPEN_GPS_DEVICE);
+    }
+
     pthread_join(serial_write_thread, NULL);
     pthread_join(read_can_supported_thread, NULL);
     pthread_join(read_can_speed_thread, NULL);

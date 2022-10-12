@@ -140,3 +140,24 @@ void initialize_cloud_data(struct cloud_data_struct *cloud_data)
     get_single_column_value(IDLE_TIME, SORT_BY_DESC, idle_time_db_value);
     cloud_data->idle_time_secs = (uint64_t)atoi((char *)idle_time_db_value);
 }
+
+/*
+ * Name : gps_error_codes
+ * Descriptoin: The gps_error_codes function is for updating erro codes for gps struct member
+ * Input parameters: struct cloud_data_struct * : clout struct to update gps data member
+ *                   int error_code : error code to update
+ * Output parameters: void
+ */
+void gps_error_codes(struct cloud_data_struct *cloud_data, int error_code)
+{
+    struct gps_data_struct gps_data;
+
+    gps_data.hdop = error_code;
+    gps_data.vdop = error_code;
+    gps_data.pdop = error_code;
+    gps_data.latitude = error_code;
+    gps_data.longitude = error_code;
+    gps_data.speed = error_code;
+    
+    cloud_data->gps_data = gps_data;
+}

@@ -130,9 +130,9 @@ TEST(GPSTestGroup, NmeaVerifyChecksumInvalidTest)
     int result_2 = nmea_verify_checksum(nmea_data_2);
 
     /*assert*/
-    CHECK_EQUAL(1, result);
-    CHECK_EQUAL(1, result_1);
-    CHECK_EQUAL(1, result_2);
+    CHECK_EQUAL(903, result);
+    CHECK_EQUAL(903, result_1);
+    CHECK_EQUAL(903, result_2);
 }
 
 /* Test lat long value with - sign */
@@ -200,7 +200,7 @@ TEST(GPSTestGroup, partialSentenceTest)
     int result = nmea_verify_checksum(nmea_data);
 
     /*assert*/
-    CHECK_EQUAL(1, result);
+    CHECK_EQUAL(GPS_NMEA_SENTENCE_CHECKSUM_ERROR, result);
 }
 
 /* Test Invalid lat long NMEA sentence : test for missing 'dot' in lat long value */
@@ -213,7 +213,7 @@ TEST(GPSTestGroup, invalidLatLongTest)
     int result = nmea_verify_checksum(nmea_data);
 
     /*assert*/
-    CHECK_EQUAL(1, result);
+    CHECK_EQUAL(GPS_NMEA_SENTENCE_CHECKSUM_ERROR, result);
 }
 
 /* Test 'Empty values */
@@ -226,5 +226,5 @@ TEST(GPSTestGroup, emptyvaluegTest)
     int result = nmea_verify_checksum(nmea_data);
 
     /*assert*/
-    CHECK_EQUAL(1, result);
+    CHECK_EQUAL(GPS_NMEA_SENTENCE_CHECKSUM_ERROR, result);
 }

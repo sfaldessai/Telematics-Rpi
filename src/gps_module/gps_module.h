@@ -19,10 +19,36 @@
 #define GNSS_STOP_START_CMD_LEN 12
 #define GNSS_DEFAULT_SETTING_CMD_LEN 12
 #define SAVE_CONFIG_CMD_LEN 21
+#define NO_SIGNAL_DOP_VALUE 99.99
+#define INVALID_DOP_VALUE 20
 
 #define IGNITION_ON 1
 #define IGNITION_OFF 0
 #define VOLTAGE_THRESHOLD 13
+
+/* ERROR CODES */
+#define GPS_WRITE_ERROR 902
+#define GPS_NMEA_SENTENCE_CHECKSUM_ERROR 903
+#define GPS_POWERED_OFF 904
+#define GPS_BAD_SIGNAL 905
+#define GPS_DEVICE_DISCONNECTED 906
+#define FAILED_TO_OPEN_GPS_DEVICE 907
+#define GPS_LATITUDE_EMPTY_DATA 908
+#define GPS_LONGITUDE_EMPTY_DATA 909
+#define GPS_SPEED_EMPTY_DATA 910
+#define GPS_DOP_EMPTY_DATA 911
+#define GPS_INITIAL_CONFIGURATION_WRITE_FAILED 912
+#define GPS_GNSS_FAILED_TURN_ON_POWER 913
+#define GPS_GNSS_FAILED_TURN_OFF_POWER 914
+#define LOST_GPS_SIGNAL_ERROR 915
+#define GPS_SIGNAL_IS_IDEAL 916
+#define GPS_SIGNAL_IS_EXCELLENT 917
+#define GPS_SIGNAL_IS_GOOD 918
+#define GPS_SIGNAL_IS_MODERATE 919
+#define GPS_SIGNAL_IS_FAIR 920
+#define GPS_SIGNAL_IS_POOR 921
+#define INVALID_NMEA_SENTENCES 922
+#define GPS_INVALID_QUALITY 923
 
 /* UBX CMD */
 #define HEADER_1 0xB5
@@ -142,8 +168,8 @@ void *read_from_gps(void *); /* pthread to handle gps read */
 
 void get_lat_log(double *);
 void get_dops(char **, char *);
-void get_gps_data(char *, struct gps_data_struct *);
+int get_gps_data(char *, struct gps_data_struct *);
 void get_gps_param_by_position(char **, char *, uint8_t);
-uint8_t nmea_verify_checksum(const char *);
+int nmea_verify_checksum(const char *);
 
 #endif

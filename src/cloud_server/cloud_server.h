@@ -34,4 +34,6 @@ void calculate_idle_time(struct cloud_data_struct *);
 
 void display_cloud_struct_data_logger(struct cloud_data_struct *);
 
+void gps_error_codes(struct cloud_data_struct *, int);
+
 #endif

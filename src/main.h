@@ -17,6 +17,9 @@
 
 #define DEBUG
 
+#define CLIENT_CONTROLLER "/dev/ttyACM0"
+#define GPS_MODULE "/dev/ttyUSB0"
+
 /* arg_struct struct to holds required thread arguments*/
 struct arg_struct
 {
