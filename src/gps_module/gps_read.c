@@ -28,6 +28,8 @@
 #define ASTERISK_SIGN 0x2A
 #define DOLLAR_SIGN 0x24
 
+uint8_t is_ignition_on = IGNITION_ON;
+
 /* mutex to lock cloud_data struct for wirte */
 pthread_mutex_t cloud_data_gps_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -36,7 +38,7 @@ pthread_mutex_t cloud_data_gps_mutex = PTHREAD_MUTEX_INITIALIZER;
  * Descriptoin: The nmea_verify_checksum function is for verifying GPS checksum.
  * Input parameters:
  *                  const char *sentence : NMEA senetence
- *                                        
+ *
  * Output parameters: uint8_t: return 1 for invalid and 0 for valid
  */
 uint8_t nmea_verify_checksum(const char *sentence)
@@ -182,7 +184,7 @@ void get_gps_data(char *nmea_data, struct gps_data_struct *gps_data)
         /* Get Latitude cardinal sign from GGA message */
         gga_data = strchr(gga_data + 1, COMMA);
 
-        if(gga_data[1] == 'S' || gga_data[1] == 's')
+        if (gga_data[1] == 'S' || gga_data[1] == 's')
         {
             gps_data->latitude = -1 * gps_data->latitude;
         }
@@ -194,8 +196,8 @@ void get_gps_data(char *nmea_data, struct gps_data_struct *gps_data)
 
         /* Get Longitude cardinal sign from GGA message */
         gga_data = strchr(gga_data + 1, COMMA);
-        
-         if(gga_data[1] == 'W' || gga_data[1] == 'w')
+
+        if (gga_data[1] == 'W' || gga_data[1] == 'w')
         {
             gps_data->longitude = -1 * gps_data->longitude;
         }
@@ -229,6 +231,108 @@ void get_gps_data(char *nmea_data, struct gps_data_struct *gps_data)
 }
 
 /*
+ * Name : send_ubx_cfg_command
+ * Descriptoin: The send_ubx_cfg_command function is for sending ubx commands or message for configuring m8n gps module,
+ *
+ * Input parameters: struct uart_device_struct gps_device : serial port
+ *                   const uint8_t *cmd : ubx command
+ *                   uint8_t size : message length
+ *
+ * Output parameters: int : # byte written
+ */
+int send_ubx_cfg_command(struct uart_device_struct gps_device, const uint8_t *cmd, uint8_t size)
+{
+    uint8_t ubx_cmd[size];
+
+    for (size_t i = 0; i < size; i++)
+    {
+        ubx_cmd[i] = cmd[i];
+    }
+
+    /* chesum calculation */
+    uint8_t CK_A = 0, CK_B = 0;
+    for (int i = 2; i < size - 2; i++)
+    {
+        CK_A = CK_A + ubx_cmd[i];
+        CK_B = CK_B + CK_A;
+    }
+    /* adding checksum */
+    ubx_cmd[size - 2] = CK_A;
+    ubx_cmd[size - 1] = CK_B;
+
+    int bytes = uart_gps_write(&gps_device, ubx_cmd, size);
+
+    if (bytes == size)
+    {
+        logger_info(GPS_LOG_MODULE_ID, "%d bytes written to the gps\n", size);
+    }
+    else
+    {
+        logger_error(GPS_LOG_MODULE_ID, "failed to write %d bytes to the gps\n", size);
+    }
+    return bytes;
+}
+
+/*
+ * Name : initialize_gps_module
+ * Descriptoin: The initialize_gps_module function is for sending initial ubx commands or message for configuring m8n gps module,
+ *
+ * Input parameters: struct uart_device_struct gps_device : serial port
+ *
+ *
+ * Output parameters: void
+ */
+void initialize_gps_module(struct uart_device_struct gps_device)
+{
+    /* Start GNSS with hot boot */
+    send_ubx_cfg_command(gps_device, set_gnss_start, GNSS_STOP_START_CMD_LEN);
+    /* Turn on NMEA sentence */
+    send_ubx_cfg_command(gps_device, set_NMEA_sentence_on, NMEA_SENTENCE_CMD_LEN);
+    /* Turn on power save mode */
+    send_ubx_cfg_command(gps_device, set_power_save_mode, POWER_SAVE_MODE_CMD_LEN);
+    /* Turn on assistnow feature */
+    send_ubx_cfg_command(gps_device, set_assistNow_autonomous, ASSIST_NOW_AUTONOMOUS_CMD_LEN);
+    /* Save Configuration */
+    send_ubx_cfg_command(gps_device, save_configuration, SAVE_CONFIG_CMD_LEN);
+}
+
+/*
+ * Name : ignition_on
+ * Descriptoin: The ignition_on function is for start or wakeup gnss when ignition on
+ *
+ * Input parameters: struct uart_device_struct gps_device : serial port
+ *
+ *
+ * Output parameters: void
+ */
+void ignition_on(struct uart_device_struct gps_device)
+{
+    int byte = send_ubx_cfg_command(gps_device, set_gnss_start, GNSS_STOP_START_CMD_LEN);
+    if (byte == GNSS_STOP_START_CMD_LEN)
+    {
+        is_ignition_on = IGNITION_ON;
+    }
+}
+
+/*
+ * Name : ignition_off
+ * Descriptoin: The ignition_off function is for stop or sleep gnss when ignition off
+ *
+ * Input parameters: struct uart_device_struct gps_device : serial port
+ *
+ *
+ * Output parameters: void
+ */
+void ignition_off(struct uart_device_struct gps_device)
+{
+    int byte = send_ubx_cfg_command(gps_device, set_gnss_stop, GNSS_STOP_START_CMD_LEN);
+    if (byte == GNSS_STOP_START_CMD_LEN)
+    {
+        is_ignition_on = IGNITION_OFF;
+    }
+}
+
+/*
  * Name : read_from_gps
  * Descriptoin: The read_from_gps function is for reading vehicle location
  *              data from the neo GPS module over the UART protocol.
@@ -245,25 +349,47 @@ void *read_from_gps(void *arg)
     struct cloud_data_struct *cloud_data = args->cloud_data;
     struct gps_data_struct gps_data;
 
+    /* gps initial configuration */
+    initialize_gps_module(gps_device);
+
     do
     {
-        read_data_len = uart_reads_chunk(&gps_device, read_data, MAX_READ_SIZE); /* read char from serial port */
-
-        if (read_data_len > 0)
+        if (cloud_data->client_controller_data.voltage <= VOLTAGE_THRESHOLD)
         {
-            logger_info(GPS_LOG_MODULE_ID, "COMPLETE GPS DATA: %s\n", read_data);
-
-            uint8_t is_valid_checksum = nmea_verify_checksum(read_data);
-
-            if (is_valid_checksum == SUCESS_CODE)
+            if (IGNITION_ON != is_ignition_on)
             {
-                get_gps_data(read_data, &gps_data);
-
-                /* update gps_data to cloud_data struct */
-                pthread_mutex_lock(&cloud_data_gps_mutex);
-                cloud_data->gps_data = gps_data;
-                pthread_mutex_unlock(&cloud_data_gps_mutex);
+                /* turn on gps when ignition on */
+                ignition_on(gps_device);
             }
+
+            read_data_len = uart_reads_chunk(&gps_device, read_data, MAX_READ_SIZE); /* read char from serial port */
+
+            if (read_data_len > 0)
+            {
+                logger_info(GPS_LOG_MODULE_ID, "COMPLETE GPS DATA: %s\n", read_data);
+
+                uint8_t is_valid_checksum = nmea_verify_checksum(read_data);
+
+                if (is_valid_checksum == SUCESS_CODE)
+                {
+                    get_gps_data(read_data, &gps_data);
+
+                    /* update gps_data to cloud_data struct */
+                    pthread_mutex_lock(&cloud_data_gps_mutex);
+                    cloud_data->gps_data = gps_data;
+                    pthread_mutex_unlock(&cloud_data_gps_mutex);
+                }
+            }
+        }
+        else if (is_ignition_on != IGNITION_OFF)
+        {
+            /* turn on gps when ignition off */
+            ignition_off(gps_device);
+            logger_info(GPS_LOG_MODULE_ID, "GNSS POWER OFF, and voltage value %f\n", cloud_data->client_controller_data.voltage);
+        }
+        else
+        {
+            logger_info(GPS_LOG_MODULE_ID, "GNSS POWER is OFF, and voltage value %f\n", cloud_data->client_controller_data.voltage);
         }
     } while (1);
     uart_stop(&gps_device);
