@@ -17,7 +17,7 @@ static const size_t values[] = {1, 2, 3, 4, 5, 6, 7, 8, 0, 1, 2, 3, 4, 5, 0, 7, 
 static const size_t weights[] = {8, 7, 6, 5, 4, 3, 2, 10, 0, 9, 8, 7, 6, 5, 4, 3, 2};
 
 /* All ERROR CODE LIST WITH ERROR MESSAGE */
-static const char error_codes[ERROR_CODE_LEN][ERROR_CODE_STRING_LEN] =
+static const char error_codes[ERROR_CODE_STRING_LEN][ERROR_CODE_STRING_LEN] =
     {
         {"900 = NO ERROR"},
         {"901 = DEVICE INITIALIZING..."},
@@ -53,7 +53,7 @@ static const char error_codes[ERROR_CODE_LEN][ERROR_CODE_STRING_LEN] =
         {"1004 = PTO READ ERROR"},
         {"1005 = VOLTAGE READ ERROR"},
         {"1006 = STM32 DEVICE DISCONNECTED"},
-        {"1007 = MEMS ERROR"}
+        {"1007 = MEMS ERROR"},
 
         /* CAN ERROR CODE */
         {"801 = CAN SOCKET ERROR"},
