@@ -32,17 +32,17 @@ pthread_mutex_t cloud_data_mutex = PTHREAD_MUTEX_INITIALIZER;
 void update_cc_error_code(struct cloud_data_struct *cloud_data, int error_code)
 {
     struct client_controller_data_struct client_controller_data;
-    client_controller_data.voltage = error_code;
-    client_controller_data.pto = error_code;
-    client_controller_data.motion = error_code;
+    client_controller_data.voltage = (float)error_code;
+    client_controller_data.pto = (uint16_t)error_code;
+    client_controller_data.motion = (uint16_t)error_code;
     client_controller_data.acc_x = error_code;
     client_controller_data.acc_y = error_code;
     client_controller_data.acc_z = error_code;
 
     /* update gps_data to cloud_data struct */
-    pthread_mutex_lock(&can_module_lock);
+    pthread_mutex_lock(&cloud_data_mutex);
     cloud_data->client_controller_data = client_controller_data;
-    pthread_mutex_unlock(&can_module_lock);
+    pthread_mutex_unlock(&cloud_data_mutex);
 }
 
 /*
@@ -60,22 +60,22 @@ void get_client_controller_data(char *read_data, struct client_controller_data_s
 
     /* extracting required data from stm32 data sentence */
     stmc_data = strchr(read_data, COMMA);
-    client_controller_data->motion = (uint8_t)atoi(stmc_data + 1);
+    client_controller_data->motion = (uint16_t)atoi(stmc_data + 1);
 
     stmc_data = strchr(stmc_data + 1, COMMA);
     client_controller_data->voltage = (float)atof(stmc_data + 1);
 
     stmc_data = strchr(stmc_data + 1, COMMA);
-    client_controller_data->pto = (uint8_t)atoi(stmc_data + 1);
+    client_controller_data->pto = (uint16_t)atoi(stmc_data + 1);
 
     stmc_data = strchr(stmc_data + 1, COMMA);
-    client_controller_data->acc_x = (uint8_t)atoi(stmc_data + 1);
+    client_controller_data->acc_x = atoi(stmc_data + 1);
 
     stmc_data = strchr(stmc_data + 1, COMMA);
-    client_controller_data->acc_y = (uint8_t)atoi(stmc_data + 1);
+    client_controller_data->acc_y = atoi(stmc_data + 1);
 
     stmc_data = strchr(stmc_data + 1, COMMA);
-    client_controller_data->acc_z = (uint8_t)atoi(stmc_data + 1);
+    client_controller_data->acc_z = atoi(stmc_data + 1);
 }
 
 /*
@@ -140,6 +140,7 @@ void *read_from_client_controller(void *arg)
                 }
                 else
                 {
+                    update_cc_error_code(cloud_data, STM32_INVALID_DATA);
                 }
             }
         }

@@ -20,12 +20,13 @@
 #define VOLTAGE_READ_ERROR 1005
 #define STM32_DEVICE_DISCONNECTED 1006
 #define MEMS_ERROR 1007
+#define STM32_INVALID_DATA 1008
 
 /* client_controller_data_struct struct to hold STM32 data*/
 struct client_controller_data_struct
 {
-	uint8_t motion;
-	uint8_t pto;
+	uint16_t motion;
+	uint16_t pto;
 	float voltage;
 	int acc_x;
 	int acc_y;

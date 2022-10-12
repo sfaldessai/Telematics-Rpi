@@ -32,8 +32,8 @@ void update_can_error_code(struct cloud_data_struct *cloud_data, int error_code)
     struct can_data_struct can_data;
 
     sprintf((char *)can_data.vin, "%d", error_code);
-    can_data.speed = error_code;
-    can_data.rpm = error_code;
+    can_data.speed = (uint16_t)error_code;
+    can_data.rpm = (float)error_code;
     sprintf(can_data.vehicle_type, "%d", error_code);
     sprintf((char *)can_data.supported_pids, "%d", error_code);
 
@@ -159,6 +159,7 @@ int can_request_response(struct can_frame *frame, size_t frame_length, struct ca
 
     if (rc <= 0)
     {
+        pthread_mutex_unlock(&can_module_lock);
         return CAN_WRITE_ERROR;
     }
 
@@ -169,6 +170,7 @@ int can_request_response(struct can_frame *frame, size_t frame_length, struct ca
         rc = receive_can_data(sockfd, &response_frame);
         if (rc <= 0)
         {
+            pthread_mutex_unlock(&can_module_lock);
             return CAN_READ_ERROR;
         }
         log_can_data(response_frame, CAN_RESPONSE);
@@ -203,6 +205,7 @@ void *read_can_id_number(void *arg)
     {
         /* Send Request and get response for PID 0x02 */
         int rc = can_request_response(vin_frame, VIN_DATA_FRAME, request_frame);
+        
         if (rc != CAN_SUCESS)
         {
             sprintf((char *)cloud_data->can_data.vin, "%d", rc);
@@ -283,7 +286,7 @@ void *read_can_rpm_pid(void *arg)
 
         if (rc != CAN_SUCESS)
         {
-            cloud_data->can_data.rpm = rc;
+            cloud_data->can_data.rpm = (float)rc;
         }
         else if (rpm_frame[0].data[2] == RPM_PID)
         {
@@ -326,11 +329,11 @@ void *read_can_speed_pid(void *arg)
 
         if (rc != CAN_SUCESS)
         {
-            cloud_data->can_data.speed = rc;
+            cloud_data->can_data.speed = (uint16_t)rc;
         }
         else if (speed_frame[0].data[2] == SPEED_PID)
         {
-            cloud_data->can_data.speed = (uint8_t)speed_frame[0].data[3];
+            cloud_data->can_data.speed = (uint16_t)speed_frame[0].data[3];
 
             logger_info(CAN_LOG_MODULE_ID, "CAN VEHICLE SPEED: %d", cloud_data->can_data.speed);
         }
@@ -367,7 +370,7 @@ void *read_can_supported_pid(void *arg)
 
         if (rc != CAN_SUCESS)
         {
-            sprintf((char *)can_data.supported_pids, "%d", rc);
+            sprintf((char *)cloud_data->can_data.supported_pids, "%d", rc);
         }
         else if (supported_frame[0].data[2] == SUPPORTED_PID)
         {
@@ -391,6 +394,48 @@ void *read_can_supported_pid(void *arg)
 }
 
 /*
+ * Name : read_can_temperature_pid
+ *
+ * Descriptoin: The read_can_temperature_pid function is for fetching Vehicle temperature PID data from the CAN module
+ *
+ * Input parameters:
+ *                  void *arg : cloud_data_struct to update vehicle temperature data
+ *
+ * Output parameters: void
+ */
+void *read_can_temperature_pid(void *arg)
+{
+    struct can_frame temperature_frame[TEMPERATURE_DATA_FRAME], request_frame;
+    struct cloud_data_struct *cloud_data = (struct cloud_data_struct *)arg;
+
+    /* prepare CAN request frame */
+    get_request_frame(&request_frame, TEMPERATURE_PID, LIVE_DATA_MODE);
+
+    while (1)
+    {
+        /* Copy 1 byte (0-255) Vehicle speed data to cloud struct member for displaying on screen from deiplay thread */
+
+        /* Send Request and get response for PID 0x0D */
+        int rc = can_request_response(temperature_frame, TEMPERATURE_DATA_FRAME, request_frame);
+
+        if (rc != CAN_SUCESS)
+        {
+            cloud_data->can_data.temperature = rc;
+        }
+        else if (temperature_frame[0].data[2] == TEMPERATURE_PID)
+        {
+            cloud_data->can_data.temperature = temperature_frame[0].data[3];
+
+            logger_info(CAN_LOG_MODULE_ID, "CAN VEHICLE TEMPERATURE: %d", cloud_data->can_data.temperature);
+        }
+
+        /* request next data each 1sec */
+        sleep(1);
+    }
+    close_socket(&sockfd);
+}
+
+/*
  * Name : read_from_can
  *
  * Description: The read_from_can function is for fetching CAN data which contains VIN, SPEED, and supported PID data
@@ -405,7 +450,7 @@ void *read_can_supported_pid(void *arg)
  * Output parameters: void
  * Note: TBD optimize the function to have only one thread for all the CAN PID requests
  */
-void read_from_can(void *arg, pthread_t *read_can_supported_thread, pthread_t *read_can_speed_thread, pthread_t *read_can_vin_thread, pthread_t *read_can_rpm_thread)
+void read_from_can(void *arg, pthread_t *read_can_supported_thread, pthread_t *read_can_speed_thread, pthread_t *read_can_vin_thread, pthread_t *read_can_rpm_thread, pthread_t *read_can_temperature_thread)
 {
     struct cloud_data_struct *cloud_data = (struct cloud_data_struct *)arg;
     /* setup socket can */
@@ -419,6 +464,8 @@ void read_from_can(void *arg, pthread_t *read_can_supported_thread, pthread_t *r
         pthread_create(read_can_speed_thread, NULL, &read_can_speed_pid, arg);
         /* Thread to fetch rpm pid data. */
         pthread_create(read_can_rpm_thread, NULL, &read_can_rpm_pid, arg);
+        /* Thread to fetch temperature pid data. */
+        pthread_create(read_can_temperature_thread, NULL, &read_can_temperature_pid, arg);
     }
     else
     {

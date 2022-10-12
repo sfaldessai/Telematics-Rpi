@@ -54,6 +54,7 @@ static const char error_codes[ERROR_CODE_LEN][ERROR_CODE_STRING_LEN] =
         {"1005 = VOLTAGE READ ERROR"},
         {"1006 = STM32 DEVICE DISCONNECTED"},
         {"1007 = MEMS ERROR"},
+        {"1008 = STM32 INVALID DATA"},
 
         /* CAN ERROR CODE */
         {"801 = CAN SOCKET ERROR"},

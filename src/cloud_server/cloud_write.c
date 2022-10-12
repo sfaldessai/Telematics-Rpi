@@ -25,20 +25,21 @@ time_t begin, end;
 void display_cloud_struct_data_logger(struct cloud_data_struct *cloud_data)
 {
     /* GPS Data Logger */
-    logger_info(CLOUD_LOG_MODULE_ID, "\tLAT: %.4f |\ttLONG: %.4f |\tPDOP: %.2f |\tHDOP: %.2f |\tVDOP: %.2f |\tGPS SPEED = %f\n",
+    logger_info(CLOUD_LOG_MODULE_ID, "\tLAT: %.4f |\tLONG: %.4f |\tPDOP: %.2f |\tHDOP: %.2f |\tVDOP: %.2f |\tGPS SPEED = %f\n",
                 cloud_data->gps_data.latitude,
-                cloud_data->gps_data.longitude, c loud_data->gps_data.pdop,
+                cloud_data->gps_data.longitude, cloud_data->gps_data.pdop,
                 cloud_data->gps_data.hdop,
                 cloud_data->gps_data.vdop,
                 cloud_data->gps_data.speed);
 
     /* CAN Data Logger */
-    logger_info(CLOUD_LOG_MODULE_ID, "\tVIN: %s |\tCAN SPEED: %d |\tRPM: %f |\tIDLE TIME: %lld sec |\tSUPPORTED PID: %s\n",
+    logger_info(CLOUD_LOG_MODULE_ID, "\tVIN: %s |\tCAN SPEED: %d |\tRPM: %f |\tIDLE TIME: %lld sec |\tSUPPORTED PID: %s |\tTEMPERATURE: %d\n",
                 cloud_data->can_data.vin,
                 cloud_data->can_data.speed,
                 cloud_data->can_data.rpm,
                 cloud_data->idle_time_secs,
-                cloud_data->can_data.supported_pids);
+                cloud_data->can_data.supported_pids,
+                cloud_data->can_data.temperature);
 
     /* STM32 Data Logger */
     logger_info(CLOUD_LOG_MODULE_ID, "\tMOTION: %d |\tVOLTAGE: %f |\tPTO: %d |\tACC_X: %d |\tACC_Y: %d |\tACC_Z: %d\n",
@@ -152,6 +153,7 @@ void initialize_cloud_data(struct cloud_data_struct *cloud_data)
     memset(can_data.vin, '\0', MAX_LEN_VIN);
     can_data.speed = 0;
     can_data.rpm = 0.0;
+    can_data.temperature = 0;
     memset(can_data.supported_pids, '\0', CAN_PID_LENGTH * sizeof(uint8_t));
 
     cloud_data->gps_data = gps_data;
@@ -196,9 +198,9 @@ void client_controller_error_codes(struct cloud_data_struct *cloud_data, int err
 {
     struct client_controller_data_struct cc_data;
 
-    cc_data.motion = error_code;
-    cc_data.pto = error_code;
-    cc_data.voltage = error_code;
+    cc_data.motion = (uint16_t)error_code;
+    cc_data.pto = (uint16_t)error_code;
+    cc_data.voltage = (float)error_code;
     cc_data.acc_x = error_code;
     cc_data.acc_y = error_code;
     cc_data.acc_z = error_code;

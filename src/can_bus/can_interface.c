@@ -97,7 +97,7 @@ int receive_can_data(int sockfd, struct can_frame *frame)
 	{
 		logger_error(CAN_LOG_MODULE_ID, "Error: Read failed- %s\r\n", __func__);
 	}
-	return nbytes
+	return nbytes;
 }
 
 /*

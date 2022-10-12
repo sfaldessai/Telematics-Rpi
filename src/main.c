@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
     struct cloud_data_struct cloud_data;
     struct arg_struct client_controller_args, gps_args;
     pthread_t client_controller_read_thread, gps_read_thread, serial_write_thread;
-    pthread_t read_can_supported_thread, read_can_speed_thread, read_can_vin_thread, read_can_rpm_thread;
+    pthread_t read_can_supported_thread, read_can_speed_thread, read_can_vin_thread, read_can_rpm_thread, read_can_temperature_thread;
     int opt;
 
     /* uart set-up*/
@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
     pthread_create(&serial_write_thread, NULL, &write_to_cloud, &cloud_data);
 
     /* CAN Module Read Thread */
-    read_from_can(&cloud_data, &read_can_supported_thread, &read_can_speed_thread, &read_can_vin_thread, &read_can_rpm_thread);
+    read_from_can(&cloud_data, &read_can_supported_thread, &read_can_speed_thread, &read_can_vin_thread, &read_can_rpm_thread, &read_can_temperature_thread);
 
     /* Thread Creation End */
 
@@ -95,6 +95,7 @@ int main(int argc, char *argv[])
     pthread_join(read_can_speed_thread, NULL);
     pthread_join(read_can_vin_thread, NULL);
     pthread_join(read_can_rpm_thread, NULL);
+    pthread_join(read_can_temperature_thread, NULL);
     /* Join Thread End*/
 
     return 0;

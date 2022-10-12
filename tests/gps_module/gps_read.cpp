@@ -130,9 +130,9 @@ TEST(GPSTestGroup, NmeaVerifyChecksumInvalidTest)
     int result_2 = nmea_verify_checksum(nmea_data_2);
 
     /*assert*/
-    CHECK_EQUAL(1, result);
-    CHECK_EQUAL(1, result_1);
-    CHECK_EQUAL(1, result_2);
+    CHECK_EQUAL(903, result);
+    CHECK_EQUAL(903, result_1);
+    CHECK_EQUAL(903, result_2);
 }
 
 /* Test lat long value with - sign */
