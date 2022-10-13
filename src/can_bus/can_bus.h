@@ -61,6 +61,13 @@
 #define CAN_DISCONNECTED 808
 #define CAN_WRITE_ERROR 809
 #define CAN_SOCKET_CLOSED 810
+#define CAN_PID_NOT_SUPPORTED 811
+
+#define PID_SUPPORTED 1
+
+#define RPM_PID_POSITION 11
+#define SPEED_PID_POSITION 12
+#define TEMPERATURE_PID_POSITION 4
 
 #define DEBUG
 
@@ -69,7 +76,7 @@ struct can_data_struct
 	uint8_t vin[MAX_LEN_VIN];
 	uint16_t speed;
 	float rpm;
-	uint8_t supported_pids[MAX_LEN_SUPPORTED_DATA];
+	uint8_t supported_pids[CAN_PID_LENGTH];
 	int temperature;
 	char vehicle_type[WMI_STRING_LEN];
 };

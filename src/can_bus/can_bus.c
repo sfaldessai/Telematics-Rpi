@@ -284,18 +284,25 @@ void *read_can_rpm_pid(void *arg)
     {
         /* Copy 2 bytes of Vehicle RPM data to cloud struct member for displaying on screen from display thread */
 
-        /* Send Request and get response for PID 0x0C */
-        int rc = can_request_response(rpm_frame, RPM_DATA_FRAME, request_frame);
+        if (cloud_data->can_data.supported_pids[RPM_PID_POSITION] == PID_SUPPORTED)
+        {
+            /* Send Request and get response for PID 0x0C */
+            int rc = can_request_response(rpm_frame, RPM_DATA_FRAME, request_frame);
 
-        if (rc != CAN_SUCESS)
-        {
-            cloud_data->can_data.rpm = (float)rc;
+            if (rc != CAN_SUCESS)
+            {
+                cloud_data->can_data.rpm = (float)rc;
+            }
+            else if (rpm_frame[0].data[2] == RPM_PID)
+            {
+                sprintf((char *)read_rpm, "%.2X%.2X", rpm_frame[0].data[3], rpm_frame[0].data[4]);
+                /* Engine speed Formula: (256 A + B)/4 */
+                cloud_data->can_data.rpm = (float)(hex_to_decimal(read_rpm) * 0.25);
+            }
         }
-        else if (rpm_frame[0].data[2] == RPM_PID)
+        else
         {
-            sprintf((char *)read_rpm, "%.2X%.2X", rpm_frame[0].data[3], rpm_frame[0].data[4]);
-            /* Engine speed Formula: (256 A + B)/4 */
-            cloud_data->can_data.rpm = (float)(hex_to_decimal(read_rpm) * 0.25);
+            cloud_data->can_data.rpm = (float)CAN_PID_NOT_SUPPORTED;
         }
 
         /* request next data each 1sec */
@@ -327,18 +334,25 @@ void *read_can_speed_pid(void *arg)
     {
         /* Copy 1 byte (0-255) Vehicle speed data to cloud struct member for displaying on screen from deiplay thread */
 
-        /* Send Request and get response for PID 0x0D */
-        int rc = can_request_response(speed_frame, SPEED_DATA_FRAME, request_frame);
-
-        if (rc != CAN_SUCESS)
+        if (cloud_data->can_data.supported_pids[SPEED_PID_POSITION] == PID_SUPPORTED)
         {
-            cloud_data->can_data.speed = (uint16_t)rc;
+            /* Send Request and get response for PID 0x0D */
+            int rc = can_request_response(speed_frame, SPEED_DATA_FRAME, request_frame);
+
+            if (rc != CAN_SUCESS)
+            {
+                cloud_data->can_data.speed = (uint16_t)rc;
+            }
+            else if (speed_frame[0].data[2] == SPEED_PID)
+            {
+                cloud_data->can_data.speed = (uint16_t)speed_frame[0].data[3];
+
+                logger_info(CAN_LOG_MODULE_ID, "CAN VEHICLE SPEED: %d", cloud_data->can_data.speed);
+            }
         }
-        else if (speed_frame[0].data[2] == SPEED_PID)
+        else
         {
-            cloud_data->can_data.speed = (uint16_t)speed_frame[0].data[3];
-
-            logger_info(CAN_LOG_MODULE_ID, "CAN VEHICLE SPEED: %d", cloud_data->can_data.speed);
+            cloud_data->can_data.speed = (uint16_t)CAN_PID_NOT_SUPPORTED;
         }
 
         /* request next data each 1sec */
@@ -383,9 +397,8 @@ void *read_can_supported_pid(void *arg)
 
             for (size_t i = 0; i < CAN_PID_LENGTH; i++)
             {
-                cloud_data->can_data.supported_pids[i] = supported_binary_value[i] + '0';
+                cloud_data->can_data.supported_pids[i] = supported_binary_value[i];
             }
-            cloud_data->can_data.supported_pids[CAN_PID_LENGTH + 1] = '\0';
 
             log_can_supported_data(supported_binary_value);
         }
@@ -418,18 +431,25 @@ void *read_can_temperature_pid(void *arg)
     {
         /* Copy 1 byte (0-255) Vehicle speed data to cloud struct member for displaying on screen from deiplay thread */
 
-        /* Send Request and get response for PID 0x0D */
-        int rc = can_request_response(temperature_frame, TEMPERATURE_DATA_FRAME, request_frame);
-
-        if (rc != CAN_SUCESS)
+        if (cloud_data->can_data.supported_pids[TEMPERATURE_PID_POSITION] == PID_SUPPORTED)
         {
-            cloud_data->can_data.temperature = rc;
+            /* Send Request and get response for PID 0x0D */
+            int rc = can_request_response(temperature_frame, TEMPERATURE_DATA_FRAME, request_frame);
+
+            if (rc != CAN_SUCESS)
+            {
+                cloud_data->can_data.temperature = rc;
+            }
+            else if (temperature_frame[0].data[2] == TEMPERATURE_PID)
+            {
+                cloud_data->can_data.temperature = temperature_frame[0].data[3];
+
+                logger_info(CAN_LOG_MODULE_ID, "CAN VEHICLE TEMPERATURE: %d", cloud_data->can_data.temperature);
+            }
         }
-        else if (temperature_frame[0].data[2] == TEMPERATURE_PID)
+        else
         {
-            cloud_data->can_data.temperature = temperature_frame[0].data[3];
-
-            logger_info(CAN_LOG_MODULE_ID, "CAN VEHICLE TEMPERATURE: %d", cloud_data->can_data.temperature);
+            cloud_data->can_data.temperature = CAN_PID_NOT_SUPPORTED;
         }
 
         /* request next data each 1sec */
