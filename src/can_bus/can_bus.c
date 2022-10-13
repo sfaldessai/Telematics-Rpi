@@ -383,9 +383,8 @@ void *read_can_supported_pid(void *arg)
 
             for (size_t i = 0; i < CAN_PID_LENGTH; i++)
             {
-                cloud_data->can_data.supported_pids[i] = supported_binary_value[i] + '0';
+                cloud_data->can_data.supported_pids[i] = supported_binary_value[i];
             }
-            cloud_data->can_data.supported_pids[CAN_PID_LENGTH + 1] = '\0';
 
             log_can_supported_data(supported_binary_value);
         }
