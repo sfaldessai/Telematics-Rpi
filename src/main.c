@@ -74,6 +74,7 @@ int main(int argc, char *argv[])
 
     aws_arg_data.client_id = AWS_CLIENT_ID;
     aws_arg_data.topic = AWS_TOPIC;
+    aws_arg_data.aws_iot_endpoint = AWS_IOT_ENDPOINT;
     pthread_create(&cloud_send_thread, NULL, &mqtt_send, &aws_arg_data);
 
     /* Thread Creation End */

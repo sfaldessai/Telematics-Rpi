@@ -9,5 +9,6 @@ struct aws_arg
 {
 	char *client_id;
 	char *topic;
+    char *aws_iot_endpoint;
 };
 #endif
