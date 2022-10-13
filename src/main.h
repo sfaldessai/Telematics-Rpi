@@ -20,6 +20,9 @@
 #define CLIENT_CONTROLLER "/dev/ttyACM0"
 #define GPS_MODULE "/dev/ttyUSB0"
 
+#define AWS_CLIENT_ID "testclient"
+#define AWS_TOPIC "testclient/example/topic"
+
 /* arg_struct struct to holds required thread arguments*/
 struct arg_struct
 {

@@ -14,6 +14,7 @@
 #include "../logger/logger.h"
 #include "../database/db_handler.h"
 #include "../utils/c_json/cJSON.h"
+#include "mqtt_demo_mutual_auth.h"
 
 #define HOURS 3600
 #define RPM_OFFSET 0
@@ -104,7 +105,7 @@ void *write_to_cloud(void *arg)
     {
         if (cloud_data != NULL)
         {
-            create_json_obj(cloud_data);
+            send_data = create_json_obj(cloud_data);
 
             calculate_idle_time(cloud_data);
 
