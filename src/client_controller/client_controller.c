@@ -14,6 +14,12 @@
 #include "../main.h"
 
 #define COMMA 0x2C
+#define MAX_READ_SIZE_CHECKSUM 50
+#define CR 0x0d
+#define NMEA_END_CHAR '\n'
+#define SUCESS_CODE 1
+#define ASTERISK_SIGN 0x2A
+#define DOLLAR_SIGN 0x24
 
 /* mutex to lock cloud_data struct for wirte */
 pthread_mutex_t cloud_data_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -43,6 +49,7 @@ void get_client_controller_data(char *read_data, struct client_controller_data_s
 
     stmc_data = strchr(stmc_data + 1, COMMA);
     client_controller_data->pto = (uint8_t)atoi(stmc_data + 1);
+
 }
 
 /*
@@ -100,13 +107,76 @@ void *read_from_client_controller(void *arg)
                 {
                     get_client_controller_data(stm32_serial_data, &client_controller_data);
 
-                    /* update stm32 data to cloud_data struct which is used to combile all module data and send to cloud */
-                    pthread_mutex_lock(&cloud_data_mutex);
-                    cloud_data->client_controller_data = client_controller_data;
-                    pthread_mutex_unlock(&cloud_data_mutex);
+                    if (verify_checksum(stm32_serial_data)) {
+                        /* update stm32 data to cloud_data struct which is used to combile all module data and send to cloud */
+                        pthread_mutex_lock(&cloud_data_mutex);
+                        cloud_data->client_controller_data = client_controller_data;
+                        pthread_mutex_unlock(&cloud_data_mutex);
+                    }
+                    else {
+                        logger_error(CC_LOG_MODULE_ID, "checksum error");
+                    }
                 }
             }
         }
     }
     uart_stop(&client_controller_device);
+}
+
+/*
+ * Name : verify_checksum
+ * Descriptoin: The verify_checksum function is for verifying STM32 checksum.
+ * Input parameters:
+ *                  const char *sentence : STM senetence
+ *
+ * Output parameters: uint8_t: return 1 for valid and 0 for invalid
+ */
+bool verify_checksum(const char* sentence)
+{
+    int checksum = 0;
+    uint8_t checksum_hex[8];
+
+    if (strlen(sentence) > MAX_READ_SIZE_CHECKSUM || strchr(sentence, ASTERISK_SIGN) == NULL || strchr(sentence, DOLLAR_SIGN) == NULL)
+    {
+        logger_error(MAIN_LOG_MODULE_ID, "Invalid NMEA sentence: %s\n", __func__);
+        return 0;
+    }
+    while ('#' != *sentence && NMEA_END_CHAR != *sentence)
+    {
+        if (DOLLAR_SIGN == *sentence)
+        {
+            sentence = sentence + 1;
+            continue;
+        }
+        if ('\0' == *sentence)
+        {
+            logger_error(MAIN_LOG_MODULE_ID, "Invalid NMEA sentence: %s\n", __func__);
+            return 0;
+        }
+        checksum = checksum ^ (uint8_t)*sentence;
+        sentence = sentence + 1;
+    }
+    sentence = sentence + 1;
+
+    if (strlen(sentence) >= 2)
+    {
+        checksum_hex[0] = sentence[0];
+        checksum_hex[1] = sentence[1];
+        checksum_hex[2] = '\0';
+    }
+    else
+    {
+        logger_error(MAIN_LOG_MODULE_ID, " Invalid Checksum from GPS: %s\n", __func__);
+        return 0;
+    }
+
+    uint16_t checksum_dec = hex_to_decimal(checksum_hex);
+    if (checksum == checksum_dec)
+    {
+        return SUCESS_CODE;
+    }
+    else
+    {
+        return 0;
+    }
 }
