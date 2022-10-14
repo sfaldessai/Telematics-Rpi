@@ -87,7 +87,7 @@ void *user_input(void *arg)
 				printf("Must be an integer value\n");
 			}
 			temperature_value = temp;
-			printf("\nset to %d\n", speed_value);
+			printf("\nset to %d\n", temperature_value);
 			break;
 		default:
 			break;
