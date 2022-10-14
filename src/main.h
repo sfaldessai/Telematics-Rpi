@@ -22,7 +22,9 @@
 
 #define AWS_CLIENT_ID "testclient"
 #define AWS_TOPIC "testclient/example/topic"
-#define AWS_IOT_ENDPOINT "a2b4nodx1n0ee2-ats.iot.us-east-1.amazonaws.com"
+
+/* Update AWS IOT ENDPOINT */
+#define AWS_IOT_ENDPOINT "aws.iot.endpoint"
 
 /* arg_struct struct to holds required thread arguments*/
 struct arg_struct

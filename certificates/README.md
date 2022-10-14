@@ -9,4 +9,6 @@
 
 	NOTE: use same file name as mentioned above.
 
+	Update working AWS IOT CORE ENDPOINT in main.h AWS_IOT_ENDPOINT 
+
 		
