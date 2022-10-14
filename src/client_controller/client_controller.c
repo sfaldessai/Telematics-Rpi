@@ -137,7 +137,7 @@ void *read_from_client_controller(void *arg)
  * Name : verify_stm32_checksum
  * Descriptoin: The verify_stm32_checksum function is for verifying STM32 checksum.
  * Input parameters:
- *                  const char *sentence : STM senetence
+ *                  const char *sentence : STM senetence data
  *
  * Output parameters: uint8_t: return 1 for valid and 0 for invalid
  */
