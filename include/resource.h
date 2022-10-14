@@ -67,6 +67,7 @@ static const char error_codes[ERROR_CODE_STRING_LEN][ERROR_CODE_STRING_LEN] =
         {"808 = CAN DISCONNECTED"},
         {"809 = CAN WRITE ERROR"},
         {"810 = CAN SOCKET CLOSED"},
+        {"811 = CAN PID NOT SUPPORTED"},
 
         /* RPI ERROR CODE */
         {"701 = MAC ADDRESS READ ERROR"},
