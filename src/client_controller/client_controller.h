@@ -23,6 +23,6 @@ struct client_controller_data_struct
 
 void *read_from_client_controller(void *); /* pthread to handle client_controller read */
 void get_client_controller_data(char *, struct client_controller_data_struct *);
-bool verify_checksum(const char* sentence);
+bool verify_stm32_checksum(const char* sentence);
 
 #endif

@@ -98,7 +98,17 @@ void *read_from_client_controller(void *arg)
                         stm32_serial_data[i] = read_data;
                     }
                 } while (read_data != '#');
-
+                
+                 /* Checksum Read */
+                for (size_t j = 0; j < 2; j++)
+                {
+                    read_data_len = uart_reads(&client_controller_device, &read_data, MAX_READ_SIZE);
+                    if (read_data_len > 0)
+                    {
+                        i++;
+                        stm32_serial_data[i] = read_data;
+                    }
+                }
                 stm32_serial_data[i + 1] = '\0';
 
                 logger_info(CC_LOG_MODULE_ID, "COMPLETE STM32 DATA: %s\n", stm32_serial_data);
@@ -107,7 +117,7 @@ void *read_from_client_controller(void *arg)
                 {
                     get_client_controller_data(stm32_serial_data, &client_controller_data);
 
-                    if (verify_checksum(stm32_serial_data)) {
+                    if (verify_stm32_checksum(stm32_serial_data)) {
                         /* update stm32 data to cloud_data struct which is used to combile all module data and send to cloud */
                         pthread_mutex_lock(&cloud_data_mutex);
                         cloud_data->client_controller_data = client_controller_data;
@@ -124,21 +134,21 @@ void *read_from_client_controller(void *arg)
 }
 
 /*
- * Name : verify_checksum
- * Descriptoin: The verify_checksum function is for verifying STM32 checksum.
+ * Name : verify_stm32_checksum
+ * Descriptoin: The verify_stm32_checksum function is for verifying STM32 checksum.
  * Input parameters:
  *                  const char *sentence : STM senetence
  *
  * Output parameters: uint8_t: return 1 for valid and 0 for invalid
  */
-bool verify_checksum(const char* sentence)
+bool verify_stm32_checksum(const char* sentence)
 {
     int checksum = 0;
     uint8_t checksum_hex[8];
 
     if (strlen(sentence) > MAX_READ_SIZE_CHECKSUM || strchr(sentence, HASH_SIGN) == NULL || strchr(sentence, DOLLAR_SIGN) == NULL)
     {
-        logger_error(MAIN_LOG_MODULE_ID, "Invalid NMEA sentence: %s\n", __func__);
+        logger_error(MAIN_LOG_MODULE_ID, "Invalid STM32 sentence: %s\n", __func__);
         return 0;
     }
     while ('#' != *sentence && NMEA_END_CHAR != *sentence)
@@ -150,12 +160,13 @@ bool verify_checksum(const char* sentence)
         }
         if ('\0' == *sentence)
         {
-            logger_error(MAIN_LOG_MODULE_ID, "Invalid NMEA sentence: %s\n", __func__);
+            logger_error(MAIN_LOG_MODULE_ID, "Invalid STM32 sentence: %s\n", __func__);
             return 0;
         }
         checksum = checksum ^ (uint8_t)*sentence;
         sentence = sentence + 1;
     }
+
     sentence = sentence + 1;
 
     if (strlen(sentence) >= 2)
@@ -166,7 +177,7 @@ bool verify_checksum(const char* sentence)
     }
     else
     {
-        logger_error(MAIN_LOG_MODULE_ID, " Invalid Checksum from GPS: %s\n", __func__);
+        logger_error(MAIN_LOG_MODULE_ID, " Invalid Checksum from STM32: %s\n", __func__);
         return 0;
     }
 
