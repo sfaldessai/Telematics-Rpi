@@ -17,7 +17,7 @@
 #define MAX_READ_SIZE_CHECKSUM 50
 #define CR 0x0d
 #define NMEA_END_CHAR '\n'
-#define SUCESS_CODE 1
+#define SUCESS_CODE 0
 #define HASH_SIGN 0x23
 #define DOLLAR_SIGN 0x24
 
@@ -176,9 +176,9 @@ void *read_from_client_controller(void *arg)
  * Input parameters:
  *                  const char *sentence : STM senetence data
  *
- * Output parameters: uint8_t: return 1 for valid and 0 for invalid
+ * Output parameters: uint8_t: return 0 for valid and CHECKSUM_ERROR_CODE 1002 for invalid
  */
-bool verify_stm32_checksum(const char* sentence)
+int verify_stm32_checksum(const char* sentence)
 {
     int checksum = 0;
     uint8_t checksum_hex[8];
@@ -186,7 +186,7 @@ bool verify_stm32_checksum(const char* sentence)
     if (strlen(sentence) > MAX_READ_SIZE_CHECKSUM || strchr(sentence, HASH_SIGN) == NULL || strchr(sentence, DOLLAR_SIGN) == NULL)
     {
         logger_error(MAIN_LOG_MODULE_ID, "Invalid STM32 sentence: %s\n", __func__);
-        return 0;
+        return STM32_CHECKSUM_ERROR;
     }
     while ('#' != *sentence && NMEA_END_CHAR != *sentence)
     {
@@ -198,7 +198,7 @@ bool verify_stm32_checksum(const char* sentence)
         if ('\0' == *sentence)
         {
             logger_error(MAIN_LOG_MODULE_ID, "Invalid STM32 sentence: %s\n", __func__);
-            return 0;
+            return STM32_CHECKSUM_ERROR;
         }
         checksum = checksum ^ (uint8_t)*sentence;
         sentence = sentence + 1;
@@ -215,7 +215,7 @@ bool verify_stm32_checksum(const char* sentence)
     else
     {
         logger_error(MAIN_LOG_MODULE_ID, " Invalid Checksum from STM32: %s\n", __func__);
-        return 0;
+        return STM32_CHECKSUM_ERROR;
     }
 
     uint16_t checksum_dec = hex_to_decimal(checksum_hex);
@@ -225,6 +225,6 @@ bool verify_stm32_checksum(const char* sentence)
     }
     else
     {
-        return 0;
+        return STM32_CHECKSUM_ERROR;
     }
 }
