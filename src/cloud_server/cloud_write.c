@@ -13,6 +13,7 @@
 #include "cloud_server.h"
 #include "../logger/logger.h"
 #include "../database/db_handler.h"
+#include "../utils/c_json/cJSON.h"
 
 #define HOURS 3600
 #define RPM_OFFSET 0
@@ -22,16 +23,69 @@
 bool idle_timer_started = false;
 time_t begin, end;
 
-void display_cloud_struct_data_logger(struct cloud_data_struct *cloud_data)
+char *create_json_obj(struct cloud_data_struct *cloud_data)
 {
-    logger_info(CLOUD_LOG_MODULE_ID, "\tVIN = %s | CAN SPEED = %d | GPS SPEED = %f |  idle_time_sec = %lld \n", cloud_data->can_data.vin,
-                cloud_data->can_data.speed, cloud_data->gps_data.speed, cloud_data->idle_time_secs);
-    logger_info(CLOUD_LOG_MODULE_ID, "\tMOTION = %d | VOLTAGE = %f | PTO = %d\n", cloud_data->client_controller_data.motion,
-                cloud_data->client_controller_data.voltage, cloud_data->client_controller_data.pto);
-    logger_info(CLOUD_LOG_MODULE_ID, "\tLAT: %.4f", cloud_data->gps_data.latitude);
-    logger_info(CLOUD_LOG_MODULE_ID, "\tLONG: %.4f\n", cloud_data->gps_data.longitude);
-    logger_info(CLOUD_LOG_MODULE_ID, "\tPDOP:%.2f\tHDOP:%.2f\tVDOP:%.2f\n", cloud_data->gps_data.pdop,
-                cloud_data->gps_data.hdop, cloud_data->gps_data.vdop);
+    cJSON *cjson_vehicle = NULL;
+    cJSON *cjson_telematic = NULL;
+    cJSON *cjson_can = NULL;
+    cJSON *cjson_location = NULL;
+    cJSON *cjson_client_controller = NULL;
+    char *json_string = NULL;
+
+    cjson_telematic = cJSON_CreateObject();
+    cjson_can = cJSON_CreateObject();
+    cjson_vehicle = cJSON_CreateObject();
+    cjson_location = cJSON_CreateObject();
+    cjson_client_controller = cJSON_CreateObject();
+
+    char supported_pids[CAN_PID_LENGTH + 1];
+    size_t i = 0;
+
+    /* Prepare Query String START */
+    for (i = 0; i < CAN_PID_LENGTH; i++)
+    {
+        sprintf(&supported_pids[i], "%d", cloud_data->can_data.supported_pids[i]);
+    }
+    supported_pids[i] = '\0';
+
+    cJSON_AddStringToObject(cjson_can, "vin", (char *)cloud_data->can_data.vin);
+    cJSON_AddStringToObject(cjson_can, "vehicleType", (char *)cloud_data->can_data.vehicle_type);
+    cJSON_AddNumberToObject(cjson_can, "speed", cloud_data->can_data.speed);
+    cJSON_AddNumberToObject(cjson_can, "rpm", cloud_data->can_data.rpm);
+    cJSON_AddStringToObject(cjson_can, "supportedPid", supported_pids);
+    cJSON_AddNumberToObject(cjson_can, "temperature", cloud_data->can_data.temperature);
+    cJSON_AddItemToObject(cjson_telematic, "can", cjson_can);
+
+    cJSON_AddNumberToObject(cjson_location, "latitude", cloud_data->gps_data.latitude);
+    cJSON_AddNumberToObject(cjson_location, "longitude", cloud_data->gps_data.longitude);
+    cJSON_AddNumberToObject(cjson_location, "hdop", cloud_data->gps_data.hdop);
+    cJSON_AddNumberToObject(cjson_location, "vdop", cloud_data->gps_data.vdop);
+    cJSON_AddNumberToObject(cjson_location, "pdop", cloud_data->gps_data.pdop);
+    cJSON_AddItemToObject(cjson_telematic, "location", cjson_location);
+
+    cJSON_AddNumberToObject(cjson_client_controller, "motion", cloud_data->client_controller_data.motion);
+    cJSON_AddNumberToObject(cjson_client_controller, "pto", cloud_data->client_controller_data.pto);
+    cJSON_AddNumberToObject(cjson_client_controller, "battery", cloud_data->client_controller_data.voltage);
+    cJSON_AddNumberToObject(cjson_client_controller, "accX", cloud_data->client_controller_data.acc_x);
+    cJSON_AddNumberToObject(cjson_client_controller, "accY", cloud_data->client_controller_data.acc_y);
+    cJSON_AddNumberToObject(cjson_client_controller, "accZ", cloud_data->client_controller_data.acc_z);
+    cJSON_AddItemToObject(cjson_telematic, "clientController", cjson_client_controller);
+
+    cJSON_AddStringToObject(cjson_telematic, "serial", (char *)cloud_data->mac_address);
+    cJSON_AddNumberToObject(cjson_telematic, "idleTime", (double)cloud_data->idle_time_secs);
+
+    /* TODO:  vehicle in service & Distance Travel
+    cJSON_AddNumberToObject(cjson_telematic, "serviceTime", inService);
+    cJSON_AddNumberToObject(cjson_telematic, "distance", inService);
+    */
+
+    cJSON_AddItemToObject(cjson_vehicle, "telematic", cjson_telematic);
+
+    /* Prints all the data of the JSON object (the whole list) */
+    json_string = cJSON_Print(cjson_vehicle);
+
+logger_info(CLOUD_LOG_MODULE_ID,"COMBINED JSON DATA: \n%s\n",json_string);    
+    return json_string;
 }
 
 /*
@@ -53,7 +107,7 @@ void *write_to_cloud(void *arg)
     {
         if (cloud_data != NULL)
         {
-            display_cloud_struct_data_logger(cloud_data);
+            create_json_obj(cloud_data);
 
             calculate_idle_time(cloud_data);
 
@@ -125,11 +179,16 @@ void initialize_cloud_data(struct cloud_data_struct *cloud_data)
     client_controller_data.pto = 0;
     client_controller_data.motion = 0;
     client_controller_data.voltage = 0.0;
+    client_controller_data.acc_x = 0;
+    client_controller_data.acc_y = 0;
+    client_controller_data.acc_z = 0;
 
     memset(can_data.vin, '\0', MAX_LEN_VIN);
+    memset(can_data.vehicle_type, '\0', WMI_STRING_LEN);
     can_data.speed = 0;
     can_data.rpm = 0.0;
-    memset(can_data.supported_pids, 0, CAN_PID_LENGTH * sizeof(uint32_t));
+    can_data.temperature = 0;
+    memset(can_data.supported_pids, '\0', CAN_PID_LENGTH * sizeof(uint8_t));
 
     cloud_data->gps_data = gps_data;
     cloud_data->client_controller_data = client_controller_data;
@@ -158,6 +217,27 @@ void gps_error_codes(struct cloud_data_struct *cloud_data, int error_code)
     gps_data.latitude = error_code;
     gps_data.longitude = error_code;
     gps_data.speed = error_code;
-    
+
     cloud_data->gps_data = gps_data;
+}
+
+/*
+ * Name : client_controller_error_codes
+ * Descriptoin: The client_controller_error_codes function is for updating erro codes for STM32 struct member
+ * Input parameters: struct cloud_data_struct * : clout struct to update STM32 data member
+ *                   int error_code : error code to update
+ * Output parameters: void
+ */
+void client_controller_error_codes(struct cloud_data_struct *cloud_data, int error_code)
+{
+    struct client_controller_data_struct cc_data;
+
+    cc_data.motion = (uint16_t)error_code;
+    cc_data.pto = (uint16_t)error_code;
+    cc_data.voltage = (float)error_code;
+    cc_data.acc_x = error_code;
+    cc_data.acc_y = error_code;
+    cc_data.acc_z = error_code;
+
+    cloud_data->client_controller_data = cc_data;
 }

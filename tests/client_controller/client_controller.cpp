@@ -18,7 +18,7 @@ TEST_GROUP(ClientControllerTestGroup)
 TEST(ClientControllerTestGroup, getClientControllerDataTest)
 {
     /*arrange*/
-    char *read_data = (char *)"$STMC,1,70.5,1,#";
+    char *read_data = (char *)"$STMC,1,70.5,1,12,13,14,#";
     struct client_controller_data_struct client_controller_data;
 
     /*act*/
@@ -28,12 +28,15 @@ TEST(ClientControllerTestGroup, getClientControllerDataTest)
     DOUBLES_EQUAL(70.5, client_controller_data.voltage, 0.0001);
     CHECK_EQUAL(1, client_controller_data.pto);
     CHECK_EQUAL(1, client_controller_data.motion);
+    CHECK_EQUAL(12, client_controller_data.acc_x);
+    CHECK_EQUAL(13, client_controller_data.acc_y);
+    CHECK_EQUAL(14, client_controller_data.acc_z);
 }
 
 TEST(ClientControllerTestGroup, getClientControllerDataTestWithInvalidData)
 {
     /*arrange*/
-    char *read_data = (char *)"$STMC,,,,#";
+    char *read_data = (char *)"$STMC,,,,,,,#";
     struct client_controller_data_struct client_controller_data;
 
     /*act*/
@@ -43,4 +46,7 @@ TEST(ClientControllerTestGroup, getClientControllerDataTestWithInvalidData)
     DOUBLES_EQUAL(0.0, client_controller_data.voltage, 0.0001);
     CHECK_EQUAL(0, client_controller_data.pto);
     CHECK_EQUAL(0, client_controller_data.motion);
+    CHECK_EQUAL(0, client_controller_data.acc_x);
+    CHECK_EQUAL(0, client_controller_data.acc_y);
+    CHECK_EQUAL(0, client_controller_data.acc_z);
 }

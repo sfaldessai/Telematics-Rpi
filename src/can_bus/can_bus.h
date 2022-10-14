@@ -26,9 +26,10 @@
 #define VIN_LEN 17
 #define WMI_LEN 3
 #define MAX_LEN_SPEED_DATA 8
-#define MAX_LEN_SUPPORTED_DATA 32
+#define MAX_LEN_SUPPORTED_DATA 40
 #define SUPPORTED_PID 0x00
 #define SPEED_PID 0x0D
+#define TEMPERATURE_PID 0x05
 #define RPM_PID 0x0C
 #define VIN_PID 0x02
 #define CAN_REQUEST_ID 0x7DF
@@ -42,31 +43,46 @@
 #define CAN_RESPONSE "CAN RESPONSE"
 #define VIN_DATA_FRAME 3
 #define SPEED_DATA_FRAME 1
+#define TEMPERATURE_DATA_FRAME 1
 #define RPM_DATA_FRAME 1
 #define SUPPORTED_DATA_FRAME 1
 #define CAN_FRAME_LENGTH 8
 #define CAN_PID_LENGTH 32
+
+/* CAN ERROR CODE */
+#define CAN_SUCESS 0
+#define CAN_SOCKET_ERROR 801
+#define CAN_READ_ERROR 802
+#define INVALID_VIN_ERROR 803
+#define INVALID_WMIs_ERROR 804
+#define SUPPORTED_READ_ERROR 805
+#define CAN_RPM_READ_ERROR 806
+#define CAN_SPEED_READ_ERROR 807
+#define CAN_DISCONNECTED 808
+#define CAN_WRITE_ERROR 809
+#define CAN_SOCKET_CLOSED 810
 
 #define DEBUG
 
 struct can_data_struct
 {
 	uint8_t vin[MAX_LEN_VIN];
-	uint8_t speed;
+	uint16_t speed;
 	float rpm;
-	uint32_t supported_pids[CAN_PID_LENGTH];
+	uint8_t supported_pids[MAX_LEN_SUPPORTED_DATA];
+	int temperature;
 	char vehicle_type[WMI_STRING_LEN];
 };
 
 /* pthread to display all serial data */
-void read_from_can(void *, pthread_t *, pthread_t *, pthread_t *, pthread_t *);
+void read_from_can(void *, pthread_t *, pthread_t *, pthread_t *, pthread_t *, pthread_t *);
 
 char *get_manufacturer_detail(uint8_t *);
 bool validate_vin(char *);
 
 void get_request_frame(struct can_frame *, int, int);
-void transmit_can_data(int, struct can_frame);
-void receive_can_data(int, struct can_frame *);
+int transmit_can_data(int, struct can_frame);
+int receive_can_data(int, struct can_frame *);
 int setup_can_socket(int *);
 void close_socket(int *);
 void log_can_data(struct can_frame, char *);

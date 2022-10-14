@@ -78,10 +78,11 @@ int insert_telematics_data(struct cloud_data_struct *cloud_data)
     sprintf(sql, DB_QUERY, cloud_data->gps_data.latitude,
             cloud_data->gps_data.longitude,
             cloud_data->gps_data.pdop, cloud_data->gps_data.hdop, cloud_data->gps_data.vdop,
-            cloud_data->mac_address, cloud_data->can_data.vin, cloud_data->can_data.speed,
+            cloud_data->mac_address, cloud_data->can_data.vin, cloud_data->can_data.vehicle_type, cloud_data->can_data.speed,
             supported_pids, 180.00, cloud_data->idle_time_secs, 86, cloud_data->client_controller_data.motion,
             cloud_data->client_controller_data.voltage, cloud_data->client_controller_data.pto,
-            0.00, 0.00, 0.00, 0, 0.00);
+            cloud_data->client_controller_data.acc_x, cloud_data->client_controller_data.acc_y, cloud_data->client_controller_data.acc_x,
+            cloud_data->can_data.rpm, cloud_data->can_data.temperature);
 
     logger_info(DB_LOG_MODULE_ID, "SQL QUERY: %s\n", sql);
     /* Prepare Query String END */
@@ -138,12 +139,12 @@ int insert_telematics_data(struct cloud_data_struct *cloud_data)
 /*
  * Name : get_single_column_value
  *
- * Descriptoin: The get_single_column_value function is for fetching single column namd and returning string value. 
+ * Descriptoin: The get_single_column_value function is for fetching single column namd and returning string value.
  *
  * Input parameters: char *column_name: column name
- *                   char *sort_by: sort option 
+ *                   char *sort_by: sort option
  *                   uint8_t *return_value: to update retuned column value and return
- * 
+ *
  * Output parameters: int: returning sqlite success or error code
  */
 int get_single_column_value(char *column_name, char *sort_by, uint8_t *return_value)
