@@ -11,6 +11,7 @@ LOGGER_MODULE_DIR = $(SRC_DIR)/logger
 DB_MODULE_DIR = $(SRC_DIR)/database
 GLOABL_DIR = $(SRC_DIR)/global
 UTILS_DIR = $(SRC_DIR)/utils
+C_JSON_DIR = $(UTILS_DIR)/c_json
 
 CFLAGS = -g -O2 -Wall -I
 CWFLAGS = -Werror
@@ -18,6 +19,10 @@ LIBS = -lpthread
 
 
 OUT=telematic
+
+copy_lib:
+	cp ./aws_lib/libmqtt_demo_mutual_auth.so ./aws_lib/libsockets_posix.so ./aws_lib/libopenssl_posix.so ./aws_lib/libclock_posix.so /usr/lib/
+	cp ./aws_lib/mqtt_demo_mutual_auth.h /usr/include
 
 logger.o:
 	gcc -c $(CFLAGS) $(LOGGER_MODULE_DIR) $(LOGGER_MODULE_DIR)/logger.c -o $(SRC_DIR)/logger.o $(LIBS)
@@ -49,8 +54,14 @@ db_handler.o:
 common_utils.o:
 	gcc -c $(CFLAGS) $(UTILS_DIR) $(UTILS_DIR)/common_utils.c -o $(SRC_DIR)/common_utils.o
 
-main: serial_interface.o gps_module.o client_controller.o cloud_write.o global.o logger.o can_interface.o can_bus.o common_utils.o db_handler.o
-	gcc $(CWFLAGS) $(CFLAGS) $(SRC_DIR) $(SRC_DIR)/*.o $(SRC_DIR)/main.c -o $(OUT) $(LIBS) -lm -lsqlite3
+c_json.o:
+	gcc -c $(CFLAGS) $(C_JSON_DIR) $(C_JSON_DIR)/cJSON.c -o $(SRC_DIR)/c_json.o
+
+c_json_utils.o:
+	gcc -c $(CFLAGS) $(C_JSON_DIR) $(C_JSON_DIR)/cJSON_Utils.c -o $(SRC_DIR)/c_json_utils.o
+
+main: copy_lib serial_interface.o gps_module.o client_controller.o cloud_write.o global.o logger.o can_interface.o can_bus.o common_utils.o db_handler.o c_json.o c_json_utils.o
+	gcc $(CWFLAGS) $(CFLAGS) $(SRC_DIR) $(SRC_DIR)/*.o $(SRC_DIR)/main.c -o $(OUT) -lmqtt_demo_mutual_auth $(LIBS) -lm -lsqlite3
 
 clean:
 	rm $(SRC_DIR)/*.o $(OUT)

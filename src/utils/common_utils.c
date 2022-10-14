@@ -7,12 +7,12 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include <linux/if.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <string.h>
 #include <math.h>
+#include <linux/if.h>
 #include "common_utils.h"
 #include "../logger/logger.h"
 

@@ -20,6 +20,12 @@
 #define CLIENT_CONTROLLER "/dev/ttyACM0"
 #define GPS_MODULE "/dev/ttyUSB0"
 
+#define AWS_CLIENT_ID "testclient"
+#define AWS_TOPIC "testclient/example/topic"
+
+/* Update AWS IOT ENDPOINT */
+#define AWS_IOT_ENDPOINT "aws.iot.endpoint"
+
 /* arg_struct struct to holds required thread arguments*/
 struct arg_struct
 {

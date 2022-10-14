@@ -6,7 +6,7 @@
 
 #define PID_SUPPORTED_LEN 32
 
-#define ERROR_CODE_LEN 32
+#define ERROR_CODE_LEN 80
 #define ERROR_CODE_STRING_LEN 80
 
 #define DEBUG
@@ -54,6 +54,7 @@ static const char error_codes[ERROR_CODE_STRING_LEN][ERROR_CODE_STRING_LEN] =
         {"1005 = VOLTAGE READ ERROR"},
         {"1006 = STM32 DEVICE DISCONNECTED"},
         {"1007 = MEMS ERROR"},
+        {"1008 = STM32 INVALID DATA"},
 
         /* CAN ERROR CODE */
         {"801 = CAN SOCKET ERROR"},
@@ -64,6 +65,9 @@ static const char error_codes[ERROR_CODE_STRING_LEN][ERROR_CODE_STRING_LEN] =
         {"806 = CAN RPM READ ERROR"},
         {"807 = CAN SPEED READ ERROR"},
         {"808 = CAN DISCONNECTED"},
+        {"809 = CAN WRITE ERROR"},
+        {"810 = CAN SOCKET CLOSED"},
+        {"811 = CAN PID NOT SUPPORTED"},
 
         /* RPI ERROR CODE */
         {"701 = MAC ADDRESS READ ERROR"},

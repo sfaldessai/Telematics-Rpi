@@ -27,6 +27,30 @@ pthread_mutex_t cloud_data_mutex = PTHREAD_MUTEX_INITIALIZER;
 #define CC_LOG_MODULE_ID 5
 #define MAX_READ_SIZE 1 /* max stm32 LL data length is 1 */
 #define MAXSIZE 32
+
+/*
+ * Name : update_cc_error_code
+ * Descriptoin: The update_cc_error_code function is for updating erro codes for can struct member
+ * Input parameters: struct cloud_data_struct * : clout struct to update can data member
+ *                   int error_code : error code to update
+ * Output parameters: void
+ */
+void update_cc_error_code(struct cloud_data_struct *cloud_data, int error_code)
+{
+    struct client_controller_data_struct client_controller_data;
+    client_controller_data.voltage = (float)error_code;
+    client_controller_data.pto = (uint16_t)error_code;
+    client_controller_data.motion = (uint16_t)error_code;
+    client_controller_data.acc_x = error_code;
+    client_controller_data.acc_y = error_code;
+    client_controller_data.acc_z = error_code;
+
+    /* update gps_data to cloud_data struct */
+    pthread_mutex_lock(&cloud_data_mutex);
+    cloud_data->client_controller_data = client_controller_data;
+    pthread_mutex_unlock(&cloud_data_mutex);
+}
+
 /*
  * Name : get_client_controller_data
  * Descriptoin: The get_client_controller_data function is for extracting vehicle motion, PTO,
@@ -42,14 +66,23 @@ void get_client_controller_data(char *read_data, struct client_controller_data_s
 
     /* extracting required data from stm32 data sentence */
     stmc_data = strchr(read_data, COMMA);
-    client_controller_data->motion = (uint8_t)atoi(stmc_data + 1);
+    client_controller_data->motion = (uint16_t)atoi(stmc_data + 1);
 
     stmc_data = strchr(stmc_data + 1, COMMA);
     client_controller_data->voltage = (float)atof(stmc_data + 1);
 
     stmc_data = strchr(stmc_data + 1, COMMA);
-    client_controller_data->pto = (uint8_t)atoi(stmc_data + 1);
 
+    client_controller_data->pto = (uint16_t)atoi(stmc_data + 1);
+
+    stmc_data = strchr(stmc_data + 1, COMMA);
+    client_controller_data->acc_x = atoi(stmc_data + 1);
+
+    stmc_data = strchr(stmc_data + 1, COMMA);
+    client_controller_data->acc_y = atoi(stmc_data + 1);
+
+    stmc_data = strchr(stmc_data + 1, COMMA);
+    client_controller_data->acc_z = atoi(stmc_data + 1);
 }
 
 /*
@@ -126,6 +159,10 @@ void *read_from_client_controller(void *arg)
                     else {
                         logger_error(CC_LOG_MODULE_ID, "checksum error");
                     }
+                }
+                else
+                {
+                    update_cc_error_code(cloud_data, STM32_INVALID_DATA);
                 }
             }
         }
