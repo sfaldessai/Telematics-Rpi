@@ -18,7 +18,7 @@
 #define CR 0x0d
 #define NMEA_END_CHAR '\n'
 #define SUCESS_CODE 1
-#define ASTERISK_SIGN 0x2A
+#define HASH_SIGN 0x23
 #define DOLLAR_SIGN 0x24
 
 /* mutex to lock cloud_data struct for wirte */
@@ -136,7 +136,7 @@ bool verify_checksum(const char* sentence)
     int checksum = 0;
     uint8_t checksum_hex[8];
 
-    if (strlen(sentence) > MAX_READ_SIZE_CHECKSUM || strchr(sentence, ASTERISK_SIGN) == NULL || strchr(sentence, DOLLAR_SIGN) == NULL)
+    if (strlen(sentence) > MAX_READ_SIZE_CHECKSUM || strchr(sentence, HASH_SIGN) == NULL || strchr(sentence, DOLLAR_SIGN) == NULL)
     {
         logger_error(MAIN_LOG_MODULE_ID, "Invalid NMEA sentence: %s\n", __func__);
         return 0;
