@@ -10,9 +10,10 @@
 #include <sqlite3.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include "cloud_server.h"
 #include "../logger/logger.h"
-#include "../database/db_handler.h"
+#include "../database/db_handler.h" 
 #include "../utils/c_json/cJSON.h"
 #include "mqtt_demo_mutual_auth.h"
 
@@ -20,9 +21,14 @@
 #define RPM_OFFSET 0
 #define SPEED_THRESHOLD 0
 #define IDLE_THRESHOLD 10
+#define pi 3.142
 
-bool idle_timer_started = false;
-time_t begin, end;
+bool idle_timer_started = false, gps_signal_lost_timer_started = false;
+time_t begin, end,gps_lost_begin_time, gps_lost_end_time;
+double Lat0 = 0;
+double Lon0 = 0;
+double Lat1 = 0;
+double Lon1 = 0;
 
 char *create_json_obj(struct cloud_data_struct *cloud_data)
 {
@@ -108,6 +114,9 @@ void *write_to_cloud(void *arg)
     {
         if (cloud_data != NULL)
         {
+            if (cloud_data->gps_data.hdop > 20 && cloud_data->gps_data.vdop > 20) {
+                handle_gps_signal_lost(cloud_data);
+            }
             send_data = create_json_obj(cloud_data);
 
             calculate_idle_time(cloud_data);
@@ -199,6 +208,11 @@ void initialize_cloud_data(struct cloud_data_struct *cloud_data)
     uint8_t idle_time_db_value[COLUMN_VALUE_MAX_LEN];
     get_single_column_value(IDLE_TIME, SORT_BY_DESC, idle_time_db_value);
     cloud_data->idle_time_secs = (uint64_t)atoi((char *)idle_time_db_value);
+
+    /* Fetching last updated idele_time value from db for calculating idle_time */
+    double prev_lat_value1[COLUMN_VALUE_MAX_LEN];
+    get_single_column_value(LATITUDE, SORT_BY_DESC, prev_lat_value1);
+    Lat1 = (double)atof((char*)prev_lat_value1);
 }
 
 /*
@@ -241,4 +255,53 @@ void client_controller_error_codes(struct cloud_data_struct *cloud_data, int err
     cc_data.acc_z = error_code;
 
     cloud_data->client_controller_data = cc_data;
+}
+
+/*
+ * Name : handle_gps_signal_lost
+ * Description: This function handles scenarios when the GPS signal is lost
+ * Input parameters: struct cloud_data_struct *
+ * Output parameters: void
+ */
+void handle_gps_signal_lost(struct cloud_data_struct* cloud_data)
+{
+    double Lat0 = (8.46696 * pi) / 180;
+    double Lon0 = (-17.03663 * pi) / 180;
+    double Lat1 = (65.35996 * pi) / 180; 
+    double Lon1 = (-17.03663 * pi) / 180;   
+    double Lat2, Lon2 = 0;
+    double distance = 0.5;
+    double earth_radius = 6371; /* in kms */
+    double bearing_theta;
+    double X, Y;
+    double accx = 0, accy = 0, accz = 0;
+    double x_distance = 0, y_distance = 0, z_distance = 0, k = 0, l = 0, m = 0;
+
+    /* calculate distance based on accx, accy and accz */
+    k = 0.5 * accx * (1 / 3600) * (1 / 3600);
+    l = 0.5 * accy * (1 / 3600) * (1 / 3600);
+    m = 0.5 * accz * (1 / 3600) * (1 / 3600);
+    x_distance = x_distance + k;
+    y_distance = y_distance + l;
+    z_distance = z_distance + m;
+    distance = sqrt(x_distance * x_distance + y_distance * y_distance + z_distance * z_distance);
+    printf(" x distance is: %lf \n", x_distance);
+    printf(" The distance between source and destination is: %lf \n", distance);
+
+    /* calculate bearing based on previous lat, lon */
+    X = cos(Lat0) * sin(Lon1 - Lon0);
+    Y = cos(Lat0) * sin(Lat1) - sin(Lat0) * cos(Lat1) * cos(Lon1 - Lon0);
+    bearing_theta = atan2(X, Y);
+
+    bearing_theta = (bearing_theta * 180) / pi;
+
+    printf("Marathalli data: Bearing Theta values is %lf \n", bearing_theta);
+
+    Lat2 = asin(sin(Lat1) * cos(distance / earth_radius) + cos(Lat1) * sin(distance / earth_radius) * cos(bearing_theta));
+    Lon2 = Lon1 + atan2(sin(bearing_theta) * sin(distance / earth_radius) * cos(Lat1),
+        cos(distance / earth_radius) - sin(Lat1) * sin(Lat2));
+
+    printf("Marathalli data:Lat2 value is: %lf \n", (Lat2 * 180) / pi);
+    printf("Marathalli data:Lon2 value is: %lf \n", (Lon2 * 180) / pi);
+    return 0;
 }
