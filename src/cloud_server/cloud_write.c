@@ -274,13 +274,12 @@ void handle_gps_signal_lost(struct cloud_data_struct* cloud_data)
     double earth_radius = 6371; /* in kms */
     double bearing_theta;
     double X, Y;
-    double accx = 0, accy = 0, accz = 0;
     double x_distance = 0, y_distance = 0, z_distance = 0, k = 0, l = 0, m = 0;
 
     /* calculate distance based on accx, accy and accz */
-    k = 0.5 * accx * (1 / 3600) * (1 / 3600);
-    l = 0.5 * accy * (1 / 3600) * (1 / 3600);
-    m = 0.5 * accz * (1 / 3600) * (1 / 3600);
+    k = 0.5 * cloud_data->client_controller_data.acc_x * (1 / 3600) * (1 / 3600);
+    l = 0.5 * cloud_data->client_controller_data.acc_y * (1 / 3600) * (1 / 3600);
+    m = 0.5 * cloud_data->client_controller_data.acc_z * (1 / 3600) * (1 / 3600);
     x_distance = x_distance + k;
     y_distance = y_distance + l;
     z_distance = z_distance + m;
