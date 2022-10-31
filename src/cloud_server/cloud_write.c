@@ -116,6 +116,14 @@ void *write_to_cloud(void *arg)
         {
             if (cloud_data->gps_data.hdop >= GPS_ERROR_RANGE_BEGIN && cloud_data->gps_data.hdop <= GPS_ERROR_RANGE_END) {
 
+                float latitude[2], longitude[2];
+                get_last_two_lat_log(latitude, longitude);
+
+                // last updated value 
+                printf("\nlatitude = %f lagitude = %f",latitude[0], longitude[0]);
+                // last - 1 updated value 
+                printf("\nlatitude = %f lagitude = %f",latitude[1], longitude[1]);
+
                 handle_gps_signal_lost(cloud_data);
             }
             send_data = create_json_obj(cloud_data);

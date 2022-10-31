@@ -55,6 +55,6 @@ int insert_telematics_data(struct cloud_data_struct *inCloud_data);
 
 int get_single_column_value(char *, char *, uint8_t *);
 
-int get_single_column_multivalue(char*, char*, float lat[2],float lon[2]);
+int get_last_two_lat_log(float* latitude, float* longitude);
 
 #endif

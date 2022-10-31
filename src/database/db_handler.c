@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <sqlite3.h>
 #include <string.h>
+#include <stdlib.h>
 #include "db_handler.h"
 #include "../logger/logger.h"
 
@@ -193,20 +194,19 @@ int get_single_column_value(char *column_name, char *sort_by, uint8_t *return_va
 }
 
 /*
- * Name : get_single_column_multivalue
+ * Name : get_last_two_lat_log
  *
- * Descriptoin: The get_single_column_multivalue function is for fetching multi column namd and returning array value.
+ * Descriptoin: The get_last_two_lat_log function is for fetching last updated 2 latitude and lagitude values
  *
- * Input parameters: char *column_name: column name
- *                   char *sort_by: sort option
- *                   uint8_t *return_value: to update retuned column value and return
+ * Input parameters: latitude : return last updated 2 latitude value 
+ *                   longitude : return last updated 2 longitude value 
  *
  * Output parameters: int: returning sqlite success or error code
  */
-4 get_single_column_multivalue(char* column_name, char* sort_by, float latitude[2], float longitude[2])
+int get_last_two_lat_log(float *latitude, float *longitude)
 {
-    sqlite3* db;
-    sqlite3_stmt* res;
+    sqlite3 *db;
+    sqlite3_stmt *res;
     char sql[QUERY_MAX_LEN];
 
     int rc = sqlite3_open(TELEMATICS_DB_PATH, &db);
@@ -218,7 +218,7 @@ int get_single_column_value(char *column_name, char *sort_by, uint8_t *return_va
         return rc;
     }
 
-    sprintf(sql, "select Latitude,Longitude from telematics where Latitude<900 AND Longitude<900 order by creation_time DESC limit 2", column_name, TELEMATICS, creation_time, sort_by);
+    sprintf(sql, "SELECT %s,%s from %s where %s<900 AND %s<900 order by  %s DESC limit 2;", LATITUDE, LONGITUDE, TELEMATICS, LATITUDE, LONGITUDE, creation_time);
 
     logger_info(DB_LOG_MODULE_ID, "SQL QUERY: %s\n", sql);
 
@@ -226,20 +226,25 @@ int get_single_column_value(char *column_name, char *sort_by, uint8_t *return_va
 
     if (rc == SQLITE_OK)
     {
-
         sqlite3_bind_int(res, 1, 1);
     }
     else
     {
-
         fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(db));
     }
 
     int step = sqlite3_step(res);
-
     if (step == SQLITE_ROW)
     {
-        strncpy((float)latitude[0], (char*)sqlite3_column_text(res, 0), COLUMN_VALUE_MAX_LEN);
+        latitude[0] = atof((char *)sqlite3_column_text(res, 0));
+        longitude[0] = atof((char *)sqlite3_column_text(res, 1));
+    }
+
+    step = sqlite3_step(res);
+    if (step == SQLITE_ROW)
+    {
+        latitude[1] = atof((char *)sqlite3_column_text(res, 0));
+        longitude[1] = atof((char *)sqlite3_column_text(res, 1));
     }
 
     sqlite3_finalize(res);
