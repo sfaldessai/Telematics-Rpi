@@ -228,3 +228,19 @@ TEST(GPSTestGroup, emptyvaluegTest)
     /*assert*/
     CHECK_EQUAL(GPS_NMEA_SENTENCE_CHECKSUM_ERROR, result);
 }
+
+/* Test 'Empty values */
+TEST(GPSTestGroup, ignition_offTest)
+{
+    /*arrange*/
+    struct uart_device_struct device;
+    device.file_name = (char *)"filename";
+    device.baud_rate = 9600;
+    device.fd = 2;
+
+    /*act*/
+    int result = ignition_off(device);
+
+    /*assert*/
+    CHECK_EQUAL(903, result);
+}

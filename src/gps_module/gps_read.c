@@ -14,7 +14,6 @@
 #include <math.h>
 #include <pthread.h>
 #include "gps_module.h"
-#include "../serial_interface/serial_config.h"
 #include "../main.h"
 
 #define MAX_READ_SIZE 80 /* GPS at most, sends 80 or so chars per message string.*/
@@ -399,15 +398,16 @@ void ignition_on(struct uart_device_struct gps_device)
  * Input parameters: struct uart_device_struct gps_device : serial port
  *
  *
- * Output parameters: void
+ * Output parameters: int : bytes sent
  */
-void ignition_off(struct uart_device_struct gps_device)
+int ignition_off(struct uart_device_struct gps_device)
 {
     int byte = send_ubx_cfg_command(gps_device, set_gnss_stop, GNSS_STOP_START_CMD_LEN);
     if (byte == GNSS_STOP_START_CMD_LEN)
     {
         is_ignition_on = IGNITION_OFF;
     }
+    return byte;
 }
 
 /*
