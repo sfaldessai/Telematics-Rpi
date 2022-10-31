@@ -191,3 +191,59 @@ int get_single_column_value(char *column_name, char *sort_by, uint8_t *return_va
 
     return 0;
 }
+
+/*
+ * Name : get_single_column_multivalue
+ *
+ * Descriptoin: The get_single_column_multivalue function is for fetching multi column namd and returning array value.
+ *
+ * Input parameters: char *column_name: column name
+ *                   char *sort_by: sort option
+ *                   uint8_t *return_value: to update retuned column value and return
+ *
+ * Output parameters: int: returning sqlite success or error code
+ */
+4 get_single_column_multivalue(char* column_name, char* sort_by, float latitude[2], float longitude[2])
+{
+    sqlite3* db;
+    sqlite3_stmt* res;
+    char sql[QUERY_MAX_LEN];
+
+    int rc = sqlite3_open(TELEMATICS_DB_PATH, &db);
+
+    if (rc != SQLITE_OK)
+    {
+        logger_error(DB_LOG_MODULE_ID, "Cannot open database: %s:%d\n", sqlite3_errmsg(db), rc);
+        sqlite3_close(db);
+        return rc;
+    }
+
+    sprintf(sql, "select Latitude,Longitude from telematics where Latitude<900 AND Longitude<900 order by creation_time DESC limit 2", column_name, TELEMATICS, creation_time, sort_by);
+
+    logger_info(DB_LOG_MODULE_ID, "SQL QUERY: %s\n", sql);
+
+    rc = sqlite3_prepare_v2(db, sql, -1, &res, 0);
+
+    if (rc == SQLITE_OK)
+    {
+
+        sqlite3_bind_int(res, 1, 1);
+    }
+    else
+    {
+
+        fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(db));
+    }
+
+    int step = sqlite3_step(res);
+
+    if (step == SQLITE_ROW)
+    {
+        strncpy((float)latitude[0], (char*)sqlite3_column_text(res, 0), COLUMN_VALUE_MAX_LEN);
+    }
+
+    sqlite3_finalize(res);
+    sqlite3_close(db);
+
+    return 0;
+}

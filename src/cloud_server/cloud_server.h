@@ -15,6 +15,8 @@
 #define DEBUG
 
 #define MAX_LEN_MAC_ADDRESS 12
+#define GPS_ERROR_RANGE_BEGIN 900
+#define GPS_ERROR_RANGE_END 1000
 
 /* cloud_data_struct struct to holds STM32, GPS, and CAN bus data*/
 struct cloud_data_struct

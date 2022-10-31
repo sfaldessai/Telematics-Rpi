@@ -114,7 +114,8 @@ void *write_to_cloud(void *arg)
     {
         if (cloud_data != NULL)
         {
-            if (cloud_data->gps_data.hdop > 20 && cloud_data->gps_data.vdop > 20) {
+            if (cloud_data->gps_data.hdop >= GPS_ERROR_RANGE_BEGIN && cloud_data->gps_data.hdop <= GPS_ERROR_RANGE_END) {
+
                 handle_gps_signal_lost(cloud_data);
             }
             send_data = create_json_obj(cloud_data);
@@ -208,11 +209,6 @@ void initialize_cloud_data(struct cloud_data_struct *cloud_data)
     uint8_t idle_time_db_value[COLUMN_VALUE_MAX_LEN];
     get_single_column_value(IDLE_TIME, SORT_BY_DESC, idle_time_db_value);
     cloud_data->idle_time_secs = (uint64_t)atoi((char *)idle_time_db_value);
-
-    /* Fetching last updated idele_time value from db for calculating idle_time */
-    double prev_lat_value1[COLUMN_VALUE_MAX_LEN];
-    get_single_column_value(LATITUDE, SORT_BY_DESC, prev_lat_value1);
-    Lat1 = (double)atof((char*)prev_lat_value1);
 }
 
 /*
@@ -265,10 +261,17 @@ void client_controller_error_codes(struct cloud_data_struct *cloud_data, int err
  */
 void handle_gps_signal_lost(struct cloud_data_struct* cloud_data)
 {
-    double Lat0 = (8.46696 * pi) / 180;
+    /*double Lat0 = (8.46696 * pi) / 180;
     double Lon0 = (-17.03663 * pi) / 180;
     double Lat1 = (65.35996 * pi) / 180; 
-    double Lon1 = (-17.03663 * pi) / 180;   
+    double Lon1 = (-17.03663 * pi) / 180; */
+
+    double Lat0[COLUMN_VALUE_MAX_LEN];
+    double Lat1[COLUMN_VALUE_MAX_LEN];
+    get_single_column_multivalue(LATITUDE, SORT_BY_DESC, prev_lat_n,prev_lat_n_1);
+    Lat1 = (double)atof((char*)prev_lat_n);
+    Lat0 = (double)atof((char*)prev_lat_n_1);
+
     double Lat2, Lon2 = 0;
     double distance = 0.5;
     double earth_radius = 6371; /* in kms */
