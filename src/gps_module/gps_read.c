@@ -66,17 +66,27 @@ void update_gps_error_code(struct cloud_data_struct *cloud_data, int error_code)
  *
  * Output parameters: uint8_t: return 1 for invalid and 0 for valid
  */
-int nmea_verify_checksum(const char *sentence)
+int nmea_verify_checksum(const char *sentence,int* gps)
 {
     int checksum = 0;
     uint8_t gps_checksum_hex[8];
 
-    if (strlen(sentence) > MAX_READ_SIZE || strchr(sentence, ASTERISK_SIGN) == NULL || strchr(sentence, DOLLAR_SIGN) == NULL)
+    if (strlen(sentence) > MAX_READ_SIZE || strchr(sentence, ASTERISK_SIGN) == NULL
+    	||strchr(sentence, HASH_SIGN) == NULL || strchr(sentence, DOLLAR_SIGN) == NULL)
     {
-        logger_info(GPS_LOG_MODULE_ID, "Invalid NMEA sentence: %s\n", __func__);
-        return GPS_NMEA_SENTENCE_CHECKSUM_ERROR;
+    	{
+     if(gps == 1)
+     	{
+    	 	 logger_info(GPS_LOG_MODULE_ID, "Invalid NMEA sentence: %s\n", __func__);
+    	 	 return GPS_NMEA_SENTENCE_CHECKSUM_ERROR;
+     	}
+     	else
+     	 {
+        	logger_info(GPS_LOG_MODULE_ID, "Invalid STM32 sentence: %s\n", __func__);
+        	return STM_CHECKSUM_ERROR;
+         }
     }
-    while ('*' != *sentence && NMEA_END_CHAR != *sentence)
+    while (('*' != *sentence || '#' != *sentence) && NMEA_END_CHAR != *sentence)
     {
         if (DOLLAR_SIGN == *sentence)
         {
@@ -98,11 +108,22 @@ int nmea_verify_checksum(const char *sentence)
         gps_checksum_hex[0] = sentence[0];
         gps_checksum_hex[1] = sentence[1];
         gps_checksum_hex[2] = '\0';
-    }
+
+    	if(stm == 2)
+    		{
+            	logger_info(GPS_LOG_MODULE_ID, "Invalid NMEA sentence: %s\n", __func__);
+            	return STM_NMEA_SENTENCE_CHECKSUM_ERROR;
+            }
+    	else
+    		{
+            	logger_info(GPS_LOG_MODULE_ID, "Invalid STM32 sentence: %s\n", __func__);
+            	return STM_CHECKSUM_ERROR;
+    		}
     else
     {
         logger_info(GPS_LOG_MODULE_ID, " Invalid Checksum from GPS: %s\n", __func__);
         return GPS_NMEA_SENTENCE_CHECKSUM_ERROR;
+    }
     }
 
     uint16_t gps_checksum_dec = hex_to_decimal(gps_checksum_hex);
