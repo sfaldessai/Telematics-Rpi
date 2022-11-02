@@ -105,9 +105,8 @@ void *read_from_client_controller(void *arg)
     struct cloud_data_struct *cloud_data = args->cloud_data;
     struct client_controller_data_struct client_controller_data;
 
-    while (1)
+    do
     {
-
         /* Reading data byte by byte */
         read_data_len = uart_reads(&client_controller_device, &read_data, MAX_READ_SIZE);
 
@@ -131,8 +130,8 @@ void *read_from_client_controller(void *arg)
                         stm32_serial_data[i] = read_data;
                     }
                 } while (read_data != '#');
-                
-                 /* Checksum Read */
+
+                /* Checksum Read */
                 for (size_t j = 0; j < 2; j++)
                 {
                     read_data_len = uart_reads(&client_controller_device, &read_data, MAX_READ_SIZE);
@@ -150,14 +149,17 @@ void *read_from_client_controller(void *arg)
                 {
                     get_client_controller_data(stm32_serial_data, &client_controller_data);
 
-                    if (verify_stm32_checksum(stm32_serial_data)) {
+                    if (verify_stm32_checksum(stm32_serial_data))
+                    {
                         /* update stm32 data to cloud_data struct which is used to combile all module data and send to cloud */
                         pthread_mutex_lock(&cloud_data_mutex);
                         cloud_data->client_controller_data = client_controller_data;
                         pthread_mutex_unlock(&cloud_data_mutex);
                     }
-                    else {
+                    else
+                    {
                         logger_error(CC_LOG_MODULE_ID, "checksum error");
+                        update_cc_error_code(cloud_data, STM32_CHECKSUM_ERROR);
                     }
                 }
                 else
@@ -166,8 +168,9 @@ void *read_from_client_controller(void *arg)
                 }
             }
         }
-    }
+    } while (client_controller_data.mode);
     uart_stop(&client_controller_device);
+    return 0;
 }
 
 /*
@@ -178,7 +181,7 @@ void *read_from_client_controller(void *arg)
  *
  * Output parameters: uint8_t: return 0 for valid and CHECKSUM_ERROR_CODE 1002 for invalid
  */
-int verify_stm32_checksum(const char* sentence)
+int verify_stm32_checksum(const char *sentence)
 {
     int checksum = 0;
     uint8_t checksum_hex[8];

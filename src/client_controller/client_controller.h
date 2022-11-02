@@ -31,10 +31,12 @@ struct client_controller_data_struct
 	int acc_x;
 	int acc_y;
 	int acc_z;
+	int mode;
 };
 
 void *read_from_client_controller(void *); /* pthread to handle client_controller read */
 void get_client_controller_data(char *, struct client_controller_data_struct *);
 int verify_stm32_checksum(const char* sentence);
+int run_infinite_loop(void);
 
 #endif

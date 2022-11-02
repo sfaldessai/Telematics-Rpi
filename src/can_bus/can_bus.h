@@ -79,6 +79,7 @@ struct can_data_struct
 	uint8_t supported_pids[CAN_PID_LENGTH];
 	int temperature;
 	char vehicle_type[WMI_STRING_LEN];
+	int mode;
 };
 
 /* pthread to display all serial data */

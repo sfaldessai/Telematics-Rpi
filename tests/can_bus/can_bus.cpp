@@ -7,6 +7,7 @@
 extern "C"
 {
 #include "./../src/can_bus/can_bus.h"
+#include "./../src/cloud_server/cloud_server.h"
 }
 
 TEST_GROUP(CanBusTestGroup)
