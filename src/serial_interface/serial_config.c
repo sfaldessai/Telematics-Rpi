@@ -155,7 +155,7 @@ int uart_reads_chunk(struct uart_device_struct *device, char *buf, size_t buf_le
 	}
 
 	rc = read(device->fd, buf, buf_len);
-	
+
 	if (rc <= 0)
 	{
 		logger_error(SERIAL_LOG_MODULE_ID, "failed to read uart data - %s\r\n", __func__);
@@ -204,6 +204,11 @@ int uart_writes(struct uart_device_struct *device, char *string)
  */
 int uart_gps_write(struct uart_device_struct *device, const uint8_t *string, uint8_t size)
 {
+	if (device->fd <= 0)
+	{
+		logger_error(SERIAL_LOG_MODULE_ID, "failed to GPS UART device - %s : %d\r\n", __func__, device->fd);
+		return 0;
+	}
 	return write(device->fd, string, size);
 }
 
