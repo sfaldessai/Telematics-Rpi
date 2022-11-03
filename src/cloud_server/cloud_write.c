@@ -116,15 +116,14 @@ void *write_to_cloud(void *arg)
         {
             if (cloud_data->gps_data.hdop >= GPS_ERROR_RANGE_BEGIN && cloud_data->gps_data.hdop <= GPS_ERROR_RANGE_END) {
 
-                float latitude[2], longitude[2];
-                get_last_two_lat_log(latitude, longitude);
+                get_last_two_lat_log(prev_latitude, prev_longitude);
 
                 // last updated value 
-                printf("\nlatitude = %f lagitude = %f",latitude[0], longitude[0]);
+                printf("\nlatitude = %f lagitude = %f", prev_latitude[0], prev_longitude[0]);
                 // last - 1 updated value 
-                printf("\nlatitude = %f lagitude = %f",latitude[1], longitude[1]);
+                printf("\nlatitude = %f lagitude = %f", prev_latitude[1], prev_longitude[1]);
 
-                handle_gps_signal_lost(cloud_data);
+                handle_gps_signal_lost(cloud_data, prev_latitude, prev_longitude);
             }
             send_data = create_json_obj(cloud_data);
 
@@ -267,21 +266,10 @@ void client_controller_error_codes(struct cloud_data_struct *cloud_data, int err
  * Input parameters: struct cloud_data_struct *
  * Output parameters: void
  */
-void handle_gps_signal_lost(struct cloud_data_struct* cloud_data)
+void handle_gps_signal_lost(struct cloud_data_struct* cloud_data, float* latitude, float* longitude)
 {
-    /*double Lat0 = (8.46696 * pi) / 180;
-    double Lon0 = (-17.03663 * pi) / 180;
-    double Lat1 = (65.35996 * pi) / 180; 
-    double Lon1 = (-17.03663 * pi) / 180; */
-
-    double Lat0[COLUMN_VALUE_MAX_LEN];
-    double Lat1[COLUMN_VALUE_MAX_LEN];
-    get_single_column_multivalue(LATITUDE, SORT_BY_DESC, prev_lat_n,prev_lat_n_1);
-    Lat1 = (double)atof((char*)prev_lat_n);
-    Lat0 = (double)atof((char*)prev_lat_n_1);
-
     double Lat2, Lon2 = 0;
-    double distance = 0.5;
+    double distance = 0;
     double earth_radius = 6371; /* in kms */
     double bearing_theta;
     double X, Y;
@@ -299,19 +287,21 @@ void handle_gps_signal_lost(struct cloud_data_struct* cloud_data)
     printf(" The distance between source and destination is: %lf \n", distance);
 
     /* calculate bearing based on previous lat, lon */
-    X = cos(Lat0) * sin(Lon1 - Lon0);
-    Y = cos(Lat0) * sin(Lat1) - sin(Lat0) * cos(Lat1) * cos(Lon1 - Lon0);
+    X = cos(latitude[1]) * sin(longitude[0] - longitude[1]);
+    Y = cos(latitude[1]) * sin(latitude[0]) - sin(latitude[1]) * cos(latitude[0]) * cos(longitude[0] - longitude[1]);
     bearing_theta = atan2(X, Y);
 
     bearing_theta = (bearing_theta * 180) / pi;
 
     printf("Marathalli data: Bearing Theta values is %lf \n", bearing_theta);
 
-    Lat2 = asin(sin(Lat1) * cos(distance / earth_radius) + cos(Lat1) * sin(distance / earth_radius) * cos(bearing_theta));
-    Lon2 = Lon1 + atan2(sin(bearing_theta) * sin(distance / earth_radius) * cos(Lat1),
-        cos(distance / earth_radius) - sin(Lat1) * sin(Lat2));
+    Lat2 = asin(sin(latitude[0]) * cos(distance / earth_radius) + cos(latitude[0]) * sin(distance / earth_radius) * cos(bearing_theta));
+    Lon2 = longitude[0] + atan2(sin(bearing_theta) * sin(distance / earth_radius) * cos(latitude[0]),
+        cos(distance / earth_radius) - sin(latitude[0]) * sin(Lat2));
 
-    printf("Marathalli data:Lat2 value is: %lf \n", (Lat2 * 180) / pi);
-    printf("Marathalli data:Lon2 value is: %lf \n", (Lon2 * 180) / pi);
+    cloud_data->gps_data.latitude = (Lat2 * 180) / pi;
+    cloud_data->gps_data.longitude = (Lon2 * 180) / pi;
+    printf("Marathalli data:Lat2 value is: %lf \n", cloud_data->gps_data.latitude);
+    printf("Marathalli data:Lon2 value is: %lf \n", cloud_data->gps_data.longitude);
     return 0;
 }
