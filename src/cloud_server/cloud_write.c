@@ -178,6 +178,7 @@ void initialize_cloud_data(struct cloud_data_struct *cloud_data)
     struct can_data_struct can_data;
 
     gps_data.gps_time = "";
+    gps_data.dop_accuracy = "";
     gps_data.latitude = 0.0;
     gps_data.longitude = 0.0;
     gps_data.hdop = 0.0;

@@ -177,6 +177,19 @@ void get_gps_param_by_position(char **param, char *nmea_data, uint8_t position)
     }
 }
 
+char *dop_accuracy(double hdop)
+{
+    switch (hdop)
+    {
+    case hdop < 1:
+        return IDEAL;
+    default:
+        return IDEAL;
+    }
+
+    return IDEAL;
+}
+
 /*
  * Name : get_gps_data
  * Descriptoin: The get_gps_data function is for extracting latitude, longitude,
