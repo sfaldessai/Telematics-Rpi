@@ -9,7 +9,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
 #include "can_bus.h"
 #include "../../include/resource.h"
 #include "../logger/logger.h"
@@ -42,13 +41,13 @@ void get_request_frame(struct can_frame *request_frame, int pid, int mode)
 	 * 0x01 : Show Current Data - for speed and supported PID
 	 * 0x09 : Request vehicle information
 	 */
-	request_frame->data[1] = (uint8_t) mode;
+	request_frame->data[1] = (uint8_t)mode;
 	/* PID
 	 * 0x00 for supported pids
 	 * 0x0D for speed
 	 * 0x02 for VIN
 	 */
-	request_frame->data[2] = (uint8_t) pid;
+	request_frame->data[2] = (uint8_t)pid;
 
 	/* Below bytes are not used and set to 0xAA */
 	request_frame->data[3] = CAN_EMPTY_DATA;
@@ -67,14 +66,17 @@ void get_request_frame(struct can_frame *request_frame, int pid, int mode)
  *                  int sockfd: can socket file descriptor
  * 					struct can_frame request_frame:  Request frame for PID data
  *
- * Output parameters: void
+ * Output parameters: int : return number of bytes write
  */
-void transmit_can_data(int sockfd, struct can_frame request_frame)
+int transmit_can_data(int sockfd, struct can_frame request_frame)
 {
-	if (write(sockfd, &request_frame, sizeof(struct can_frame)) != sizeof(struct can_frame))
+	int rc = write(sockfd, &request_frame, sizeof(struct can_frame));
+	if (rc != sizeof(struct can_frame))
 	{
 		logger_error(CAN_LOG_MODULE_ID, "Error: Write failed- %s\r\n", __func__);
+		return rc;
 	}
+	return rc;
 }
 
 /*
@@ -86,16 +88,16 @@ void transmit_can_data(int sockfd, struct can_frame request_frame)
  *                  int sockfd: can socket file descriptor
  * 					struct can_frame *frame:  response frame for PID data
  *
- * Output parameters: void
+ * Output parameters: int return received bytes
  */
-void receive_can_data(int sockfd, struct can_frame *frame)
+int receive_can_data(int sockfd, struct can_frame *frame)
 {
-	int nbytes;
-	nbytes = read(sockfd, frame, sizeof(struct can_frame));
-	if (nbytes < 0)
+	int nbytes = read(sockfd, frame, sizeof(struct can_frame));
+	if (nbytes <= 0)
 	{
 		logger_error(CAN_LOG_MODULE_ID, "Error: Read failed- %s\r\n", __func__);
 	}
+	return nbytes;
 }
 
 /*
@@ -168,7 +170,7 @@ void close_socket(int *sockfd)
 /*
  * Name : log_can_data
  *
- * Descriptoin: The log_can_data function is for logging can request frame data and response frame data.
+ * Description: The log_can_data function is for logging can request frame data and response frame data.
  *
  * Input parameters:
  *                  struct can_frame frame: can frame data to log
@@ -186,7 +188,7 @@ void log_can_data(struct can_frame frame, char *type)
 /*
  * Name : log_can_supported_data
  *
- * Descriptoin: The log_can_supported_data function is for logging can supported PID with support status.
+ * Description: The log_can_supported_data function is for logging can supported PID with support status.
  *
  * Input parameters:
  *                  uint8_t *supported_binary_value: supported PID binary values

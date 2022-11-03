@@ -13,25 +13,19 @@
 #include <pthread.h>
 #include <getopt.h>
 #include <ctype.h>
+#include "mqtt_demo_mutual_auth.h"
 #include "main.h"
-
-#define MAX_READ_SIZE 1
-#define CLIENT_CONTROLLER "/dev/ttyUSB0"
-#define GPS_MODULE "/dev/ttyUSB1"
 
 int main(int argc, char *argv[])
 {
     struct uart_device_struct client_controller_device, gps_device;
     struct cloud_data_struct cloud_data;
+    struct aws_arg aws_arg_data;
     struct arg_struct client_controller_args, gps_args;
     pthread_t client_controller_read_thread, gps_read_thread, serial_write_thread;
-    pthread_t read_can_supported_thread, read_can_speed_thread, read_can_vin_thread;
+    pthread_t read_can_supported_thread, read_can_speed_thread, read_can_vin_thread, read_can_rpm_thread, read_can_temperature_thread, cloud_send_thread;
     int opt;
 
-    client_controller_device.file_name = "/dev/ttyACM0";
-    gps_device.file_name = "/dev/ttyUSB0"; /* connected neo gps module to rapi using UART to USB converter */
-    client_controller_device.baud_rate = B115200;
-    gps_device.baud_rate = B9600;
     /* uart set-up*/
     uart_setup(&client_controller_device, CLIENT_CONTROLLER, B115200, true);
     uart_setup(&gps_device, GPS_MODULE, B9600, true);
@@ -76,7 +70,12 @@ int main(int argc, char *argv[])
     pthread_create(&serial_write_thread, NULL, &write_to_cloud, &cloud_data);
 
     /* CAN Module Read Thread */
-    read_from_can(&cloud_data, &read_can_supported_thread, &read_can_speed_thread, &read_can_vin_thread);
+    read_from_can(&cloud_data, &read_can_supported_thread, &read_can_speed_thread, &read_can_vin_thread, &read_can_rpm_thread, &read_can_temperature_thread);
+
+    aws_arg_data.client_id = AWS_CLIENT_ID;
+    aws_arg_data.topic = AWS_TOPIC;
+    aws_arg_data.aws_iot_endpoint = AWS_IOT_ENDPOINT;
+    pthread_create(&cloud_send_thread, NULL, &mqtt_send, &aws_arg_data);
 
     /* Thread Creation End */
 
@@ -85,14 +84,25 @@ int main(int argc, char *argv[])
     {
         pthread_join(client_controller_read_thread, NULL);
     }
+    else
+    {
+        client_controller_error_codes(&cloud_data, FAILED_TO_OPEN_STM32_DEVICE);
+    }
     if (gps_device.fd > 0)
     {
         pthread_join(gps_read_thread, NULL);
     }
+    else
+    {
+        gps_error_codes(&cloud_data, FAILED_TO_OPEN_GPS_DEVICE);
+    }
+
     pthread_join(serial_write_thread, NULL);
     pthread_join(read_can_supported_thread, NULL);
     pthread_join(read_can_speed_thread, NULL);
     pthread_join(read_can_vin_thread, NULL);
+    pthread_join(read_can_rpm_thread, NULL);
+    pthread_join(read_can_temperature_thread, NULL);
     /* Join Thread End*/
 
     return 0;

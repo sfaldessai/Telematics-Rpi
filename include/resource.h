@@ -6,12 +6,78 @@
 
 #define PID_SUPPORTED_LEN 32
 
+#define ERROR_CODE_LEN 80
+#define ERROR_CODE_STRING_LEN 80
+
 #define DEBUG
 
 /* VIN Numerical counterparts */
 static const size_t values[] = {1, 2, 3, 4, 5, 6, 7, 8, 0, 1, 2, 3, 4, 5, 0, 7, 0, 9, 2, 3, 4, 5, 6, 7, 8, 9};
 /* Weights */
 static const size_t weights[] = {8, 7, 6, 5, 4, 3, 2, 10, 0, 9, 8, 7, 6, 5, 4, 3, 2};
+
+/* All ERROR CODE LIST WITH ERROR MESSAGE */
+static const char error_codes[ERROR_CODE_STRING_LEN][ERROR_CODE_STRING_LEN] =
+    {
+        {"900 = NO ERROR"},
+        {"901 = DEVICE INITIALIZING..."},
+
+        /* GPS ERROR CODE */
+        {"902 = GPS WRITE/TRANSMIT ERROR"},
+        {"903 = GPS NMEA SENTENCE CHECKSUM ERROR"},
+        {"904 = GPS POWERED OFF"},
+        {"905 = GPS BAD SIGNAL"},
+        {"906 = GPS DEVICE DISCONNECTED"},
+        {"907 = FAILED TO OPEN GPS DEVICE"},
+        {"908 = GPS LATITUDE EMPTY DATA"},
+        {"909 = GPS LONGITUDE EMPTY DATA"},
+        {"910 = GPS SPEED EMPTY DATA"},
+        {"911 = GPS DOP EMPTY DATA"},
+        {"912 = GPS INITIAL CONFIGURATION WRITE FAILED"},
+        {"913 = GPS GNSS FAILED TURN ON POWER"},
+        {"914 = GPS GNSS FAILED TURN OFF POWER"},
+        {"915 = NO/LOST GPS SIGNAL"},
+        {"916 = GPS SIGNAL IS IDEAL"},
+        {"917 = GPS SIGNAL IS EXCELLENT"},
+        {"918 = GPS SIGNAL IS GOOD"},
+        {"919 = GPS SIGNAL IS MODERATE"},
+        {"920 = GPS SIGNAL IS FAIR"},
+        {"921 = GPS SIGNAL IS POOR"},
+        {"922 = INVALID NMEA SENTENCES"},
+        {"923 = GPS INVALID QUALITY"},
+
+        /* STM32 ERROR CODE */
+        {"1001 = FAILED TO OPEN STM32 DEVICE"},
+        {"1002 = STM32 CHECKSUM ERROR"},
+        {"1003 = MOTION READ ERROR"},
+        {"1004 = PTO READ ERROR"},
+        {"1005 = VOLTAGE READ ERROR"},
+        {"1006 = STM32 DEVICE DISCONNECTED"},
+        {"1007 = MEMS ERROR"},
+        {"1008 = STM32 INVALID DATA"},
+
+        /* CAN ERROR CODE */
+        {"801 = CAN SOCKET ERROR"},
+        {"802 = CAN READ ERROR"},
+        {"803 = INVALID VIN ERROR"},
+        {"804 = INVALID WMIs ERROR"},
+        {"805 = SUPPORTED READ ERROR"},
+        {"806 = CAN RPM READ ERROR"},
+        {"807 = CAN SPEED READ ERROR"},
+        {"808 = CAN DISCONNECTED"},
+        {"809 = CAN WRITE ERROR"},
+        {"810 = CAN SOCKET CLOSED"},
+        {"811 = CAN PID NOT SUPPORTED"},
+
+        /* RPI ERROR CODE */
+        {"701 = MAC ADDRESS READ ERROR"},
+        {"-701 = SERVICE TIME ERROR"},
+        {"-702 = IDLING TIME ERROR"},
+        {"-703 = INVALID WMIs ERROR"},
+        {"-704 = DISTANCE TRAVELED ERROR"}
+
+        // END
+};
 
 /* All supported CAN PID list */
 static const char can_pids[PID_SUPPORTED_LEN][WMI_STRING_LEN] =

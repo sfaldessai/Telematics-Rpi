@@ -22,14 +22,14 @@
  * 					 char * (to set file name)
  * 					 int (to set baud rate)
  * 					 bool (to enable canonic mode)
- * Output parameters: void
+ * Output parameters: int : return fd value or 0
  */
-void uart_setup(struct uart_device_struct *device, char *file_name, int baud_rate, bool canonic)
+int uart_setup(struct uart_device_struct *device, char *file_name, int baud_rate, bool canonic)
 {
 	device->file_name = file_name;
 	device->baud_rate = (unsigned int)baud_rate;
 
-	uart_start(device, canonic);
+	return uart_start(device, canonic);
 }
 
 /*
@@ -146,17 +146,17 @@ int uart_reads(struct uart_device_struct *device, char *buf, size_t buf_len)
  */
 int uart_reads_chunk(struct uart_device_struct *device, char *buf, size_t buf_len)
 {
-	int rc;
+	int rc = 0;
 
-	if (device->fd < 0)
+	if (device->fd <= 0)
 	{
-		logger_error(SERIAL_LOG_MODULE_ID, "failed to open UART device - %s\r\n", __func__);
-		return device->fd;
+		logger_error(SERIAL_LOG_MODULE_ID, "failed to open UART device - %s : %d\r\n", __func__, device->fd);
+		return rc;
 	}
 
 	rc = read(device->fd, buf, buf_len);
-
-	if (rc < 0)
+	
+	if (rc <= 0)
 	{
 		logger_error(SERIAL_LOG_MODULE_ID, "failed to read uart data - %s\r\n", __func__);
 		return rc;
@@ -195,6 +195,19 @@ int uart_writes(struct uart_device_struct *device, char *string)
 }
 
 /*
+ * Name : uart_writes
+ * Descriptoin: The uart_writen function is for send data to serail port.
+ * Input parameters: struct uart_device_struct * (for serial device information)
+ * 					 char * (buffer to hold serail data)
+ * 					 size_t (buffer size)
+ * Output parameters: int
+ */
+int uart_gps_write(struct uart_device_struct *device, const uint8_t *string, uint8_t size)
+{
+	return write(device->fd, string, size);
+}
+
+/*
  * Name : uart_stop
  * Descriptoin: The uart_stop function is for closing serail port.
  * Input parameters: struct uart_device_struct * (for serial device information)
@@ -202,5 +215,10 @@ int uart_writes(struct uart_device_struct *device, char *string)
  */
 void uart_stop(struct uart_device_struct *device)
 {
-	free(device->tty);
+	if (device->fd > 0)
+	{
+		free(device->tty);
+		close(device->fd);
+		device->fd = 0;
+	}
 }
