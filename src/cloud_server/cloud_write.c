@@ -183,12 +183,14 @@ void initialize_cloud_data(struct cloud_data_struct *cloud_data)
     client_controller_data.acc_x = 0;
     client_controller_data.acc_y = 0;
     client_controller_data.acc_z = 0;
+    client_controller_data.mode = 1;
 
     memset(can_data.vin, '\0', MAX_LEN_VIN);
     memset(can_data.vehicle_type, '\0', WMI_STRING_LEN);
     can_data.speed = 0;
     can_data.rpm = 0.0;
     can_data.temperature = 0;
+    can_data.mode = 1;
     memset(can_data.supported_pids, '\0', CAN_PID_LENGTH * sizeof(uint8_t));
 
     cloud_data->gps_data = gps_data;
