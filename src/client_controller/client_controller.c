@@ -149,7 +149,7 @@ void *read_from_client_controller(void *arg)
                 {
                     get_client_controller_data(stm32_serial_data, &client_controller_data);
 
-                    if (verify_stm32_checksum(stm32_serial_data))
+                    if (verify_stm32_checksum(stm32_serial_data) == SUCESS_CODE)
                     {
                         /* update stm32 data to cloud_data struct which is used to combile all module data and send to cloud */
                         pthread_mutex_lock(&cloud_data_mutex);
@@ -224,6 +224,7 @@ int verify_stm32_checksum(const char *sentence)
     uint16_t checksum_dec = hex_to_decimal(checksum_hex);
     if (checksum == checksum_dec)
     {
+        logger_info(CC_LOG_MODULE_ID, "STM32 VALID CHECKSUM VERIFIED: %d : %d\n", checksum, checksum_dec);
         return SUCESS_CODE;
     }
     else
