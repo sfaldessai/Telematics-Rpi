@@ -26,7 +26,7 @@ struct cloud_data_struct
 	struct client_controller_data_struct client_controller_data;
 	struct can_data_struct can_data;
 	uint64_t idle_time_secs;
-	float prev_latitude[2], prev_longitude[2];
+	double prev_latitude[2], prev_longitude[2];
 };
 
 void *write_to_cloud(void *); /* pthread to display all serial data */
@@ -38,6 +38,9 @@ void calculate_idle_time(struct cloud_data_struct *);
 void display_cloud_struct_data_logger(struct cloud_data_struct *);
 
 void gps_error_codes(struct cloud_data_struct *, int);
+
 void client_controller_error_codes(struct cloud_data_struct *, int);
+
+void handle_gps_signal_lost(struct cloud_data_struct* );
 
 #endif

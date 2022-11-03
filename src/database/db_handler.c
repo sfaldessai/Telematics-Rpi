@@ -203,7 +203,7 @@ int get_single_column_value(char *column_name, char *sort_by, uint8_t *return_va
  *
  * Output parameters: int: returning sqlite success or error code
  */
-int get_last_two_lat_log(float *latitude, float *longitude)
+int get_last_two_lat_log(double *latitude, double *longitude)
 {
     sqlite3 *db;
     sqlite3_stmt *res;
