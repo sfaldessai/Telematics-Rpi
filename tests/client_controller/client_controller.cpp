@@ -108,12 +108,49 @@ TEST(ClientControllerTestGroup, stm32ReadThreadTest)
     /*act*/
     /* Testing infinite read loop */
     read_from_client_controller(&client_controller_args);
+    /*assert*/
+    CHECK(cloud_data.client_controller_data.voltage > 0);
+}
+
+TEST(ClientControllerTestGroup, stm32ReadThreadTest2)
+{
+    /*arrange*/
+    struct arg_struct client_controller_args2;
+    struct cloud_data_struct cloud_data; // = (struct cloud_data_struct)malloc(sizeof(struct cloud_data_struct));
+
+    struct uart_device_struct client_controller_device;
+    char *device_path = (char *)"/dev/ttyACM0";
     uart_setup(&client_controller_device, device_path, B115200, true);
-    read_from_client_controller(&client_controller_args);
+
+    client_controller_args2.uart_device = client_controller_device;
+    client_controller_args2.cloud_data = &cloud_data;
+    client_controller_args2.cloud_data->client_controller_data.mode = 0;
+
+    /*act*/
+    /* Testing infinite read loop */
+    read_from_client_controller(&client_controller_args2);
+
+    /*assert*/
+    CHECK(cloud_data.client_controller_data.voltage > 0);
+}
+
+TEST(ClientControllerTestGroup, stm32ReadThreadTest3)
+{
+    /*arrange*/
+    struct arg_struct client_controller_args3;
+    struct cloud_data_struct cloud_data; // = (struct cloud_data_struct)malloc(sizeof(struct cloud_data_struct));
+
+    struct uart_device_struct client_controller_device;
+    char *device_path = (char *)"/dev/ttyACM0";
     uart_setup(&client_controller_device, device_path, B115200, true);
-    read_from_client_controller(&client_controller_args);
-    uart_setup(&client_controller_device, device_path, B115200, true);
-    read_from_client_controller(&client_controller_args);
+
+    client_controller_args3.uart_device = client_controller_device;
+    client_controller_args3.cloud_data = &cloud_data;
+    client_controller_args3.cloud_data->client_controller_data.mode = 0;
+
+    /*act*/
+    /* Testing infinite read loop */
+    read_from_client_controller(&client_controller_args3);
 
     /*assert*/
     CHECK(cloud_data.client_controller_data.voltage > 0);

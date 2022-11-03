@@ -256,7 +256,7 @@ void *read_can_id_number(void *arg)
         }
         /* Retrying after 3 seconds if vin pid request faild */
         sleep(3);
-    } while (cloud_data->can_data.mode); /* mode=1 for infinite loop - build mode  || mode=0 for test mode used to test infinte loops and other cases */
+    } while (cloud_data->can_data.mode == BUIL_MODE); /* mode=1 for infinite loop - build mode  || mode=0 for test mode used to test infinte loops and other cases */
 
     /* Retuning null to avoid control reaches end of non-void function warning */
     return NULL;
@@ -307,7 +307,7 @@ void *read_can_rpm_pid(void *arg)
 
         /* request next data each 1sec */
         sleep(1);
-    } while (cloud_data->can_data.mode); /* mode=1 for infinite loop - build mode  || mode=0 for test mode used to test infinte loops and other cases */
+    } while (cloud_data->can_data.mode == BUIL_MODE); /* mode=1 for infinite loop - build mode  || mode=0 for test mode used to test infinte loops and other cases */
     close_socket(&sockfd);
     update_can_error_code(cloud_data, CAN_SOCKET_CLOSED);
 
@@ -359,7 +359,7 @@ void *read_can_speed_pid(void *arg)
 
         /* request next data each 1sec */
         sleep(1);
-    } while (cloud_data->can_data.mode); /* mode=1 for infinite loop - build mode  || mode=0 for test mode used to test infinte loops and other cases */
+    } while (cloud_data->can_data.mode == BUIL_MODE); /* mode=1 for infinite loop - build mode  || mode=0 for test mode used to test infinte loops and other cases */
     close_socket(&sockfd);
     update_can_error_code(cloud_data, CAN_SOCKET_CLOSED);
 
@@ -407,8 +407,11 @@ void *read_can_supported_pid(void *arg)
             log_can_supported_data(supported_binary_value);
         }
         /* request next data after 30sec */
-        sleep(30);
-    } while (cloud_data->can_data.mode); /* mode=1 for infinite loop - build mode  || mode=0 for test mode used to test infinte loops and other cases */
+        if (cloud_data->can_data.mode == BUIL_MODE)
+        {
+            sleep(30);
+        }
+    } while (cloud_data->can_data.mode == BUIL_MODE); /* mode=1 for infinite loop - build mode  || mode=0 for test mode used to test infinte loops and other cases */
     close_socket(&sockfd);
     update_can_error_code(cloud_data, CAN_SOCKET_CLOSED);
 
@@ -460,7 +463,7 @@ void *read_can_temperature_pid(void *arg)
 
         /* request next data each 1sec */
         sleep(1);
-    } while (cloud_data->can_data.mode); /* mode=1 for infinite loop - build mode  || mode=0 for test mode used to test infinte loops and other cases */
+    } while (cloud_data->can_data.mode == BUIL_MODE); /* mode=1 for infinite loop - build mode  || mode=0 for test mode used to test infinte loops and other cases */
     close_socket(&sockfd);
 
     return NULL;

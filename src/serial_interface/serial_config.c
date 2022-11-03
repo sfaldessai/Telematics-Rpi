@@ -130,7 +130,7 @@ int uart_reads(struct uart_device_struct *device, char *buf, size_t buf_len)
 	rc = read(device->fd, buf, buf_len);
 	if (rc < 0)
 	{
-		logger_error(SERIAL_LOG_MODULE_ID, "failed to read uart data - %s\r\n", __func__);
+		logger_error(SERIAL_LOG_MODULE_ID, "failed to read uart data - %s :%s\r\n", __func__, device->file_name);
 		return rc;
 	}
 	return rc;
@@ -158,7 +158,7 @@ int uart_reads_chunk(struct uart_device_struct *device, char *buf, size_t buf_le
 
 	if (rc <= 0)
 	{
-		logger_error(SERIAL_LOG_MODULE_ID, "failed to read uart data - %s\r\n", __func__);
+		logger_error(SERIAL_LOG_MODULE_ID, "failed to read uart data - %s : %s\r\n", __func__, device->file_name);
 		return rc;
 	}
 

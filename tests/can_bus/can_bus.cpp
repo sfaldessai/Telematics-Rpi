@@ -75,3 +75,17 @@ TEST(CanBusTestGroup, getManufacturerDetailInValidTest)
     /*assert*/
     STRCMP_EQUAL(NULL, vehicle_detail);
 }
+
+TEST(CanBusTestGroup, readCaTemperaturePidTest)
+{
+    /*arrange*/
+    struct cloud_data_struct cloud_data; // = (struct cloud_data_struct)malloc(sizeof(struct cloud_data_struct));
+    cloud_data.can_data.mode = 0;
+    pthread_t read_can_supported_thread, read_can_speed_thread, read_can_vin_thread, read_can_rpm_thread, read_can_temperature_thread;
+
+    /*act*/
+    read_from_can(&cloud_data, &read_can_supported_thread, &read_can_speed_thread, &read_can_vin_thread, &read_can_rpm_thread, &read_can_temperature_thread);
+
+    /*assert*/
+    CHECK(cloud_data.can_data.speed > 0);
+}
