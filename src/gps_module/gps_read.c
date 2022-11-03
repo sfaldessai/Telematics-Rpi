@@ -23,10 +23,7 @@
 #define CR 0x0d
 #define SPEED_POS ((uint8_t)7)
 #define GPS_KMPH_PER_KNOT 1.852
-#define NMEA_END_CHAR '\n'
 #define SUCESS_CODE 0
-#define ASTERISK_SIGN 0x2A
-#define DOLLAR_SIGN 0x24
 
 uint8_t is_ignition_on = IGNITION_ON;
 
@@ -55,64 +52,6 @@ void update_gps_error_code(struct cloud_data_struct *cloud_data, int error_code)
     pthread_mutex_lock(&cloud_data_gps_mutex);
     cloud_data->gps_data = gps_data;
     pthread_mutex_unlock(&cloud_data_gps_mutex);
-}
-
-/*
- * Name : nmea_verify_checksum
- * Descriptoin: The nmea_verify_checksum function is for verifying GPS checksum.
- * Input parameters:
- *                  const char *sentence : NMEA senetence
- *
- * Output parameters: uint8_t: return 1 for invalid and 0 for valid
- */
-int nmea_verify_checksum(const char *sentence)
-{
-    int checksum = 0;
-    uint8_t gps_checksum_hex[8];
-
-    if (strlen(sentence) > MAX_READ_SIZE || strchr(sentence, ASTERISK_SIGN) == NULL || strchr(sentence, DOLLAR_SIGN) == NULL)
-    {
-        logger_info(GPS_LOG_MODULE_ID, "Invalid NMEA sentence: %s\n", __func__);
-        return GPS_NMEA_SENTENCE_CHECKSUM_ERROR;
-    }
-    while ('*' != *sentence && NMEA_END_CHAR != *sentence)
-    {
-        if (DOLLAR_SIGN == *sentence)
-        {
-            sentence = sentence + 1;
-            continue;
-        }
-        if ('\0' == *sentence)
-        {
-            logger_info(GPS_LOG_MODULE_ID, "Invalid NMEA sentence: %s\n", __func__);
-            return GPS_NMEA_SENTENCE_CHECKSUM_ERROR;
-        }
-        checksum = checksum ^ (uint8_t)*sentence;
-        sentence = sentence + 1;
-    }
-    sentence = sentence + 1;
-
-    if (strlen(sentence) >= 2)
-    {
-        gps_checksum_hex[0] = sentence[0];
-        gps_checksum_hex[1] = sentence[1];
-        gps_checksum_hex[2] = '\0';
-    }
-    else
-    {
-        logger_info(GPS_LOG_MODULE_ID, " Invalid Checksum from GPS: %s\n", __func__);
-        return GPS_NMEA_SENTENCE_CHECKSUM_ERROR;
-    }
-
-    uint16_t gps_checksum_dec = hex_to_decimal(gps_checksum_hex);
-    if (checksum == gps_checksum_dec)
-    {
-        return SUCESS_CODE;
-    }
-    else
-    {
-        return GPS_NMEA_SENTENCE_CHECKSUM_ERROR;
-    }
 }
 
 /*
@@ -424,7 +363,7 @@ int gps_data_processing(char *read_data, struct gps_data_struct *gps_data)
 {
     logger_info(GPS_LOG_MODULE_ID, "COMPLETE GPS DATA: %s\n", read_data);
 
-    int is_valid_checksum = nmea_verify_checksum(read_data);
+    int is_valid_checksum = verify_checksum(read_data, GPS_LOG_MODULE_ID);
 
     if (is_valid_checksum == SUCESS_CODE)
     {

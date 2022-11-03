@@ -18,8 +18,6 @@
 #define CR 0x0d
 #define NMEA_END_CHAR '\n'
 #define SUCESS_CODE 0
-#define HASH_SIGN 0x23
-#define DOLLAR_SIGN 0x24
 
 /* mutex to lock cloud_data struct for wirte */
 pthread_mutex_t cloud_data_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -149,7 +147,7 @@ void *read_from_client_controller(void *arg)
                 {
                     get_client_controller_data(stm32_serial_data, &client_controller_data);
 
-                    if (verify_stm32_checksum(stm32_serial_data) == SUCESS_CODE)
+                    if (verify_checksum(stm32_serial_data, CC_LOG_MODULE_ID) == SUCESS_CODE)
                     {
                         /* update stm32 data to cloud_data struct which is used to combile all module data and send to cloud */
                         pthread_mutex_lock(&cloud_data_mutex);
@@ -171,64 +169,4 @@ void *read_from_client_controller(void *arg)
     } while (client_controller_data.mode); /* mode=1 for infinite loop - build mode  || mode=0 for test mode used to test infinte loops and other cases */
     uart_stop(&client_controller_device);
     return 0;
-}
-
-/*
- * Name : verify_stm32_checksum
- * Descriptoin: The verify_stm32_checksum function is for verifying STM32 checksum.
- * Input parameters:
- *                  const char *sentence : STM senetence data
- *
- * Output parameters: uint8_t: return 0 for valid and CHECKSUM_ERROR_CODE 1002 for invalid
- */
-int verify_stm32_checksum(const char *sentence)
-{
-    int checksum = 0;
-    uint8_t checksum_hex[8];
-
-    if (strlen(sentence) > MAX_READ_SIZE_CHECKSUM || strchr(sentence, HASH_SIGN) == NULL || strchr(sentence, DOLLAR_SIGN) == NULL)
-    {
-        logger_error(MAIN_LOG_MODULE_ID, "Invalid STM32 sentence: %s\n", __func__);
-        return STM32_CHECKSUM_ERROR;
-    }
-    while ('#' != *sentence && NMEA_END_CHAR != *sentence)
-    {
-        if (DOLLAR_SIGN == *sentence)
-        {
-            sentence = sentence + 1;
-            continue;
-        }
-        if ('\0' == *sentence)
-        {
-            logger_error(MAIN_LOG_MODULE_ID, "Invalid STM32 sentence: %s\n", __func__);
-            return STM32_CHECKSUM_ERROR;
-        }
-        checksum = checksum ^ (uint8_t)*sentence;
-        sentence = sentence + 1;
-    }
-
-    sentence = sentence + 1;
-
-    if (strlen(sentence) >= 2)
-    {
-        checksum_hex[0] = sentence[0];
-        checksum_hex[1] = sentence[1];
-        checksum_hex[2] = '\0';
-    }
-    else
-    {
-        logger_error(MAIN_LOG_MODULE_ID, " Invalid Checksum from STM32: %s\n", __func__);
-        return STM32_CHECKSUM_ERROR;
-    }
-
-    uint16_t checksum_dec = hex_to_decimal(checksum_hex);
-    if (checksum == checksum_dec)
-    {
-        logger_info(CC_LOG_MODULE_ID, "STM32 VALID CHECKSUM VERIFIED: %d : %d\n", checksum, checksum_dec);
-        return SUCESS_CODE;
-    }
-    else
-    {
-        return STM32_CHECKSUM_ERROR;
-    }
 }
