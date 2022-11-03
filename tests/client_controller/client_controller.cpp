@@ -106,6 +106,7 @@ TEST(ClientControllerTestGroup, stm32ReadThreadTest)
     client_controller_args.cloud_data->client_controller_data.mode = 0;
 
     /*act*/
+    /* Testing infinite read loop */
     read_from_client_controller(&client_controller_args);
     uart_setup(&client_controller_device, device_path, B115200, true);
     read_from_client_controller(&client_controller_args);

@@ -365,16 +365,3 @@ TEST(GPSTestGroup, initialize_gps_moduleTest)
     /*assert*/
     CHECK_EQUAL(0, result);
 }
-
-// /* Test update_gps_error_code function */
-// TEST(GPSTestGroup, update_gps_error_codeTest)
-// {
-//     /*arrange*/
-//     struct cloud_data_struct *cloud_data =(struct cloud_data_struct*)  malloc(sizeof(struct cloud_data_struct));
-
-//     /*act*/
-//     update_gps_error_code(cloud_data, 902);
-
-//     /*assert*/
-//     DOUBLES_EQUAL(902.00, cloud_data->gps_data.hdop, 0.0001);
-// }

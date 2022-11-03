@@ -79,7 +79,7 @@ struct can_data_struct
 	uint8_t supported_pids[CAN_PID_LENGTH];
 	int temperature;
 	char vehicle_type[WMI_STRING_LEN];
-	int mode;
+	int mode; /* mode=1 for infinite loop - build mode  || mode=0 for test mode used to test infinte loops and other cases */
 };
 
 /* pthread to display all serial data */

@@ -168,7 +168,7 @@ void *read_from_client_controller(void *arg)
                 }
             }
         }
-    } while (client_controller_data.mode);
+    } while (client_controller_data.mode); /* mode=1 for infinite loop - build mode  || mode=0 for test mode used to test infinte loops and other cases */
     uart_stop(&client_controller_device);
     return 0;
 }
