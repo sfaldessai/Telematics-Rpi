@@ -24,12 +24,8 @@
 #define PI 3.142
 #define EARTH_RADIUS 6371
 
-bool idle_timer_started = false, gps_signal_lost_timer_started = false;
-time_t begin, end,gps_lost_begin_time, gps_lost_end_time;
-double Lat0 = 0;
-double Lon0 = 0;
-double Lat1 = 0;
-double Lon1 = 0;
+bool idle_timer_started = false;
+time_t begin, end;
 
 char *create_json_obj(struct cloud_data_struct *cloud_data)
 {
@@ -118,12 +114,8 @@ void *write_to_cloud(void *arg)
             if (cloud_data->gps_data.hdop >= GPS_ERROR_RANGE_BEGIN && cloud_data->gps_data.hdop <= GPS_ERROR_RANGE_END) {
 
                 get_last_two_lat_log(cloud_data->prev_latitude, cloud_data->prev_longitude);
-
-                // last updated value 
-                printf("\nlatitude = %lf lagitude = %lf", cloud_data->prev_latitude[0], cloud_data->prev_longitude[0]);
-                // last - 1 updated value 
-                printf("\nlatitude = %lf lagitude = %lf", cloud_data->prev_latitude[1], cloud_data->prev_longitude[1]);
-
+                logger_info(CLOUD_LOG_MODULE_ID, "last(nth) updated value: latitude = %lf lagitude = %lf", cloud_data->prev_latitude[0], cloud_data->prev_longitude[0]);
+                logger_info(CLOUD_LOG_MODULE_ID, "last(nth-1) updated value: latitude = %lf lagitude = %lf", cloud_data->prev_latitude[1], cloud_data->prev_longitude[1]);
                 handle_gps_signal_lost(cloud_data);
             }
             send_data = create_json_obj(cloud_data);
