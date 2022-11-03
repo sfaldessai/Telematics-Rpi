@@ -281,3 +281,30 @@ TEST(GPSTestGroup, initialize_gps_moduleTest)
     /*assert*/
     CHECK_EQUAL(0, result);
 }
+/* Test dop_accuracy_string function */
+TEST(GPSTestGroup, dop_accuracy_stringTest)
+{
+    /*arrange*/
+    double hdop = 0.6;
+    double hdop2 = 1.5;
+    double hdop3 = 3;
+    double hdop4 = 6;
+    double hdop5 = 12;
+    double hdop6 = 22;
+
+    /*act*/
+    char *dop_accuracy = dop_accuracy_string(hdop);
+    char *dop_accuracy2 = dop_accuracy_string(hdop2);
+    char *dop_accuracy3 = dop_accuracy_string(hdop3);
+    char *dop_accuracy4 = dop_accuracy_string(hdop4);
+    char *dop_accuracy5 = dop_accuracy_string(hdop5);
+    char *dop_accuracy6 = dop_accuracy_string(hdop6);
+
+    /*assert*/
+    STRCMP_EQUAL("IDEAL", dop_accuracy);
+    STRCMP_EQUAL("EXCELLENT", dop_accuracy2);
+    STRCMP_EQUAL("GOOD", dop_accuracy3);
+    STRCMP_EQUAL("MODERATE", dop_accuracy4);
+    STRCMP_EQUAL("FAIR", dop_accuracy5);
+    STRCMP_EQUAL("POOR", dop_accuracy6);
+}

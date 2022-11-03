@@ -115,6 +115,34 @@ void get_gps_param_by_position(char **param, char *nmea_data, uint8_t position)
     }
 }
 
+char *dop_accuracy_string(double hdop)
+{
+    if (hdop < 1)
+    {
+        return IDEAL;
+    }
+    else if (hdop > 1 && hdop < 2)
+    {
+        return EXCELLENT;
+    }
+    else if (hdop > 2 && hdop < 5)
+    {
+        return GOOD;
+    }
+    else if (hdop > 5 && hdop < 10)
+    {
+        return MODERATE;
+    }
+    else if (hdop > 10 && hdop < 20)
+    {
+        return FAIR;
+    }
+    else
+    {
+        return POOR;
+    }
+}
+
 /*
  * Name : get_gps_data
  * Descriptoin: The get_gps_data function is for extracting latitude, longitude,
@@ -180,6 +208,14 @@ int get_gps_data(char *nmea_data, struct gps_data_struct *gps_data)
 
         /* Horizontal dilution of position */
         double hdop = atof(gga_data + 1);
+
+        char *dop_accuracy = dop_accuracy_string(hdop);
+        if (dop_accuracy != NULL)
+        {
+            strncpy(gps_data->dop_accuracy, dop_accuracy, DOP_ACCURACY_STRING - 1);
+            logger_info(GPS_LOG_MODULE_ID, "DOP ACCURACY: %s\n", gps_data->dop_accuracy);
+        }
+
         if (hdop == NO_SIGNAL_DOP_VALUE)
         {
             return LOST_GPS_SIGNAL_ERROR;
@@ -217,14 +253,14 @@ int get_gps_data(char *nmea_data, struct gps_data_struct *gps_data)
         /* Get Speed from RMC message*/
         get_gps_param_by_position(&rmc_data, nmea_data, SPEED_POS);
 
-        gps_data->speed = atof(rmc_data) * GPS_KMPH_PER_KNOT;
+        gps_data->speed = (int) (atof(rmc_data) * GPS_KMPH_PER_KNOT);
     }
     else if (nmea_data[3] == 'V' && nmea_data[4] == 'T' && nmea_data[5] == 'G')
     {
         /* Get Speed from VTG message*/
         get_gps_param_by_position(&vtg_data, nmea_data, SPEED_POS);
 
-        gps_data->speed = atof(vtg_data);
+        gps_data->speed = atoi(vtg_data);
     }
     return SUCESS_CODE;
 }

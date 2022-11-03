@@ -57,6 +57,16 @@
 #define HEADER_2 0x62
 #define CLASS_ID 0x62
 
+/* DOP Accuracy */
+#define IDEAL "IDEAL"
+#define EXCELLENT "EXCELLENT"
+#define GOOD "GOOD"
+#define MODERATE "MODERATE"
+#define FAIR "FAIR"
+#define POOR "POOR"
+
+#define DOP_ACCURACY_STRING 32
+
 /* UBX-CFG-CFG */
 static const uint8_t save_configuration[SAVE_CONFIG_CMD_LEN] = {
 	HEADER_1, HEADER_2,
@@ -164,6 +174,7 @@ struct gps_data_struct
 	double vdop;
 	double hdop;
 	int speed;
+	char dop_accuracy[DOP_ACCURACY_STRING];
 };
 
 void *read_from_gps(void *); /* pthread to handle gps read */
@@ -177,5 +188,6 @@ int ignition_off(struct uart_device_struct);
 int ignition_on(struct uart_device_struct);
 int gps_data_processing(char *read_data, struct gps_data_struct *gps_data);
 int initialize_gps_module(struct uart_device_struct gps_device);
+char *dop_accuracy_string(double hdop);
 
 #endif
