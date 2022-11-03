@@ -9,6 +9,7 @@
 #define GPS_MODULE_H_
 
 #include <stdint.h>
+#include "../serial_interface/serial_config.h"
 
 #define DEBUG
 
@@ -184,6 +185,10 @@ void get_dops(char **, char *);
 int get_gps_data(char *, struct gps_data_struct *);
 void get_gps_param_by_position(char **, char *, uint8_t);
 int nmea_verify_checksum(const char *);
+int ignition_off(struct uart_device_struct);
+int ignition_on(struct uart_device_struct);
+int gps_data_processing(char *read_data, struct gps_data_struct *gps_data);
+int initialize_gps_module(struct uart_device_struct gps_device);
 char *dop_accuracy_string(double hdop);
 
 #endif

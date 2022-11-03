@@ -14,7 +14,6 @@
 #include <math.h>
 #include <pthread.h>
 #include "gps_module.h"
-#include "../serial_interface/serial_config.h"
 #include "../main.h"
 
 #define MAX_READ_SIZE 80 /* GPS at most, sends 80 or so chars per message string.*/
@@ -272,20 +271,19 @@ int get_gps_data(char *nmea_data, struct gps_data_struct *gps_data)
         double hdop = atof(gga_data + 1);
 
         char *dop_accuracy = dop_accuracy_string(hdop);
-
         if (dop_accuracy != NULL)
         {
             strncpy(gps_data->dop_accuracy, dop_accuracy, DOP_ACCURACY_STRING - 1);
             logger_info(GPS_LOG_MODULE_ID, "DOP ACCURACY: %s\n", gps_data->dop_accuracy);
         }
 
-        if (gps_quality <= 0 || hdop >= INVALID_DOP_VALUE)
-        {
-            return GPS_INVALID_QUALITY;
-        }
-        else if (hdop == NO_SIGNAL_DOP_VALUE)
+        if (hdop == NO_SIGNAL_DOP_VALUE)
         {
             return LOST_GPS_SIGNAL_ERROR;
+        }
+        else if (gps_quality <= 0 || hdop >= INVALID_DOP_VALUE)
+        {
+            return GPS_INVALID_QUALITY;
         }
     }
     else if (nmea_data[3] == 'G' && nmea_data[4] == 'S' && nmea_data[5] == 'A')
@@ -316,14 +314,14 @@ int get_gps_data(char *nmea_data, struct gps_data_struct *gps_data)
         /* Get Speed from RMC message*/
         get_gps_param_by_position(&rmc_data, nmea_data, SPEED_POS);
 
-        gps_data->speed = atof(rmc_data) * GPS_KMPH_PER_KNOT;
+        gps_data->speed = (int) (atof(rmc_data) * GPS_KMPH_PER_KNOT);
     }
     else if (nmea_data[3] == 'V' && nmea_data[4] == 'T' && nmea_data[5] == 'G')
     {
         /* Get Speed from VTG message*/
         get_gps_param_by_position(&vtg_data, nmea_data, SPEED_POS);
 
-        gps_data->speed = atof(vtg_data);
+        gps_data->speed = atoi(vtg_data);
     }
     return SUCESS_CODE;
 }
@@ -422,13 +420,14 @@ int initialize_gps_module(struct uart_device_struct gps_device)
  *
  * Output parameters: void
  */
-void ignition_on(struct uart_device_struct gps_device)
+int ignition_on(struct uart_device_struct gps_device)
 {
-    int byte = send_ubx_cfg_command(gps_device, set_gnss_start, GNSS_STOP_START_CMD_LEN);
-    if (byte == GNSS_STOP_START_CMD_LEN)
+    int rc = send_ubx_cfg_command(gps_device, set_gnss_start, GNSS_STOP_START_CMD_LEN);
+    if (rc == SUCESS_CODE)
     {
         is_ignition_on = IGNITION_ON;
     }
+    return rc;
 }
 
 /*
@@ -438,15 +437,16 @@ void ignition_on(struct uart_device_struct gps_device)
  * Input parameters: struct uart_device_struct gps_device : serial port
  *
  *
- * Output parameters: void
+ * Output parameters: int : bytes sent
  */
-void ignition_off(struct uart_device_struct gps_device)
+int ignition_off(struct uart_device_struct gps_device)
 {
-    int byte = send_ubx_cfg_command(gps_device, set_gnss_stop, GNSS_STOP_START_CMD_LEN);
-    if (byte == GNSS_STOP_START_CMD_LEN)
+    int rc = send_ubx_cfg_command(gps_device, set_gnss_stop, GNSS_STOP_START_CMD_LEN);
+    if (rc == SUCESS_CODE)
     {
         is_ignition_on = IGNITION_OFF;
     }
+    return rc;
 }
 
 /*
