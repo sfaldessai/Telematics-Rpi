@@ -14,7 +14,6 @@
 #include <math.h>
 #include <pthread.h>
 #include "gps_module.h"
-#include "../serial_interface/serial_config.h"
 #include "../main.h"
 
 #define MAX_READ_SIZE 80 /* GPS at most, sends 80 or so chars per message string.*/
@@ -242,13 +241,13 @@ int get_gps_data(char *nmea_data, struct gps_data_struct *gps_data)
 
         /* Horizontal dilution of position */
         double hdop = atof(gga_data + 1);
-        if (gps_quality <= 0 || hdop >= INVALID_DOP_VALUE)
-        {
-            return GPS_INVALID_QUALITY;
-        }
-        else if (hdop == NO_SIGNAL_DOP_VALUE)
+        if (hdop == NO_SIGNAL_DOP_VALUE)
         {
             return LOST_GPS_SIGNAL_ERROR;
+        }
+        else if (gps_quality <= 0 || hdop >= INVALID_DOP_VALUE)
+        {
+            return GPS_INVALID_QUALITY;
         }
     }
     else if (nmea_data[3] == 'G' && nmea_data[4] == 'S' && nmea_data[5] == 'A')
@@ -385,13 +384,14 @@ int initialize_gps_module(struct uart_device_struct gps_device)
  *
  * Output parameters: void
  */
-void ignition_on(struct uart_device_struct gps_device)
+int ignition_on(struct uart_device_struct gps_device)
 {
-    int byte = send_ubx_cfg_command(gps_device, set_gnss_start, GNSS_STOP_START_CMD_LEN);
-    if (byte == GNSS_STOP_START_CMD_LEN)
+    int rc = send_ubx_cfg_command(gps_device, set_gnss_start, GNSS_STOP_START_CMD_LEN);
+    if (rc == SUCESS_CODE)
     {
         is_ignition_on = IGNITION_ON;
     }
+    return rc;
 }
 
 /*
@@ -401,15 +401,16 @@ void ignition_on(struct uart_device_struct gps_device)
  * Input parameters: struct uart_device_struct gps_device : serial port
  *
  *
- * Output parameters: void
+ * Output parameters: int : bytes sent
  */
-void ignition_off(struct uart_device_struct gps_device)
+int ignition_off(struct uart_device_struct gps_device)
 {
-    int byte = send_ubx_cfg_command(gps_device, set_gnss_stop, GNSS_STOP_START_CMD_LEN);
-    if (byte == GNSS_STOP_START_CMD_LEN)
+    int rc = send_ubx_cfg_command(gps_device, set_gnss_stop, GNSS_STOP_START_CMD_LEN);
+    if (rc == SUCESS_CODE)
     {
         is_ignition_on = IGNITION_OFF;
     }
+    return rc;
 }
 
 /*

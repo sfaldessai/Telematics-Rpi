@@ -10,6 +10,7 @@ extern "C"
 {
 #include "./../src/serial_interface/serial_config.h"
 #include "./../src/gps_module/gps_module.h"
+#include "./../src/main.h"
 }
 
 TEST_GROUP(GPSTestGroup)
@@ -135,6 +136,21 @@ TEST(GPSTestGroup, NmeaVerifyChecksumInvalidTest)
     CHECK_EQUAL(903, result_2);
 }
 
+TEST(GPSTestGroup, NmeaVerifyChecksumNullTest)
+{
+    /*arrange*/
+    char *sentence = (char *)"\0";
+    char *sentence2 = (char *)"$GNRMC,,V,,,,,N*";
+
+    /*act*/
+    int result = nmea_verify_checksum(sentence);
+    int result2 = nmea_verify_checksum(sentence2);
+
+    /*assert*/
+    CHECK_EQUAL(903, result);
+    CHECK_EQUAL(903, result2);
+}
+
 /* Test lat long value with - sign */
 TEST(GPSTestGroup, getGpsLatLongDataWithSignTest)
 {
@@ -149,6 +165,30 @@ TEST(GPSTestGroup, getGpsLatLongDataWithSignTest)
 
     DOUBLES_EQUAL(-18.63075, gps_data.latitude, 0.0001);
     DOUBLES_EQUAL(-73.8718, gps_data.longitude, 0.0001);
+}
+
+/* Test get_gps_data for invalid quality */
+TEST(GPSTestGroup, getGpsLatLongDataWithInvalidSignal)
+{
+    /*arrange*/
+    char *nmea_data = (char *)"$GLGGA,053137.00,1731.98832,N,07830.46500,E,1,05,30.42,414.3,M,-73.9,M,,*4A";
+    char *nmea_data2 = (char *)"$GLGGA,053137.00,1731.98832,N,07830.46500,E,1,05,99.99,414.3,M,-73.9,M,,*4A";
+    char *nmea_data3 = (char *)"$GNGSA,A,3,26,27,09,02,28,17,12,,,,,,30.87,30.13,30.48*07";
+    char *nmea_data4 = (char *)"$GNGSA,A,3,26,27,09,02,28,17,12,,,,,,99.99,99.99,99.99*07";
+    struct gps_data_struct gps_data;
+
+    /*act*/
+    int result = get_gps_data(nmea_data, &gps_data);
+    int result2 = get_gps_data(nmea_data2, &gps_data);
+    int result3 = get_gps_data(nmea_data3, &gps_data);
+    int result4 = get_gps_data(nmea_data4, &gps_data);
+
+    /*assert*/
+
+    CHECK_EQUAL(923, result);
+    CHECK_EQUAL(915, result2);
+    CHECK_EQUAL(923, result3);
+    CHECK_EQUAL(915, result4);
 }
 
 /* Test NMEA sentence extraction with different prefix */
@@ -227,4 +267,101 @@ TEST(GPSTestGroup, emptyvaluegTest)
 
     /*assert*/
     CHECK_EQUAL(GPS_NMEA_SENTENCE_CHECKSUM_ERROR, result);
+}
+
+/* Test ignition off with invalid fd passed */
+TEST(GPSTestGroup, ignition_offWithInvalidFDTest)
+{
+    /*arrange*/
+    struct uart_device_struct device;
+    device.file_name = (char *)"filename";
+    device.baud_rate = 9600;
+    device.fd = 0;
+
+    /*act*/
+    int result = ignition_off(device);
+
+    /*assert*/
+    CHECK_EQUAL(912, result);
+}
+
+/* Test ignition off with valid fd passed */
+TEST(GPSTestGroup, ignition_offWithValidFDTest)
+{
+    /*arrange*/
+    struct uart_device_struct gps_device;
+    char *device_path = (char *)"/dev/ttyUSB0";
+    uart_setup(&gps_device, device_path, B9600, true);
+
+    /*act*/
+    int result = ignition_off(gps_device);
+    uart_stop(&gps_device);
+
+    /*assert*/
+    CHECK_EQUAL(0, result);
+}
+
+/* Test ignition on with invalid fd passed */
+TEST(GPSTestGroup, ignition_onWithInvalidFDTest)
+{
+    /*arrange*/
+    struct uart_device_struct device;
+    device.file_name = (char *)"filename";
+    device.baud_rate = 9600;
+    device.fd = 0;
+
+    /*act*/
+    int result = ignition_on(device);
+
+    /*assert*/
+    CHECK_EQUAL(912, result);
+}
+
+/* Test ignition on with valid fd passed */
+TEST(GPSTestGroup, ignition_onWithValidFDTest)
+{
+    /*arrange*/
+    struct uart_device_struct gps_device;
+    char *device_path = (char *)"/dev/ttyUSB0";
+    uart_setup(&gps_device, device_path, B9600, true);
+
+    /*act*/
+    int result = ignition_on(gps_device);
+    uart_stop(&gps_device);
+
+    /*assert*/
+    CHECK_EQUAL(0, result);
+}
+
+/* Test gps_data_processing function */
+TEST(GPSTestGroup, gps_data_processingTest)
+{
+    /*arrange*/
+    char *read_data1 = (char *)"$GPGGA,053137.00,1731.98832,N,07830.46500,E,1,05,12.42,414.3,M,-73.9,M,,*4A";
+    char *read_data2 = (char *)"$GNGGA,071938.00,1837.84498,S,07352.30812,W,2,08,3.41,621.3,M,-67.7,M,,0000*69";
+    struct gps_data_struct gps_data;
+
+    /*act*/
+    int result1 = gps_data_processing(read_data1, &gps_data);
+    int result2 = gps_data_processing(read_data2, &gps_data);
+
+    /*assert*/
+    CHECK_EQUAL(0, result1);
+    CHECK_EQUAL(903, result2);
+}
+
+/* Test initialize_gps_module function */
+TEST(GPSTestGroup, initialize_gps_moduleTest)
+{
+    /*arrange*/
+    struct uart_device_struct gps_device;
+    char *device_path = (char *)"/dev/ttyUSB0";
+    uart_setup(&gps_device, device_path, B9600, true);
+
+    /*act*/
+    int result = initialize_gps_module(gps_device);
+    uart_stop(&gps_device);
+
+    /*assert*/
+    CHECK_EQUAL(0, result);
 }

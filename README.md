@@ -128,3 +128,48 @@
 |ID | creation_time | Latitude| LatSign | Longitude|LongSign |	PDOP |	HDOP |	VDOP |	Serial |	VIN	Speed |  supported_Pids |Dist_Travelled |	Idle_time |	Veh_in_Service |	Motion |	Voltage |	PTO |	AccX |	AccY |	AccZ |	RPM |	Temperature |
 |---|---------------|---------|---------|----------|---------|--------|-------|-------|---------|--------------|----------------|--------------|----------------|-----------|------------|-------|--------|-------|-------|------|---------------|--------------|
 
+# Code Coverage
+
+	Unit testing would not be complete without a coverage report. The go-to tool for this for projects using gcc is gcov, available as part of the standard suite of gcc utilities. Cpputest integrates easily with gcov, all you need to do is add this line to the makefile:
+
+	CPPUTEST_USE_GCOV=Y
+	Next, we need to make sure that the filterGcov.sh script from this repo is in ‘/scripts/filterGcov.sh’ relative to wherever you set ‘CPPUTEST_HOME’ to be. It also needs to have execute perms.
+
+	In the example Makefile, it would be deployed to ‘/usr/local/scripts/filterGcov.sh’. If you’re running CppUTest from a repo checkout, everything should work without modification.
+
+	With that in place, you can simply run ‘make gcov’ and the analysis will be generated for you. In our case we’ll need to ‘make -B’ to rebuild the object files with gcov enabled:
+
+	[]$ make -B gcov
+	< compilation output >
+	for d in /Users/ykuperman/code/blogpost/qa/src/code ; do \
+					FILES=`ls $d/*.c $d/*.cc $d/*.cpp 2> /dev/null` ; \
+					gcov  --object-directory objs/$d $FILES >> gcov_output.txt 2>>gcov_error.txt ; \
+			done
+	for f in  ; do \
+					gcov  --object-directory objs/$f $f >> gcov_output.txt 2>>gcov_error.txt ; \
+			done
+	/usr/local/scripts/filterGcov.sh gcov_output.txt gcov_error.txt gcov_report.txt example.txt
+	cat gcov_report.txt
+	100.00%   /Users/ykuperman/code/blogpost/qa/src/code/code.cpp
+	mkdir -p gcov
+	mv *.gcov gcov
+	mv gcov_* gcov
+	See gcov directory for details
+	This will output a number of files to a new ‘gcov’ directory. These are:
+
+	code.cpp.gcov – the actual ‘gcov’ file for the code being tested
+	gcov_error.txt – an error report (in our case, it should be empty)
+	gcov_output.txt – the actual output of the gcov command that was run
+	gcov_report.txt – a summary of the coverage for each file under test
+	gcov_report.txt.html – an html version of gcov_report
+	
+	link : https://www.sparkpost.com/blog/getting-started-cpputest/
+
+	Current Code Coverage:
+	55.51%   ../src/logger/logger.c
+	57.35%   ../src/serial_interface/serial_config.c
+	68.46%   ../src/can_bus/can_interface.c
+	71.04%   ../src/gps_module/gps_read.c
+	76.58%   ../src/can_bus/can_bus.c
+	93.33%   ../src/utils/common_utils.c
+	96.55%   ../src/client_controller/client_controller.c
