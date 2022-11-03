@@ -177,17 +177,32 @@ void get_gps_param_by_position(char **param, char *nmea_data, uint8_t position)
     }
 }
 
-char *dop_accuracy(double hdop)
+char *dop_accuracy_string(double hdop)
 {
-    switch (hdop)
+    if (hdop < 1)
     {
-    case hdop < 1:
-        return IDEAL;
-    default:
         return IDEAL;
     }
-
-    return IDEAL;
+    else if (hdop > 1 && hdop < 2)
+    {
+        return EXCELLENT;
+    }
+    else if (hdop > 2 && hdop < 5)
+    {
+        return GOOD;
+    }
+    else if (hdop > 5 && hdop < 10)
+    {
+        return MODERATE;
+    }
+    else if (hdop > 10 && hdop < 20)
+    {
+        return FAIR;
+    }
+    else
+    {
+        return POOR;
+    }
 }
 
 /*
@@ -255,6 +270,15 @@ int get_gps_data(char *nmea_data, struct gps_data_struct *gps_data)
 
         /* Horizontal dilution of position */
         double hdop = atof(gga_data + 1);
+
+        char *dop_accuracy = dop_accuracy_string(hdop);
+
+        if (dop_accuracy != NULL)
+        {
+            strncpy(gps_data->dop_accuracy, dop_accuracy, DOP_ACCURACY_STRING - 1);
+            logger_info(GPS_LOG_MODULE_ID, "DOP ACCURACY: %s\n", gps_data->dop_accuracy);
+        }
+
         if (gps_quality <= 0 || hdop >= INVALID_DOP_VALUE)
         {
             return GPS_INVALID_QUALITY;

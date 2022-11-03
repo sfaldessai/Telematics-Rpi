@@ -65,6 +65,8 @@
 #define FAIR "FAIR"
 #define POOR "POOR"
 
+#define DOP_ACCURACY_STRING 32
+
 /* UBX-CFG-CFG */
 static const uint8_t save_configuration[SAVE_CONFIG_CMD_LEN] = {
 	HEADER_1, HEADER_2,
@@ -172,7 +174,7 @@ struct gps_data_struct
 	double vdop;
 	double hdop;
 	int speed;
-	char *dop_accuracy;
+	char dop_accuracy[DOP_ACCURACY_STRING];
 };
 
 void *read_from_gps(void *); /* pthread to handle gps read */
@@ -182,5 +184,6 @@ void get_dops(char **, char *);
 int get_gps_data(char *, struct gps_data_struct *);
 void get_gps_param_by_position(char **, char *, uint8_t);
 int nmea_verify_checksum(const char *);
+char *dop_accuracy_string(double hdop);
 
 #endif
