@@ -114,8 +114,8 @@ void *write_to_cloud(void *arg)
             if (cloud_data->gps_data.hdop >= GPS_ERROR_RANGE_BEGIN && cloud_data->gps_data.hdop <= GPS_ERROR_RANGE_END) {
 
                 get_last_two_lat_log(cloud_data->prev_latitude, cloud_data->prev_longitude);
-                logger_info(CLOUD_LOG_MODULE_ID, "last(nth) updated value: latitude = %lf lagitude = %lf", cloud_data->prev_latitude[0], cloud_data->prev_longitude[0]);
-                logger_info(CLOUD_LOG_MODULE_ID, "last(nth-1) updated value: latitude = %lf lagitude = %lf", cloud_data->prev_latitude[1], cloud_data->prev_longitude[1]);
+                logger_info(CLOUD_LOG_MODULE_ID, "last(nth) updated value: latitude = %lf longitude = %lf", cloud_data->prev_latitude[0], cloud_data->prev_longitude[0]);
+                logger_info(CLOUD_LOG_MODULE_ID, "last(nth-1) updated value: latitude = %lf longitude = %lf", cloud_data->prev_latitude[1], cloud_data->prev_longitude[1]);
                 handle_gps_signal_lost(cloud_data);
             }
             send_data = create_json_obj(cloud_data);
