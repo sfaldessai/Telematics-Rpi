@@ -7,7 +7,6 @@
 
 #ifndef DB_HANDLER_H_
 #define DB_HANDLER_H_
-
 #include "../cloud_server/cloud_server.h"
 
 #define DEBUG

@@ -174,7 +174,7 @@ int get_single_column_value(char *column_name, char *sort_by, uint8_t *return_va
     }
     else
     {
-        fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(db));
+        logger_error(DB_LOG_MODULE_ID, "Failed to execute statement: %s:%d\n", sqlite3_errmsg(db), rc);
     }
 
     int step = sqlite3_step(res);

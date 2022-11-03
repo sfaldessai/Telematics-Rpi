@@ -10,6 +10,7 @@
 #include <sqlite3.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/time.h>
 #include "cloud_server.h"
 #include "../logger/logger.h"
 #include "../database/db_handler.h"
@@ -89,6 +90,12 @@ logger_info(CLOUD_LOG_MODULE_ID,"COMBINED JSON DATA: \n%s\n",json_string);
     return json_string;
 }
 
+#define SPEED_THRESHOLD 0
+
+time_t tval_start, tval_stop,dtval_start,dtval_stop;
+bool service_timer_start = false,distance_timer_start=false;
+int prev_speed = 0;
+
 /*
  * Name : write_to_cloud
  * Description: The write_to_cloud function is for diplaying/monitoring vehicle informtion from
@@ -108,9 +115,10 @@ void *write_to_cloud(void *arg)
     {
         if (cloud_data != NULL)
         {
-            send_data = create_json_obj(cloud_data);
-
+            calculate_service_time(cloud_data);
+            calculate_distance_travelled(cloud_data);
             calculate_idle_time(cloud_data);
+            send_data = create_json_obj(cloud_data);
 
             if (rc == SQLITE_OK)
             {
@@ -200,7 +208,65 @@ void initialize_cloud_data(struct cloud_data_struct *cloud_data)
     /* Fetching last updated idele_time value from db for calculating idle_time */
     uint8_t idle_time_db_value[COLUMN_VALUE_MAX_LEN];
     get_single_column_value(IDLE_TIME, SORT_BY_DESC, idle_time_db_value);
-    cloud_data->idle_time_secs = (uint64_t)atoi((char *)idle_time_db_value);
+    cloud_data->idle_time_secs = (uint64_t)atoi((char*)idle_time_db_value);
+
+    uint8_t service_value[COLUMN_VALUE_MAX_LEN];
+    get_single_column_value(VEHICLE_IN_SERVICE, SORT_BY_DESC, service_value);
+    cloud_data->service_time = (int) atoi((char*)service_value);
+
+    uint8_t distance_value[COLUMN_VALUE_MAX_LEN];
+    get_single_column_value(DISTANCE_TRAVLLED, SORT_BY_DESC, distance_value);
+    cloud_data->distance_travelled = (float)atof((char*)distance_value);
+}
+
+/*
+ * Name : caluclate_service_time
+ * Description: This function calculates the service time based on the CAN speed and GPS Speed
+ * Input parameters: struct cloud_data_struct *
+ * Output parameters: void
+ */
+void calculate_service_time(struct cloud_data_struct* cloud_data) {
+    /* Start the Service time when the Either GPS or CAN speed is greater than 0 */
+    if (cloud_data->can_data.speed > SPEED_THRESHOLD || cloud_data->gps_data.speed > SPEED_THRESHOLD) {
+        if (!service_timer_start) {
+            service_timer_start = true;
+            tval_start = time(NULL);
+        }
+    } /* Test and check if both CAN and GPS speed is required to handle stop timer when either of the modules malfunction */
+    else if (cloud_data->can_data.speed == SPEED_THRESHOLD && cloud_data->gps_data.speed == SPEED_THRESHOLD && service_timer_start) {
+        tval_stop = time(NULL);
+        int tval_inServiceTime = (tval_stop - tval_start);
+        cloud_data->service_time = cloud_data->service_time +  tval_inServiceTime;
+        service_timer_start = false;
+    }
+}
+
+void calculate_distance_travelled(struct cloud_data_struct* cloud_data) {
+    if (cloud_data->can_data.speed > SPEED_THRESHOLD) {
+        distance_travelled_calculator(cloud_data,cloud_data->can_data.speed);
+    }
+    else if(cloud_data->gps_data.speed > SPEED_THRESHOLD) {
+        distance_travelled_calculator(cloud_data,cloud_data->gps_data.speed);
+    }
+    else {
+        logger_error(CLOUD_LOG_MODULE_ID, "No speed data available");
+    }
+}
+
+void distance_travelled_calculator(struct cloud_data_struct* cloud_data,int speed) {
+    if (speed > SPEED_THRESHOLD) {
+        if (!distance_timer_start) {
+            prev_speed = speed;
+            distance_timer_start = true;
+            dtval_start = time(NULL);
+        }
+    }
+    if (speed != prev_speed && distance_timer_start) {
+        dtval_stop = time(NULL);
+        int time_diff = (dtval_stop - dtval_start);
+        cloud_data->distance_travelled = cloud_data->distance_travelled + (float)(prev_speed * time_diff);
+        distance_timer_start = false;
+    }
 }
 
 /*
@@ -241,6 +307,5 @@ void client_controller_error_codes(struct cloud_data_struct *cloud_data, int err
     cc_data.acc_x = error_code;
     cc_data.acc_y = error_code;
     cc_data.acc_z = error_code;
-
     cloud_data->client_controller_data = cc_data;
 }

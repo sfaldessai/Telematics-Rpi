@@ -277,12 +277,14 @@ int get_gps_data(char *nmea_data, struct gps_data_struct *gps_data)
     {
         /* Get Speed from RMC message*/
         get_gps_param_by_position(&rmc_data, nmea_data, SPEED_POS);
+
         gps_data->speed = atof(rmc_data) * GPS_KMPH_PER_KNOT;
     }
     else if (nmea_data[3] == 'V' && nmea_data[4] == 'T' && nmea_data[5] == 'G')
     {
         /* Get Speed from VTG message*/
         get_gps_param_by_position(&vtg_data, nmea_data, SPEED_POS);
+
         gps_data->speed = atof(vtg_data);
     }
     return SUCESS_CODE;
