@@ -278,17 +278,15 @@ void handle_gps_signal_lost(struct cloud_data_struct* cloud_data)
     X = cos(cloud_data->prev_latitude[1]) * sin(cloud_data->prev_longitude[0] - cloud_data->prev_longitude[1]);
     Y = cos(cloud_data->prev_latitude[1]) * sin(cloud_data->prev_latitude[0]) - sin(cloud_data->prev_latitude[1]) * cos(cloud_data->prev_latitude[0]) * cos(cloud_data->prev_longitude[0] - cloud_data->prev_longitude[1]);
     bearing_theta = atan2(X, Y);
-
     bearing_theta = (bearing_theta * 180) / PI;
+    logger_info(CLOUD_LOG_MODULE_ID, "Bearing Theta values is %lf", bearing_theta);
 
-   logger_info(CLOUD_LOG_MODULE_ID, "Bearing Theta values is %lf", bearing_theta);
-
+    /* calculate unknown lat-Lon based on previous lat, lon, bearing angle and distance calculated based on Acceleration */
     Lat2 = asin(sin(cloud_data->prev_latitude[0]) * cos(distance / EARTH_RADIUS) + cos(cloud_data->prev_latitude[0]) * sin(distance / EARTH_RADIUS) * cos(bearing_theta));
     Lon2 = cloud_data->prev_longitude[0] + atan2(sin(bearing_theta) * sin(distance / EARTH_RADIUS) * cos(cloud_data->prev_latitude[0]),
         cos(distance / EARTH_RADIUS) - sin(cloud_data->prev_latitude[0]) * sin(Lat2));
-
     cloud_data->gps_data.latitude = (Lat2 * 180) / PI;
     cloud_data->gps_data.longitude = (Lon2 * 180) / PI;
-    logger_info(CLOUD_LOG_MODULE_ID, "Lat2 value is: %lff", cloud_data->gps_data.latitude);
-    logger_info(CLOUD_LOG_MODULE_ID, "Lon2 value is: %lf", cloud_data->gps_data.longitude);
+    logger_info(CLOUD_LOG_MODULE_ID, "Unknown Lat2 value is approx: %lf", cloud_data->gps_data.latitude);
+    logger_info(CLOUD_LOG_MODULE_ID, "Unknown Lon2 value is approx: %lf", cloud_data->gps_data.longitude);
 }
