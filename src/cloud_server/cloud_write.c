@@ -78,17 +78,13 @@ char *create_json_obj(struct cloud_data_struct *cloud_data)
     cJSON_AddStringToObject(cjson_telematic, "serial", (char *)cloud_data->mac_address);
     cJSON_AddNumberToObject(cjson_telematic, "idleTime", (double)cloud_data->idle_time_secs);
 
-    /* TODO:  vehicle in service & Distance Travel
-    cJSON_AddNumberToObject(cjson_telematic, "serviceTime", inService);
-    cJSON_AddNumberToObject(cjson_telematic, "distance", inService);
-    */
 
     cJSON_AddItemToObject(cjson_vehicle, "telematic", cjson_telematic);
 
     /* Prints all the data of the JSON object (the whole list) */
     json_string = cJSON_Print(cjson_vehicle);
 
-logger_info(CLOUD_LOG_MODULE_ID,"COMBINED JSON DATA: \n%s\n",json_string);    
+    logger_info(CLOUD_LOG_MODULE_ID,"COMBINED JSON DATA: \n%s\n",json_string);
     return json_string;
 }
 
@@ -111,8 +107,9 @@ void *write_to_cloud(void *arg)
     {
         if (cloud_data != NULL)
         {
-            if (cloud_data->gps_data.hdop >= GPS_ERROR_RANGE_BEGIN && cloud_data->gps_data.hdop <= GPS_ERROR_RANGE_END) {
-
+            if (cloud_data->gps_data.hdop >= GPS_ERROR_RANGE_BEGIN && cloud_data->gps_data.hdop <= GPS_ERROR_RANGE_END
+                && cloud_data->client_controller_data.acc_x <= CLIENT_CONTROLLER_ERROR_RANGE_BEGIN ) {
+                /*TBD: Test and note the min-max limits of Acceleration values and rectify the error code ranges accordingly*/
                 get_last_two_lat_log(cloud_data->prev_latitude, cloud_data->prev_longitude);
                 logger_info(CLOUD_LOG_MODULE_ID, "last(nth) updated value: latitude = %lf longitude = %lf", cloud_data->prev_latitude[0], cloud_data->prev_longitude[0]);
                 logger_info(CLOUD_LOG_MODULE_ID, "last(nth-1) updated value: latitude = %lf longitude = %lf", cloud_data->prev_latitude[1], cloud_data->prev_longitude[1]);
