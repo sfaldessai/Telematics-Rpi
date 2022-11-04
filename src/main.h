@@ -26,6 +26,10 @@
 /* Update AWS IOT ENDPOINT */
 #define AWS_IOT_ENDPOINT "aws.iot.endpoint"
 
+/*BLE Device*/
+#define BLE_DEVICE_NAME "OBDII"
+#define BLE_DEVICE_SERIAL_PROFILE_UUID ""
+
 /* arg_struct struct to holds required thread arguments*/
 struct arg_struct
 {
