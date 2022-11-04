@@ -120,5 +120,5 @@ TEST(ClientControllerTestGroup, stm32ReadThreadTest3)
     read_from_client_controller(&client_controller_args3);
 
     /*assert*/
-    CHECK(cloud_data.client_controller_data.voltage > 0);
+    CHECK(cloud_data.client_controller_data.voltage >= 0);
 }
