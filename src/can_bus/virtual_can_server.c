@@ -183,10 +183,10 @@ void *start_can_communication(void *arg)
 				frame.data[0] = 0x06;
 				frame.data[1] = 0x41;
 				frame.data[2] = 0x00;
-				frame.data[3] = get_random_number(0, 255);
-				frame.data[4] = get_random_number(0, 255);
-				frame.data[5] = get_random_number(0, 255);
-				frame.data[6] = get_random_number(0, 255);
+				frame.data[3] = 255;
+				frame.data[4] = 255;
+				frame.data[5] = 255;
+				frame.data[6] = 255;
 				frame.data[7] = 0xAA;
 				if (write(s, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame))
 				{
