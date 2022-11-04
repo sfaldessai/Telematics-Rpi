@@ -80,6 +80,8 @@ char *create_json_obj(struct cloud_data_struct *cloud_data)
 
     cJSON_AddStringToObject(cjson_telematic, "serial", (char *)cloud_data->mac_address);
     cJSON_AddNumberToObject(cjson_telematic, "idleTime", (double)cloud_data->idle_time_secs);
+    cJSON_AddNumberToObject(cjson_telematic, "serviceTime", (double)cloud_data->service_time);
+    cJSON_AddNumberToObject(cjson_telematic, "distanceTravelled", (double)cloud_data->distance_travelled);
 
     /* TODO:  vehicle in service & Distance Travel
     cJSON_AddNumberToObject(cjson_telematic, "serviceTime", inService);
@@ -228,8 +230,8 @@ void initialize_cloud_data(struct cloud_data_struct *cloud_data)
  */
 void calculate_service_time(struct cloud_data_struct* cloud_data) {
     /* Start the Service time when the Either GPS or CAN speed is greater than 0 */
-    if (((cloud_data->can_data.speed == SPEED_THRESHOLD || cloud_data->can_data.speed > MAX_CAR_SPEED) &&
-        (cloud_data->gps_data.speed == SPEED_THRESHOLD || cloud_data->gps_data.speed > MAX_CAR_SPEED))) {
+    if (((cloud_data->can_data.speed > SPEED_THRESHOLD && cloud_data->can_data.speed < MAX_CAR_SPEED) &&
+        (cloud_data->gps_data.speed > SPEED_THRESHOLD && cloud_data->gps_data.speed > MAX_CAR_SPEED))) {
         if (!service_timer_start) {
             service_timer_start = true;
             tval_start = time(NULL);
@@ -252,10 +254,10 @@ void calculate_service_time(struct cloud_data_struct* cloud_data) {
  * Output parameters: void
  */
 void calculate_distance_travelled(struct cloud_data_struct* cloud_data) {
-    if (cloud_data->can_data.speed > SPEED_THRESHOLD || cloud_data->can_data.speed > MAX_CAR_SPEED) {
+    if (cloud_data->can_data.speed > SPEED_THRESHOLD || cloud_data->can_data.speed < MAX_CAR_SPEED) {
         distance_travelled_calculator(cloud_data, cloud_data->can_data.speed);
     }
-    else if (cloud_data->gps_data.speed > SPEED_THRESHOLD || cloud_data->gps_data.speed > MAX_CAR_SPEED) {
+    else if (cloud_data->gps_data.speed > SPEED_THRESHOLD || cloud_data->gps_data.speed < MAX_CAR_SPEED) {
         distance_travelled_calculator(cloud_data, cloud_data->gps_data.speed);
     }
     else {
