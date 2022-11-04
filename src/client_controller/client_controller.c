@@ -26,6 +26,9 @@ pthread_mutex_t cloud_data_mutex = PTHREAD_MUTEX_INITIALIZER;
 #define MAX_READ_SIZE 1 /* max stm32 LL data length is 1 */
 #define MAXSIZE 32
 
+#define HASH_SIGN 0x23
+#define DOLLAR_SIGN 0x24
+
 /*
  * Name : update_cc_error_code
  * Descriptoin: The update_cc_error_code function is for updating erro codes for can struct member
@@ -147,7 +150,7 @@ void *read_from_client_controller(void *arg)
                 {
                     get_client_controller_data(stm32_serial_data, &client_controller_data);
 
-                    if (verify_checksum(stm32_serial_data, CC_LOG_MODULE_ID) == SUCESS_CODE)
+                    if (verify_checksum(stm32_serial_data, CC_LOG_MODULE_ID, DOLLAR_SIGN, HASH_SIGN) == SUCESS_CODE)
                     {
                         /* update stm32 data to cloud_data struct which is used to combile all module data and send to cloud */
                         pthread_mutex_lock(&cloud_data_mutex);

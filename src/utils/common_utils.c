@@ -16,9 +16,6 @@
 #include "common_utils.h"
 #include "../logger/logger.h"
 
-#define HASH_SIGN 0x23
-#define DOLLAR_SIGN 0x24
-#define ASTERISK_SIGN 0x2A
 #define MAX_READ_CHAR_SIZE 80 /* GPS at most, sends 80 or so chars per message string.*/
 #define NMEA_END_CHAR '\n'
 #define GPS_NMEA_SENTENCE_CHECKSUM_ERROR 903
@@ -106,14 +103,14 @@ uint16_t hex_to_decimal(uint8_t *read_data)
  *
  * Output parameters: uint8_t: return 1 for invalid and 0 for valid
  */
-int verify_checksum(const char *sentence, int module_id)
+int verify_checksum(const char *sentence, int module_id, char start_char, char end_char)
 {
     int checksum = 0;
     uint8_t gps_checksum_hex[8];
 
-    if (strlen(sentence) > MAX_READ_CHAR_SIZE || (strchr(sentence, ASTERISK_SIGN) == NULL && strchr(sentence, HASH_SIGN) == NULL) || strchr(sentence, DOLLAR_SIGN) == NULL)
+    if (strlen(sentence) > MAX_READ_CHAR_SIZE || strchr(sentence, end_char) == NULL || strchr(sentence, start_char) == NULL)
     {
-        logger_info(module_id, "Invalid sentence: %s %d %d %d \n", __func__, strlen(sentence), (strchr(sentence, ASTERISK_SIGN) == NULL && strchr(sentence, HASH_SIGN) == NULL), strchr(sentence, DOLLAR_SIGN) == NULL);
+        logger_info(module_id, "Invalid sentence: %s\n", __func__);
         if (module_id == CC_LOG_MODULE_ID)
         {
             return CC_CHECKSUM_ERROR;
@@ -123,9 +120,9 @@ int verify_checksum(const char *sentence, int module_id)
             return GPS_NMEA_SENTENCE_CHECKSUM_ERROR;
         }
     }
-    while ('*' != *sentence && '#' != *sentence && NMEA_END_CHAR != *sentence)
+    while (end_char != *sentence && NMEA_END_CHAR != *sentence)
     {
-        if (DOLLAR_SIGN == *sentence)
+        if (start_char == *sentence)
         {
             sentence = sentence + 1;
             continue;

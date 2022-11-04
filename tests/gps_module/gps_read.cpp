@@ -104,8 +104,6 @@ TEST(GPSTestGroup, getGpvtgSpeedTest)
     STRCMP_EQUAL("010.2,K", vtg_data);
 }
 
-
-
 /* Test lat long value with - sign */
 TEST(GPSTestGroup, getGpsLatLongDataWithSignTest)
 {
@@ -157,9 +155,9 @@ TEST(GPSTestGroup, differentPrefixTest)
 
     /*act*/
 
-    int result_1 = verify_checksum(nmea_data, 2);
-    int result_2 = verify_checksum(nmea_data_1, 2);
-    int result_3 = verify_checksum(nmea_data_2, 2);
+    int result_1 = verify_checksum(nmea_data, 2, '$', '*');
+    int result_2 = verify_checksum(nmea_data_1, 2, '$', '*');
+    int result_3 = verify_checksum(nmea_data_2, 2, '$', '*');
 
     if (result_1 == 0)
     {

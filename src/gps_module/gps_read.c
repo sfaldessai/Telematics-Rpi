@@ -25,6 +25,9 @@
 #define GPS_KMPH_PER_KNOT 1.852
 #define SUCESS_CODE 0
 
+#define DOLLAR_SIGN 0x24
+#define ASTERISK_SIGN 0x2A
+
 uint8_t is_ignition_on = IGNITION_ON;
 
 /* mutex to lock cloud_data struct for wirte */
@@ -253,7 +256,7 @@ int get_gps_data(char *nmea_data, struct gps_data_struct *gps_data)
         /* Get Speed from RMC message*/
         get_gps_param_by_position(&rmc_data, nmea_data, SPEED_POS);
 
-        gps_data->speed = (int) (atof(rmc_data) * GPS_KMPH_PER_KNOT);
+        gps_data->speed = (int)(atof(rmc_data) * GPS_KMPH_PER_KNOT);
     }
     else if (nmea_data[3] == 'V' && nmea_data[4] == 'T' && nmea_data[5] == 'G')
     {
@@ -399,7 +402,7 @@ int gps_data_processing(char *read_data, struct gps_data_struct *gps_data)
 {
     logger_info(GPS_LOG_MODULE_ID, "COMPLETE GPS DATA: %s\n", read_data);
 
-    int is_valid_checksum = verify_checksum(read_data, GPS_LOG_MODULE_ID);
+    int is_valid_checksum = verify_checksum(read_data, GPS_LOG_MODULE_ID, DOLLAR_SIGN, ASTERISK_SIGN);
 
     if (is_valid_checksum == SUCESS_CODE)
     {
@@ -449,18 +452,21 @@ void *read_from_gps(void *arg)
 
             if (read_data_len > 0)
             {
-                rc = gps_data_processing(read_data, &gps_data);
-                if (rc != SUCESS_CODE)
+                if (strchr(read_data, DOLLAR_SIGN) != NULL && strchr(read_data, ASTERISK_SIGN) != NULL)
                 {
-                    update_gps_error_code(cloud_data, rc);
-                    gps_data = cloud_data->gps_data;
-                }
-                else
-                {
-                    /* update gps_data to cloud_data struct */
-                    pthread_mutex_lock(&cloud_data_gps_mutex);
-                    cloud_data->gps_data = gps_data;
-                    pthread_mutex_unlock(&cloud_data_gps_mutex);
+                    rc = gps_data_processing(read_data, &gps_data);
+                    if (rc != SUCESS_CODE)
+                    {
+                        update_gps_error_code(cloud_data, rc);
+                        gps_data = cloud_data->gps_data;
+                    }
+                    else
+                    {
+                        /* update gps_data to cloud_data struct */
+                        pthread_mutex_lock(&cloud_data_gps_mutex);
+                        cloud_data->gps_data = gps_data;
+                        pthread_mutex_unlock(&cloud_data_gps_mutex);
+                    }
                 }
             }
             else if (read_data_len == 0 && gps_device.fd > 0)
