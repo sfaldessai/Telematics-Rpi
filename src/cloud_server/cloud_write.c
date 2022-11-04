@@ -22,7 +22,6 @@
 #define SPEED_THRESHOLD 0
 #define IDLE_THRESHOLD 10
 #define KMPH_TO_MPS_CONVERTER 0.277778 /* 1 km/hr = 5/18 m/sec or 0.277778 m/sec*/
-#define SPEED_THRESHOLD 0
 
 time_t tval_start, tval_stop, dtval_start, dtval_stop;
 bool service_timer_start = false, distance_timer_start = false;
@@ -30,7 +29,6 @@ float prev_speed = 0;
 
 bool idle_timer_started = false;
 time_t begin, end;
-
 
 char *create_json_obj(struct cloud_data_struct *cloud_data)
 {
