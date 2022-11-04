@@ -65,6 +65,8 @@
 
 #define PID_SUPPORTED 1
 
+#define BUIL_MODE 1
+
 #define RPM_PID_POSITION 11
 #define SPEED_PID_POSITION 12
 #define TEMPERATURE_PID_POSITION 4
@@ -79,6 +81,7 @@ struct can_data_struct
 	uint8_t supported_pids[CAN_PID_LENGTH];
 	int temperature;
 	char vehicle_type[WMI_STRING_LEN];
+	int mode; /* mode=1 for infinite loop - build mode  || mode=0 for test mode used to test infinte loops and other cases */
 };
 
 /* pthread to display all serial data */
@@ -96,5 +99,5 @@ void log_can_data(struct can_frame, char *);
 void vin_from_can_frame_data(struct can_frame *, char *);
 void hex_to_binary(struct can_frame, uint8_t *);
 void log_can_supported_data(uint8_t *);
-
+void *read_can_supported_pid(void *);
 #endif

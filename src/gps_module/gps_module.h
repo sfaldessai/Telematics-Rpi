@@ -9,6 +9,7 @@
 #define GPS_MODULE_H_
 
 #include <stdint.h>
+#include "../serial_interface/serial_config.h"
 
 #define DEBUG
 
@@ -28,7 +29,6 @@
 
 /* ERROR CODES */
 #define GPS_WRITE_ERROR 902
-#define GPS_NMEA_SENTENCE_CHECKSUM_ERROR 903
 #define GPS_POWERED_OFF 904
 #define GPS_BAD_SIGNAL 905
 #define GPS_DEVICE_DISCONNECTED 906
@@ -56,6 +56,16 @@
 #define HEADER_1 0xB5
 #define HEADER_2 0x62
 #define CLASS_ID 0x62
+
+/* DOP Accuracy */
+#define IDEAL "IDEAL"
+#define EXCELLENT "EXCELLENT"
+#define GOOD "GOOD"
+#define MODERATE "MODERATE"
+#define FAIR "FAIR"
+#define POOR "POOR"
+
+#define DOP_ACCURACY_STRING 32
 
 /* UBX-CFG-CFG */
 static const uint8_t save_configuration[SAVE_CONFIG_CMD_LEN] = {
@@ -163,7 +173,8 @@ struct gps_data_struct
 	double pdop;
 	double vdop;
 	double hdop;
-	double speed;
+	int speed;
+	char dop_accuracy[DOP_ACCURACY_STRING];
 };
 
 void *read_from_gps(void *); /* pthread to handle gps read */
@@ -173,5 +184,10 @@ void get_dops(char **, char *);
 int get_gps_data(char *, struct gps_data_struct *);
 void get_gps_param_by_position(char **, char *, uint8_t);
 int nmea_verify_checksum(const char *);
+int ignition_off(struct uart_device_struct);
+int ignition_on(struct uart_device_struct);
+int gps_data_processing(char *read_data, struct gps_data_struct *gps_data);
+int initialize_gps_module(struct uart_device_struct gps_device);
+char *dop_accuracy_string(double hdop);
 
 #endif
