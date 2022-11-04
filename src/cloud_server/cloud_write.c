@@ -228,13 +228,16 @@ void initialize_cloud_data(struct cloud_data_struct *cloud_data)
  */
 void calculate_service_time(struct cloud_data_struct* cloud_data) {
     /* Start the Service time when the Either GPS or CAN speed is greater than 0 */
-    if (cloud_data->can_data.speed > SPEED_THRESHOLD && cloud_data->gps_data.speed > SPEED_THRESHOLD) {
+    if (((cloud_data->can_data.speed == SPEED_THRESHOLD || cloud_data->can_data.speed > MAX_CAR_SPEED) &&
+        (cloud_data->gps_data.speed == SPEED_THRESHOLD || cloud_data->gps_data.speed > MAX_CAR_SPEED))) {
         if (!service_timer_start) {
             service_timer_start = true;
             tval_start = time(NULL);
         }
     } /* Test and check if both CAN and GPS speed is required to handle stop timer when either of the modules malfunction */
-    if ((cloud_data->can_data.speed == SPEED_THRESHOLD || cloud_data->gps_data.speed == SPEED_THRESHOLD) && service_timer_start) {
+    if (((cloud_data->can_data.speed == SPEED_THRESHOLD || cloud_data->can_data.speed > MAX_CAR_SPEED) &&
+        (cloud_data->gps_data.speed == SPEED_THRESHOLD || cloud_data->gps_data.speed > MAX_CAR_SPEED))
+        && service_timer_start) {
         tval_stop = time(NULL);
         int tval_inServiceTime = (tval_stop - tval_start);
         cloud_data->service_time = cloud_data->service_time + tval_inServiceTime;
@@ -249,10 +252,10 @@ void calculate_service_time(struct cloud_data_struct* cloud_data) {
  * Output parameters: void
  */
 void calculate_distance_travelled(struct cloud_data_struct* cloud_data) {
-    if (cloud_data->can_data.speed > SPEED_THRESHOLD) {
+    if (cloud_data->can_data.speed > SPEED_THRESHOLD || cloud_data->can_data.speed > MAX_CAR_SPEED) {
         distance_travelled_calculator(cloud_data, cloud_data->can_data.speed);
     }
-    else if (cloud_data->gps_data.speed > SPEED_THRESHOLD) {
+    else if (cloud_data->gps_data.speed > SPEED_THRESHOLD || cloud_data->gps_data.speed > MAX_CAR_SPEED) {
         distance_travelled_calculator(cloud_data, cloud_data->gps_data.speed);
     }
     else {
