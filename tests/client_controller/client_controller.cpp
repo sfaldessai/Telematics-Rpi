@@ -58,39 +58,6 @@ TEST(ClientControllerTestGroup, getClientControllerDataTestWithInvalidData)
     CHECK_EQUAL(0, client_controller_data.acc_z);
 }
 
-TEST(ClientControllerTestGroup, stm32VerifyChecksumInValidTest)
-{
-    /*arrange*/
-    char *sentence = (char *)"$STMC,1,70.5,1,12,13,14,#";
-    char *sentence2 = (char *)"$#";
-    char *sentence3 = (char *)"STMC,1,70.5,1,12,13,14,#3D";
-    char *sentence4 = (char *)"$STMC,1,70.5,1,12,13,14,#31";
-
-    /*act*/
-    int result = verify_stm32_checksum(sentence);
-    int result2 = verify_stm32_checksum(sentence2);
-    int result3 = verify_stm32_checksum(sentence3);
-    int result4 = verify_stm32_checksum(sentence4);
-
-    /*assert*/
-    CHECK_EQUAL(1002, result);
-    CHECK_EQUAL(1002, result2);
-    CHECK_EQUAL(1002, result3);
-    CHECK_EQUAL(1002, result4);
-}
-
-TEST(ClientControllerTestGroup, stm32VerifyChecksumValidTest)
-{
-    /*arrange*/
-    char *sentence = (char *)"$STMC,1,70.5,1,12,13,14,#3D";
-
-    /*act*/
-    int result = verify_stm32_checksum(sentence);
-
-    /*assert*/
-    CHECK_EQUAL(0, result);
-}
-
 TEST(ClientControllerTestGroup, stm32ReadThreadTest)
 {
     /*arrange*/
@@ -153,5 +120,5 @@ TEST(ClientControllerTestGroup, stm32ReadThreadTest3)
     read_from_client_controller(&client_controller_args3);
 
     /*assert*/
-    CHECK(cloud_data.client_controller_data.voltage > 0);
+    CHECK(cloud_data.client_controller_data.voltage >= 0);
 }

@@ -16,6 +16,12 @@
 #include "common_utils.h"
 #include "../logger/logger.h"
 
+#define MAX_READ_CHAR_SIZE 80 /* GPS at most, sends 80 or so chars per message string.*/
+#define NMEA_END_CHAR '\n'
+#define GPS_NMEA_SENTENCE_CHECKSUM_ERROR 903
+#define CHECKSUM_SUCESS_CODE 0
+#define CC_CHECKSUM_ERROR 1002
+
 /*
  * Name : get_master_mac_address
  * Descriptoin: The get_master_mac_address function is for fetching Raspberry Pi Ethernet MAC Address.
@@ -87,4 +93,93 @@ uint16_t hex_to_decimal(uint8_t *read_data)
         len = len - 1;
     }
     return decimal;
+}
+
+/*
+ * Name : verify_checksum
+ * Descriptoin: The nmea_verify_checksum function is for verifying GPS or STM32 checksum.
+ * Input parameters:
+ *                  const char *sentence : NMEA or STM32 senetence
+ *
+ * Output parameters: uint8_t: return 1 for invalid and 0 for valid
+ */
+int verify_checksum(const char *sentence, int module_id, char start_char, char end_char)
+{
+    int checksum = 0;
+    uint8_t gps_checksum_hex[8];
+
+    if (strlen(sentence) > MAX_READ_CHAR_SIZE || strchr(sentence, end_char) == NULL || strchr(sentence, start_char) == NULL)
+    {
+        logger_info(module_id, "Invalid sentence: %s\n", __func__);
+        if (module_id == CC_LOG_MODULE_ID)
+        {
+            return CC_CHECKSUM_ERROR;
+        }
+        else
+        {
+            return GPS_NMEA_SENTENCE_CHECKSUM_ERROR;
+        }
+    }
+    while (end_char != *sentence && NMEA_END_CHAR != *sentence)
+    {
+        if (start_char == *sentence)
+        {
+            sentence = sentence + 1;
+            continue;
+        }
+        if ('\0' == *sentence)
+        {
+            logger_info(module_id, "Invalid sentence: %s %s\n", __func__, sentence);
+            if (module_id == CC_LOG_MODULE_ID)
+            {
+                return CC_CHECKSUM_ERROR;
+            }
+            else
+            {
+                return GPS_NMEA_SENTENCE_CHECKSUM_ERROR;
+            }
+        }
+        checksum = checksum ^ (uint8_t)*sentence;
+        sentence = sentence + 1;
+    }
+    sentence = sentence + 1;
+
+    if (strlen(sentence) >= 2)
+    {
+        gps_checksum_hex[0] = sentence[0];
+        gps_checksum_hex[1] = sentence[1];
+        gps_checksum_hex[2] = '\0';
+    }
+    else
+    {
+        logger_info(module_id, "Invalid Checksum: %s\n", __func__);
+        if (module_id == CC_LOG_MODULE_ID)
+        {
+            return CC_CHECKSUM_ERROR;
+        }
+        else
+        {
+            return GPS_NMEA_SENTENCE_CHECKSUM_ERROR;
+        }
+    }
+
+    uint16_t gps_checksum_dec = hex_to_decimal(gps_checksum_hex);
+    if (checksum == gps_checksum_dec)
+    {
+        logger_info(module_id, "VALID CHECKSUM VERIFIED: %d : %d\n", checksum, gps_checksum_dec);
+        return CHECKSUM_SUCESS_CODE;
+    }
+    else
+    {
+        logger_info(module_id, "VALID CHECKSUM VERIFIED: %d : %d\n", checksum, gps_checksum_dec);
+
+        if (module_id == CC_LOG_MODULE_ID)
+        {
+            return CC_CHECKSUM_ERROR;
+        }
+        else
+        {
+            return GPS_NMEA_SENTENCE_CHECKSUM_ERROR;
+        }
+    }
 }
