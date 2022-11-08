@@ -32,10 +32,12 @@ int main(int argc, char *argv[])
 
     if (client_controller_path == NULL || strlen(client_controller_path) <= 0)
     {
+        /* setting default path when client_controller_path is NULL */
         client_controller_path = CLIENT_CONTROLLER;
     }
-    if (client_controller_path == NULL || strlen(client_controller_path) <= 0)
+    if (gps_device_path == NULL || strlen(gps_device_path) <= 0)
     {
+        /* setting default path when gps_device_path is NULL */
         gps_device_path = GPS_MODULE;
     }
 
