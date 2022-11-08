@@ -17,16 +17,20 @@
 
 #include <linux/can.h>
 #include <linux/can/raw.h>
+#define PORT 9001
+#define IP "192.168.0.101"
 
-/*
- * virtual_can_server.c is using for accessing vcan0 (virtual can) and simulating odb2 data.
- * TBD: We can remove this file once we ready to connect the real can module.
- */
+ /*
+  * virtual_can_server.c is using for accessing vcan0 (virtual can) and simulating odb2 data.
+  * TBD: We can remove this file once we ready to connect the real can module.
+  */
 
 int speed_value = 40; /* default set to 40 */
 int rpm_byte_1 = 20;
 int rpm_byte_2 = 20;
 int temperature_value = 20;
+
+int sock_tcp_fd;
 
 uint8_t get_random_number(uint8_t lower, uint8_t upper)
 {
@@ -35,7 +39,7 @@ uint8_t get_random_number(uint8_t lower, uint8_t upper)
 	return (uint8_t)number;
 }
 
-void *user_input(void *arg)
+void* user_input(void* arg)
 {
 	long tid;
 	tid = (long)arg;
@@ -96,7 +100,8 @@ void *user_input(void *arg)
 	printf("Thread ID %ld EXIT\n", tid);
 }
 
-void *start_can_communication(void *arg)
+
+void* start_can_communication(void* arg)
 {
 
 	int s;
@@ -119,13 +124,14 @@ void *start_can_communication(void *arg)
 	addr.can_family = AF_CAN;
 	addr.can_ifindex = ifr.ifr_ifindex;
 
-	if (bind(s, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+	if (bind(s, (struct sockaddr*)&addr, sizeof(addr)) < 0)
 	{
 		perror("Bind");
 	}
 	while (1)
 	{
 		nbytes = read(s, &request_frame, sizeof(struct can_frame));
+
 		/*
 		printf("\nRequest Receved: ");
 		for (i = 0; i < request_frame.can_dlc; i++)
@@ -136,6 +142,17 @@ void *start_can_communication(void *arg)
 		*/
 		if (nbytes > 0)
 		{
+			// convert PID HEX byte to string  
+			char* pid = (char*)request_frame.data[2];
+			write(sock_tcp_fd, pid, sizeof(pid));
+			sleep(1);
+			// *CAN,,,,,,,,,,,,,,,,,,# //
+			// SPEED => *CAN,255,,,,,,,,,,,,,,,,,# 
+			// RPM => *CAN,24,,,,,,,,,,,,,,,,,# 
+			// VIN => *CAN,255,12,13,ff,gg,dd,ee,44,55,66,dd,33,dd,,A,F,F,A,#
+			char received_data[80];
+			read(sockfd, received_data, sizeof(receive_data));
+
 			switch (request_frame.data[2])
 			{
 			case 0x0C: // RPM
@@ -158,6 +175,9 @@ void *start_can_communication(void *arg)
 				break;
 
 			case 0x0D: // SPEED
+
+				// Extract speed value from receied_data
+				int speed = 255; // (int) received_data of speed
 				frame.can_id = 0x7E8;
 				frame.can_dlc = 8;
 
@@ -165,7 +185,7 @@ void *start_can_communication(void *arg)
 				frame.data[1] = 41;
 				frame.data[2] = 0x0D;
 
-				frame.data[3] = (uint8_t)speed_value; // get_random_number(0, 255);
+				frame.data[3] = speed;//(uint8_t)speed_value; // get_random_number(0, 255);
 				frame.data[4] = 0xAA;
 				frame.data[5] = 0xAA;
 				frame.data[6] = 0xAA;
@@ -183,10 +203,10 @@ void *start_can_communication(void *arg)
 				frame.data[0] = 0x06;
 				frame.data[1] = 0x41;
 				frame.data[2] = 0x00;
-				frame.data[3] = 255;
-				frame.data[4] = 255;
-				frame.data[5] = 255;
-				frame.data[6] = 255;
+				frame.data[3] = get_random_number(0, 255);
+				frame.data[4] = get_random_number(0, 255);
+				frame.data[5] = get_random_number(0, 255);
+				frame.data[6] = get_random_number(0, 255);
 				frame.data[7] = 0xAA;
 				if (write(s, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame))
 				{
@@ -272,6 +292,44 @@ void *start_can_communication(void *arg)
 
 int main(void)
 {
+	int connfd;
+	struct sockaddr_in servaddr, cli;
+
+
+
+	// socket create and verification
+	sock_tcp_fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (sockfd == -1) {
+		printf("socket creation failed...\n");
+		exit(0);
+	}
+	else
+		printf("Socket successfully created..\n");
+	bzero(&servaddr, sizeof(servaddr));
+
+
+
+	// assign IP, PORT
+	servaddr.sin_family = AF_INET;
+	servaddr.sin_addr.s_addr = inet_addr(IP);
+	servaddr.sin_port = htons(PORT);
+
+
+
+	// connect the client socket to server socket
+	if (connect(sock_tcp_fd, (SA*)&servaddr, sizeof(servaddr))
+		!= 0) {
+		printf("connection with the server failed...\n");
+		exit(0);
+	}
+	else
+		printf("connected to the server..\n");
+
+
+
+	// close the socket
+	// close(sockfd);
+
 	pthread_t input_thread, can_communication_thread;
 
 	pthread_create(&input_thread, NULL, &user_input, NULL);
