@@ -20,6 +20,9 @@
 #define CLIENT_CONTROLLER "/dev/ttyACM0"
 #define GPS_MODULE "/dev/ttyUSB0"
 
+#define CC_MANUFACTURE_NAME "STM"
+#define GPS_MANUFACTURE_NAME "Silicon"
+
 #define AWS_CLIENT_ID "testclient"
 #define AWS_TOPIC "testclient/example/topic"
 
