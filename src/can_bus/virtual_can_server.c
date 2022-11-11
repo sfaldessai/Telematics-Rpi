@@ -19,6 +19,7 @@
 #include <linux/can/raw.h>
 #define PORT 9001
 #define IP "192.168.0.101"
+#define COMMA 0x2C
 
  /*
   * virtual_can_server.c is using for accessing vcan0 (virtual can) and simulating odb2 data.
@@ -100,6 +101,22 @@ void* user_input(void* arg)
 	printf("Thread ID %ld EXIT\n", tid);
 }
 
+void* get_can_data(void* received_data)
+{
+	char* can_data[16] = NULL;
+
+	if (received_data[2] == 'C' && received_data[3] == 'A' && received_data[4] == 'N')
+	{
+		for (i = 0; i < 16 ; i++) {
+			can_data = strchr(received_data, COMMA);
+			can_data->requested_data = can_data + 1;
+			return can_data;
+		}
+		
+	}
+		
+}
+
 
 void* start_can_communication(void* arg)
 {
@@ -152,7 +169,6 @@ void* start_can_communication(void* arg)
 			// VIN => *CAN,255,12,13,ff,gg,dd,ee,44,55,66,dd,33,dd,,A,F,F,A,#
 			char received_data[80];
 			read(sockfd, received_data, sizeof(receive_data));
-
 			switch (request_frame.data[2])
 			{
 			case 0x0C: // RPM
@@ -177,7 +193,8 @@ void* start_can_communication(void* arg)
 			case 0x0D: // SPEED
 
 				// Extract speed value from receied_data
-				int speed = 255; // (int) received_data of speed
+				//int speed = 255; // (int) received_data of speed
+				int speed = get_can_data(received_data);
 				frame.can_id = 0x7E8;
 				frame.can_dlc = 8;
 
@@ -294,7 +311,6 @@ int main(void)
 {
 	int connfd;
 	struct sockaddr_in servaddr, cli;
-
 
 
 	// socket create and verification
