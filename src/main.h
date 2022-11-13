@@ -1,3 +1,4 @@
+
 /*
  * created at 2022-07-29 13:48.
  *
@@ -14,6 +15,7 @@
 #include "can_bus/can_bus.h"
 #include "global/global.h"
 #include "utils/common_utils.h"
+#include "bluetooth_can/bluetooth_can.h"
 
 #define DEBUG
 
@@ -28,7 +30,8 @@
 
 /*BLE Device*/
 #define BLE_DEVICE_NAME "OBDII"
-#define BLE_DEVICE_SERIAL_PROFILE_UUID ""
+#define BLE_DEVICE_SERIAL_PROFILE_UUID "00001101-0000-1000-8000-00805f9b34fb"
+
 
 /* arg_struct struct to holds required thread arguments*/
 struct arg_struct

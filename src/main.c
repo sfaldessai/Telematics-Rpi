@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
     pthread_t client_controller_read_thread, gps_read_thread, serial_write_thread;
     pthread_t read_can_supported_thread, read_can_speed_thread, read_can_vin_thread, read_can_rpm_thread, read_can_temperature_thread, cloud_send_thread, read_ble_can_thread;
     int opt;
-    int can_server;
+    int can_server=0;
 
     /* uart set-up*/
     uart_setup(&client_controller_device, CLIENT_CONTROLLER, B115200, true);

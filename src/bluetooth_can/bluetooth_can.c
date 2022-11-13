@@ -5,75 +5,335 @@
  * Copyright (C) 2022 HashedIn By Deloitte
  */
 
-#include "bluetooth_can.h"
 #include "../main.h"
 
-int sockfd = 0;
-char response_buf[80]={0}; 
+int blesockfd = 0;
+sdp_session_t session;
+sdp_record_t rec;
+char response_buf[80] = {0};
+enum can_state flag;
 void *read_from_ble_can(void *arg)
 {
-    struct cloud_data_struct *cloud_data = (struct cloud_data_struct *)arg;    
     int init_status;
-    if (setup_bluetooth_connection(&sockfd,BLE_DEVICE_SERIAL_PROFILE_UUID,BLE_DEVICE_NAME) == 0)
+    if (setup_bluetooth_connection(&blesockfd, &session, &rec, BLE_DEVICE_SERIAL_PROFILE_UUID, BLE_DEVICE_NAME) == 0)
     {
-        init_status=initialize_ELM();
-        if(init_status==0){
-            while(1){
-            get_supported_pids();
-            /*TBD : Verify data structure and add other pids*/
+        flag = SEND;
+        init_status = initialize_ELM();
+        if (init_status == 0)
+        {
+            // get_supported_pids(arg);
+            // get_vin();
+            while (1)
+            {
+                get_speed(arg);
+                get_rpm(arg);
+                get_temperature(arg);
+                get_battery(arg);
+                sleep(1);
             }
-        }        
+            ble_close_socket(&blesockfd);
+            sdp_record_free(&rec);
+            sdp_close(&session);
+        }
     }
 }
 
 int initialize_ELM(void)
 {
-        
-        int rc=ble_can_request(sockfd,ELM_TEST)
-        if(rc!=sizeof(ELM_TEST)){
-            logger_error(BLE_CAN_MODULE_ID,"ELM_TEST write error %s\n",__func__);
-            return -1;
-        }
-        rc=ble_can_response(sockfd,&response_buf);
-        if(strcmp(response_buf,ELM_VERSION_RESPONSE)!=0){
-            logger_error(BLE_CAN_MODULE_ID,"error in version test %s\n",__func__);
-            return -1
-        }
-        rc=ble_can_request(sockfd,SET_AUTO_PROTOCOL_SELECT);
-        if(rc!=sizeof(SET_AUTO_PROTOCOL_SELECT)){
-            logger_error(BLE_CAN_MODULE_ID,"SET_AUTO_PROTOCOL_SELECT write error %s\n",__func__);
-            return -1;
-        }
-        rc=ble_can_response(sockfd,&response_buf);
-        if(strcmp(response_buf,OK)!=0){
-            logger_error(BLE_CAN_MODULE_ID,"error in protocol selection %s\n",__func__);
-            return -1
-        }
-        return 0;
+    int rc;
+    rc = get_pid_response_by_request(ECHO_OFF, response_buf, sizeof(ECHO_OFF));
+    if (rc < 0)
+    {
+        logger_error(BLE_CAN_MODULE_ID, "ECHO_OFF write error %s\n", __func__);
+        return -1;
+    }
+    // if (strcmp(response_buf, OK) != 0)
+    // {
+    //     logger_error(BLE_CAN_MODULE_ID, "ECHO_OFF read error %s\n", __func__);
+    // }
+    return 0;
 }
 
-int get_pid_response_by_request(char *request,char * response)
+int get_pid_response_by_request(char *request, char *response, int req_len)
 {
-        int rc=ble_can_request(sockfd,&request)
-        if(rc!=sizeof(request)){
-            logger_error(BLE_CAN_MODULE_ID,"Request : %s write error %s\n",*request,__func__);
+    if (flag == SEND)
+    {
+        int rc = ble_can_request(blesockfd, request, req_len);
+        if (rc != req_len)
+        {
+            logger_error(BLE_CAN_MODULE_ID, "Request : %s write error %s\n", request, __func__);
             return -1;
         }
-        rc=ble_can_response(sockfd,&response);
-        if(strcmp(response,ELM_VERSION_RESPONSE)!=0){
-            logger_error(BLE_CAN_MODULE_ID,"error in getting response for %s - %s\n",*request,__func__);
-            return -1
+        get_response(response);
+        while (strstr(response, SEARCHING))
+        {
+            memset(response, 0, 80);
+            get_response(response);
         }
-        return 0;
+        if (flag == RECEIVED)
+        {
+            flag = SEND;
+            return 1;
+        }
+    }
+    return -1;
 }
 
-int get_supported_pids(void){
-    char query[4]=SERVICE_SHOW_CURRENT_DATA;
-    strcat(query,SUPPORTED_PID);
-    memset(response_buf,0,80);
-    int rc=get_pid_response_by_request(query,&response_buf);
-    if(rc>0){
-        logger_info(BLE_CAN_MODULE_ID,"Response : %s \n",response_buf);
+void get_response(char *response)
+{
+    char read_data;
+    int i = 0;
+    int rc;
+    do
+    {
+        flag = INPROGRESS;
+        rc = ble_can_response_byte(blesockfd, &read_data, BYTE_SIZE);
+        if (rc > 0)
+        {
+            response[i] = read_data;
+            i++;
+        }
+    } while (read_data != DELIMITER);
+    response[i] = '\0';
+    flag = RECEIVED;
+}
+
+void get_supported_pids(void *arg)
+{
+    struct cloud_data_struct *cloud_data = (struct cloud_data_struct *)arg;
+    char query[5] = SERVICE_SHOW_CURRENT_DATA;
+    char *temp;
+    char hex_arr[10][10];
+    int resp[10];
+    uint8_t supported_binary_value[CAN_PID_LENGTH];
+    int i = 0;
+    strcat(query, BLE_SUPPORTED_PID);
+    memset(response_buf, 0, 80);
+    int rc = get_pid_response_by_request(query, response_buf, sizeof(query));
+    if (rc)
+    {
+        temp = strtok(response_buf, EMPTY_SPACE);
+
+        while (temp != NULL)
+        {
+            sprintf(hex_arr[i], "%s", temp);
+            temp = strtok(NULL, EMPTY_SPACE);
+            i++;
+        }
+        for (i= 0;i<10;i++){
+            resp[i]=(int)strtol(hex_arr[i],NULL,16);
+        }
+            if (strstr(hex_arr[1], BLE_SUPPORTED_PID))
+            {
+                ble_hex_to_binary(resp, supported_binary_value);
+                for (i = 0; i < CAN_PID_LENGTH; i++)
+                {
+                    cloud_data->can_data.supported_pids[i] = supported_binary_value[i];
+                }
+            }
+        logger_info(BLE_CAN_MODULE_ID, "Response : %s \n", response_buf);
+    }
+}
+void get_vin(void)
+{
+    char query[20] = GET_VEHICLE_DATA_MODE;
+    strcat(query, BLE_VIN_PID);
+    memset(response_buf, 0, 80);
+    int rc = get_pid_response_by_request(query, response_buf, sizeof(query));
+    if (rc)
+    {
+        printf("VIN : %s\n", response_buf);
+        get_response(response_buf);
+        printf("VIN  1: %s\n", response_buf);
+        get_response(response_buf);
+        printf("VIN 2 : %s\n", response_buf);
     }
 }
 
+void get_speed(void *arg)
+{
+    struct cloud_data_struct *cloud_data = (struct cloud_data_struct *)arg;
+    char query[5] = SERVICE_SHOW_CURRENT_DATA;
+    char *temp;
+    char hex_arr[10][10];
+    int i = 0;
+    strcat(query, BLE_SPEED_PID);
+    memset(response_buf, 0, 80);
+    int rc = get_pid_response_by_request(query, response_buf, sizeof(query));
+    if (rc)
+    {
+        temp = strtok(response_buf, EMPTY_SPACE);
+
+        while (temp != NULL)
+        {
+            sprintf(hex_arr[i], "%s", temp);
+            temp = strtok(NULL, EMPTY_SPACE);
+            i++;
+        }
+        if (strstr(hex_arr[1], BLE_SPEED_PID))
+        {
+            cloud_data->can_data.speed = (uint16_t)hex_to_decimal((uint8_t *)hex_arr[2]);
+            logger_info(BLE_CAN_MODULE_ID, "SPEED: %d \r\n", cloud_data->can_data.speed);
+        }
+    }
+}
+
+void get_temperature(void *arg)
+{
+    struct cloud_data_struct *cloud_data = (struct cloud_data_struct *)arg;
+    char query[5] = SERVICE_SHOW_CURRENT_DATA;
+    char *temp;
+    char hex_arr[10][10];
+    int i = 0;
+    strcat(query, BLE_TEMPERATURE_PID);
+    memset(response_buf, 0, 80);
+    int rc = get_pid_response_by_request(query, response_buf, sizeof(query));
+    if (rc)
+    {
+        temp = strtok(response_buf, EMPTY_SPACE);
+
+        while (temp != NULL)
+        {
+            sprintf(hex_arr[i], "%s", temp);
+            temp = strtok(NULL, EMPTY_SPACE);
+            i++;
+        }
+
+        if (strstr(hex_arr[1], BLE_TEMPERATURE_PID))
+        {
+            cloud_data->can_data.temperature = hex_to_decimal((uint8_t *)hex_arr[2]) - 40;
+            logger_info(BLE_CAN_MODULE_ID, "Temperature : %d\r\n", cloud_data->can_data.temperature);
+        }
+    }
+}
+
+void get_rpm(void *arg)
+{
+    struct cloud_data_struct *cloud_data = (struct cloud_data_struct *)arg;
+    char read_rpm[8];
+    char *temp;
+    char hex_arr[10][10];
+    int i = 0;
+    char query[5] = SERVICE_SHOW_CURRENT_DATA;
+    strcat(query, BLE_RPM_PID);
+    memset(response_buf, 0, 80);
+    int rc = get_pid_response_by_request(query, response_buf, sizeof(query));
+    if (rc)
+    {
+        temp = strtok(response_buf, EMPTY_SPACE);
+
+        while (temp != NULL)
+        {
+            sprintf(hex_arr[i], "%s", temp);
+            temp = strtok(NULL, EMPTY_SPACE);
+            i++;
+        }
+
+        if (strstr(hex_arr[1], BLE_RPM_PID))
+        {
+            strcat(read_rpm, hex_arr[2]);
+            strcat(read_rpm, hex_arr[3]);
+            // sprintf((char *)read_rpm, "%s%s", hex_arr[2], hex_arr[3]);
+            cloud_data->can_data.rpm = (float)hex_to_decimal((uint8_t *)read_rpm) * 0.25;
+            logger_info(BLE_CAN_MODULE_ID, "RPM: %f\r\n", cloud_data->can_data.rpm);
+        }
+    }
+}
+
+void get_battery(void *arg)
+{
+    struct cloud_data_struct *cloud_data = (struct cloud_data_struct *)arg;
+    uint8_t read_battery[8];
+    memset(response_buf, 0, 80);
+    int rc = get_pid_response_by_request(BATTERY_CMD, response_buf, sizeof(BATTERY_CMD));
+    if (rc)
+    {
+        sprintf((char *)read_battery, "%c%c%c%c", response_buf[0], response_buf[1], response_buf[2], response_buf[3]);
+        cloud_data->client_controller_data.voltage = atof((char *)read_battery);
+        logger_info(BLE_CAN_MODULE_ID, "Battery : %.2f", cloud_data->client_controller_data.voltage);
+    }
+}
+/*
+ * Name : ble_hex_to_binary
+ *
+ * Descriptoin: The hex_to_binary function is for extracting VIN data from 3 can frames and converting into string value.
+ *
+ * Input parameters:
+ *                  struct can_frame supported_frame: can frame data for supported PIDs.
+ *					uint8_t *supported_binary: referenc type, updating binary supported PIDs data from can frame data.
+ *
+ * Output parameters: void
+ */
+void ble_hex_to_binary(int *response, uint8_t *supported_binary)
+{
+    size_t i = 0;
+    int index = 0;
+
+    uint8_t supported_value[16];
+    sprintf((char *)supported_value, "%X%X%X%X", response[2], response[3], response[4], response[5]);
+
+    while (supported_value[i])
+    {
+
+        switch (supported_value[i])
+        {
+        case '0':
+            add_binary_values(supported_binary, &index, "0000");
+            break;
+        case '1':
+            add_binary_values(supported_binary, &index, "0001");
+            break;
+        case '2':
+            add_binary_values(supported_binary, &index, "0010");
+            break;
+        case '3':
+            add_binary_values(supported_binary, &index, "0011");
+            break;
+        case '4':
+            add_binary_values(supported_binary, &index, "0100");
+            break;
+        case '5':
+            add_binary_values(supported_binary, &index, "0101");
+            break;
+        case '6':
+            add_binary_values(supported_binary, &index, "0110");
+            break;
+        case '7':
+            add_binary_values(supported_binary, &index, "0111");
+            break;
+        case '8':
+            add_binary_values(supported_binary, &index, "1000");
+            break;
+        case '9':
+            add_binary_values(supported_binary, &index, "1001");
+            break;
+        case 'A':
+        case 'a':
+            add_binary_values(supported_binary, &index, "1010");
+            break;
+        case 'B':
+        case 'b':
+            add_binary_values(supported_binary, &index, "1011");
+            break;
+        case 'C':
+        case 'c':
+            add_binary_values(supported_binary, &index, "1100");
+            break;
+        case 'D':
+        case 'd':
+            add_binary_values(supported_binary, &index, "1101");
+            break;
+        case 'E':
+        case 'e':
+            add_binary_values(supported_binary, &index, "1110");
+            break;
+        case 'F':
+        case 'f':
+            add_binary_values(supported_binary, &index, "1111");
+            break;
+        default:
+            break;
+        }
+        i++;
+    }
+}

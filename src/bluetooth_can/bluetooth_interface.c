@@ -105,21 +105,20 @@ int str2uuid(const char *uuid_str, uuid_t *uuid)
  * Output parameters: int return connection status
  */
 
-int setup_bluetooth_connection(int *sockfd, char *uuid, char *blename)
+int setup_bluetooth_connection(int *sockfd, sdp_session_t *session, sdp_record_t *rec ,char *spuuid, char *blename)
 {
-    int i, j, err, sock, dev_id = -1;
+    int i, err, sock, dev_id = -1;
     struct hci_dev_info dev_info;
     inquiry_info *info = NULL;
     int num_rsp, length, flags;
-    bdaddr_t ba;
     char addr[19] = {0};
     char name[248] = {0};
     uuid_t uuid = {0};
     /* Change this to your apps UUID*/
-    char *uuid_str = uuid;
+    char *uuid_str = spuuid;
     uint32_t range = 0x0000ffff;
     sdp_list_t *response_list = NULL, *search_list, *attrid_list;
-    int s, loco_channel = -1, status;
+    int  loco_channel = -1, status;
     struct sockaddr_rc loc_addr = {0};
 
     (void)signal(SIGINT, SIG_DFL);
@@ -175,11 +174,12 @@ int setup_bluetooth_connection(int *sockfd, char *uuid, char *blename)
         if (hci_read_remote_name(sock, &(info + i)->bdaddr, sizeof(name),
                                  name, 0) < 0)
             strcpy(name, "[unknown]");
+        printf("BLE NAME BEFORE CHECK : %s\r\n",name);
         if (!strcmp(name, blename))
         {
             logger_info(BLE_CAN_MODULE_ID, "Found %s  %s, searching for the the desired service on it now\n", addr, name);
             /* connect to the SDP server running on the remote machine */
-        sdpconnect:
+        
             session = 0;
             retries = 0;
             while (!session)
@@ -206,8 +206,9 @@ int setup_bluetooth_connection(int *sockfd, char *uuid, char *blename)
             attrid_list = sdp_list_append(0, &range);
             err = 0;
             err = sdp_service_search_attr_req(session, search_list, SDP_ATTR_REQ_RANGE, attrid_list, &response_list);
+            logger_info(BLE_CAN_MODULE_ID,"errval:%d\r\n",err);
             sdp_list_t *r = response_list;
-            sdp_record_t *rec;
+            //sdp_record_t *rec;
             /* go through each of the service records */
             foundit = 0;
             responses = 0;
@@ -269,19 +270,19 @@ int setup_bluetooth_connection(int *sockfd, char *uuid, char *blename)
                 loc_addr.rc_family = AF_BLUETOOTH;
                 loc_addr.rc_channel = loco_channel;
                 loc_addr.rc_bdaddr = *(&(info + i)->bdaddr);
+                
                 status = connect(*sockfd, (struct sockaddr *)&loc_addr, sizeof(loc_addr));
+                printf("BLE NAME : %s\r\n",name);
+               
+                printf("Status:%d\r\n",status);
                 if (status < 0)
                 {
                     logger_error(BLE_CAN_MODULE_ID, "Error: Socket Connection Failed %s\r\n", __func__);
                     return -1;
-                }
-                sdp_record_free(rec);
+                }    
+
             }
-            sdp_close(session);
-            if (loco_channel > 0)
-            {
-                goto sdpconnect;
-            }
+
         }
     }
     return 0;
@@ -316,10 +317,10 @@ void ble_close_socket(int *sockfd)
  *
  * Output parameters: int size of sent bytes
  */
-int ble_can_request(int sockfd, char *request)
+int ble_can_request(int sockfd, char *request,int request_len)
 {
-    int rc = write(sockfd, request, sizeof(request));
-    if (rc != sizeof(request))
+    int rc = write(sockfd, request, request_len);
+    if (rc != request_len)
     {
         logger_error(BLE_CAN_MODULE_ID, "Error: Write failed- %s\r\n", __func__);
         return rc;
@@ -340,10 +341,21 @@ int ble_can_request(int sockfd, char *request)
  */
 int ble_can_response(int sockfd, char *response)
 {
-    int nbytes = read(sockfd, response, sizeof(response));
+    int nbytes = read(sockfd, response, 80);    
     if (nbytes <= 0)
     {
         logger_error(BLE_CAN_MODULE_ID, "Error: Read failed- %s\r\n", __func__);
     }
     return nbytes;
 }
+
+int ble_can_response_byte(int sockfd, char *response,int len)
+{
+    int nbytes = read(sockfd, response, len);    
+    if (nbytes <= 0)
+    {
+        logger_error(BLE_CAN_MODULE_ID, "Error: Read failed- %s\r\n", __func__);
+    }
+    return nbytes;
+}
+
