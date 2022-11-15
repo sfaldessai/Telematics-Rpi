@@ -10,6 +10,7 @@ extern "C"
 {
 #include "./../src/serial_interface/serial_config.h"
 #include "./../src/gps_module/gps_module.h"
+#include "./../src/utils/common_utils.h"
 #include "./../src/main.h"
 }
 
@@ -103,54 +104,6 @@ TEST(GPSTestGroup, getGpvtgSpeedTest)
     STRCMP_EQUAL("010.2,K", vtg_data);
 }
 
-TEST(GPSTestGroup, NmeaVerifyChecksumValidTest)
-{
-    /*arrange*/
-    char *sentence = (char *)"$GNRMC,,V,,,,,,,,,,N*4D";
-    char *sentence_1 = (char *)"$GPGGA,053137.00,1731.98832,N,07830.46500,E,1,05,12.42,414.3,M,-73.9,M,,*4A";
-
-    /*act*/
-    int result = nmea_verify_checksum(sentence);
-    int result_1 = nmea_verify_checksum(sentence_1);
-
-    /*assert*/
-    CHECK_EQUAL(0, result);
-    CHECK_EQUAL(0, result_1);
-}
-
-TEST(GPSTestGroup, NmeaVerifyChecksumInvalidTest)
-{
-    /*arrange*/
-    char *sentence = (char *)"$GNRMC,,V,,,,,N*4D";
-    char *nmea_data_1 = (char *)"$GLGGA,053137.00,1731.98832,N,07830.46500,E,1,05,12.42,414.3,M,-73.9,M,,*4A";
-    char *nmea_data_2 = (char *)"$GNGGA,053137.00,1731.98832,N,07830.46500,E,1,05,12.42,414.3,M,-73.9,M,,*4A";
-
-    /*act*/
-    int result = nmea_verify_checksum(sentence);
-    int result_1 = nmea_verify_checksum(nmea_data_1);
-    int result_2 = nmea_verify_checksum(nmea_data_2);
-
-    /*assert*/
-    CHECK_EQUAL(903, result);
-    CHECK_EQUAL(903, result_1);
-    CHECK_EQUAL(903, result_2);
-}
-
-TEST(GPSTestGroup, NmeaVerifyChecksumNullTest)
-{
-    /*arrange*/
-    char *sentence = (char *)"\0";
-    char *sentence2 = (char *)"$GNRMC,,V,,,,,N*";
-
-    /*act*/
-    int result = nmea_verify_checksum(sentence);
-    int result2 = nmea_verify_checksum(sentence2);
-
-    /*assert*/
-    CHECK_EQUAL(903, result);
-    CHECK_EQUAL(903, result2);
-}
-
 /* Test lat long value with - sign */
 TEST(GPSTestGroup, getGpsLatLongDataWithSignTest)
 {
@@ -202,9 +155,9 @@ TEST(GPSTestGroup, differentPrefixTest)
 
     /*act*/
 
-    int result_1 = nmea_verify_checksum(nmea_data);
-    int result_2 = nmea_verify_checksum(nmea_data_1);
-    int result_3 = nmea_verify_checksum(nmea_data_2);
+    int result_1 = verify_checksum(nmea_data, 2, '$', '*');
+    int result_2 = verify_checksum(nmea_data_1, 2, '$', '*');
+    int result_3 = verify_checksum(nmea_data_2, 2, '$', '*');
 
     if (result_1 == 0)
     {
@@ -228,45 +181,6 @@ TEST(GPSTestGroup, differentPrefixTest)
 
     DOUBLES_EQUAL(-18.63075, gps_data_2.latitude, 0.0001);
     DOUBLES_EQUAL(-73.8718, gps_data_2.longitude, 0.0001);
-}
-
-/* Test Partial NMEA sentence */
-TEST(GPSTestGroup, partialSentenceTest)
-{
-    /*arrange*/
-    char *nmea_data = (char *)"GNGGA,071938.00,1837.84498,S,07352.30812,W,2,08,3.41,621.3,M,-67.7,M,,000069";
-
-    /*act*/
-    int result = nmea_verify_checksum(nmea_data);
-
-    /*assert*/
-    CHECK_EQUAL(GPS_NMEA_SENTENCE_CHECKSUM_ERROR, result);
-}
-
-/* Test Invalid lat long NMEA sentence : test for missing 'dot' in lat long value */
-TEST(GPSTestGroup, invalidLatLongTest)
-{
-    /*arrange*/
-    char *nmea_data = (char *)"$GPGGA,071938.00,183784498,S,0735230812,W,2,08,3.41,621.3,M,-67.7,M,,0000*69";
-
-    /*act*/
-    int result = nmea_verify_checksum(nmea_data);
-
-    /*assert*/
-    CHECK_EQUAL(GPS_NMEA_SENTENCE_CHECKSUM_ERROR, result);
-}
-
-/* Test 'Empty values */
-TEST(GPSTestGroup, emptyvaluegTest)
-{
-    /*arrange*/
-    char *nmea_data = (char *)"$GPGGA,,,S,,W,2,08,3.41,621.3,M,-67.7,M,,0000*69";
-
-    /*act*/
-    int result = nmea_verify_checksum(nmea_data);
-
-    /*assert*/
-    CHECK_EQUAL(GPS_NMEA_SENTENCE_CHECKSUM_ERROR, result);
 }
 
 /* Test ignition off with invalid fd passed */
