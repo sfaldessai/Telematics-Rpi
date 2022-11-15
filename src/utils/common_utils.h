@@ -15,6 +15,8 @@
 void get_master_mac_address(uint8_t *);
 
 uint16_t hex_to_decimal(uint8_t *);
+void add_binary_values(uint8_t *, int *, char *);
 int verify_checksum(const char *sentence, int module_id, char, char);
+
 
 #endif
