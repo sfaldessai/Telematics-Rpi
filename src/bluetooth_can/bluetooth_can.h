@@ -46,6 +46,7 @@
 #define EMPTY_SPACE " "
 #define SEARCHING "SEARCHING"
 #define NODATA "NO DATA"
+#define ENDCHAR '\n'
 
 enum can_state{SEND,INPROGRESS,RECEIVED};
 
@@ -61,10 +62,11 @@ void get_supported_pids(void *arg);
 void ble_hex_to_binary(int*, uint8_t*);
 void get_speed(void *arg);
 void get_temperature(void *arg);
-void get_vin(void);
+void get_vin(void *arg);
 void get_rpm(void *arg);
 void get_battery(void *arg);
 int ble_can_response_byte(int, char *,int);
 void get_response(char *);
+void get_vin_response(char *);
 
 #endif

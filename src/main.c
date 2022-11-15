@@ -112,6 +112,9 @@ int main(int argc, char *argv[])
     pthread_join(read_can_vin_thread, NULL);
     pthread_join(read_can_rpm_thread, NULL);
     pthread_join(read_can_temperature_thread, NULL);
+    if (can_server == BLE_CAN_MODULE_ID){
+        pthread_join(read_ble_can_thread,NULL);
+    }
     /* Join Thread End*/
 
     return 0;

@@ -67,7 +67,7 @@ char *create_json_obj(struct cloud_data_struct *cloud_data)
 
     cJSON_AddNumberToObject(cjson_client_controller, "motion", cloud_data->client_controller_data.motion);
     cJSON_AddNumberToObject(cjson_client_controller, "pto", cloud_data->client_controller_data.pto);
-    cJSON_AddNumberToObject(cjson_client_controller, "battery", cloud_data->client_controller_data.voltage);
+    cJSON_AddNumberToObject(cjson_client_controller, "battery", cloud_data->can_data.battery);
     cJSON_AddNumberToObject(cjson_client_controller, "accX", cloud_data->client_controller_data.acc_x);
     cJSON_AddNumberToObject(cjson_client_controller, "accY", cloud_data->client_controller_data.acc_y);
     cJSON_AddNumberToObject(cjson_client_controller, "accZ", cloud_data->client_controller_data.acc_z);
@@ -200,6 +200,7 @@ void initialize_cloud_data(struct cloud_data_struct *cloud_data)
     can_data.rpm = 0.0;
     can_data.temperature = 0;
     can_data.mode = 1;
+    can_data.battery=0;
     memset(can_data.supported_pids, '\0', CAN_PID_LENGTH * sizeof(uint8_t));
 
     cloud_data->gps_data = gps_data;

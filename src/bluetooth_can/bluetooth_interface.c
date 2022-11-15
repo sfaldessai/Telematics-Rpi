@@ -341,7 +341,7 @@ int ble_can_request(int sockfd, char *request,int request_len)
  */
 int ble_can_response(int sockfd, char *response)
 {
-    int nbytes = read(sockfd, response, 80);    
+    int nbytes = read(sockfd, response, 1024);    
     if (nbytes <= 0)
     {
         logger_error(BLE_CAN_MODULE_ID, "Error: Read failed- %s\r\n", __func__);

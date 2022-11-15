@@ -498,7 +498,7 @@ void *read_from_gps(void *arg)
 
     do
     {
-        if (cloud_data->client_controller_data.voltage <= VOLTAGE_THRESHOLD)
+        if (cloud_data->can_data.battery > VOLTAGE_THRESHOLD)  /*Use battery data from CAN in real time or use cloud_data->client_controller_data.voltage in virtual*/
         {
             if (IGNITION_ON != is_ignition_on)
             {
