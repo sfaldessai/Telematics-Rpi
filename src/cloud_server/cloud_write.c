@@ -127,6 +127,7 @@ void *write_to_cloud(void *arg)
             calculate_distance_travelled(cloud_data);
             calculate_idle_time(cloud_data);
             send_data = create_json_obj(cloud_data);
+            inser_queue(send_data);
 
             if (rc == SQLITE_OK)
             {
