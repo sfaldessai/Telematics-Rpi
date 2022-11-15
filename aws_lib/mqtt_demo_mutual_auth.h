@@ -12,7 +12,7 @@ extern void *mqtt_send(void *arg);
 
 extern char telematic_json_array[RECORDS][SIZE];
 
-extern int inser_queue(char *data);
+extern int insert_queue(char *data);
 extern int delete_queue();
 
 struct aws_arg
