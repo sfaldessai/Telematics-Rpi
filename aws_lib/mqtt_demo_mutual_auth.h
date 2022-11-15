@@ -1,7 +1,8 @@
 #ifndef MQTT_H_
 #define MQTT_H_
+
 #define DEBUG
-/* POSIX includes. */
+
 #include <unistd.h>
 
 #define SIZE 4000
