@@ -27,7 +27,7 @@ struct cloud_data_struct
 	struct gps_data_struct gps_data;
 	struct client_controller_data_struct client_controller_data;
 	struct can_data_struct can_data;
-	int service_time;
+	uint64_t service_time;
 	float distance_travelled;
 	uint64_t idle_time_secs;
 	double prev_latitude[2], prev_longitude[2];

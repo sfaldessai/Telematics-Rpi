@@ -223,7 +223,7 @@ void initialize_cloud_data(struct cloud_data_struct *cloud_data)
 
     uint8_t service_value[COLUMN_VALUE_MAX_LEN];
     get_single_column_value(VEHICLE_IN_SERVICE, SORT_BY_DESC, service_value);
-    cloud_data->service_time = (int)atoi((char *)service_value);
+    cloud_data->service_time = (uint64_t)atoi((char *)service_value);
 
     uint8_t distance_value[COLUMN_VALUE_MAX_LEN];
     get_single_column_value(DISTANCE_TRAVLLED, SORT_BY_DESC, distance_value);

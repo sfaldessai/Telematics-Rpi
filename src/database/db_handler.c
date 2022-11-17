@@ -216,8 +216,7 @@ int get_last_two_lat_log(double *latitude, double *longitude)
         return rc;
     }
 
-    sprintf(sql, "SELECT %s,%s from %s where %s<900 AND %s<900 order by  %s DESC limit 2;", LATITUDE, LONGITUDE, TELEMATICS, LATITUDE, LONGITUDE, creation_time);
-
+    sprintf(sql, "SELECT DISTINCT %s,%s from %s where %s<900 AND %s<900 order by  %s DESC limit 2;", LATITUDE, LONGITUDE, TELEMATICS, LATITUDE, LONGITUDE, creation_time);
     logger_info(DB_LOG_MODULE_ID, "SQL QUERY: %s\n", sql);
 
     rc = sqlite3_prepare_v2(db, sql, -1, &res, 0);
