@@ -80,7 +80,7 @@ int insert_telematics_data(struct cloud_data_struct *cloud_data)
             cloud_data->gps_data.longitude,
             cloud_data->gps_data.pdop, cloud_data->gps_data.hdop, cloud_data->gps_data.vdop,
             cloud_data->mac_address, cloud_data->can_data.vin, cloud_data->can_data.vehicle_type, cloud_data->can_data.speed,
-            supported_pids, 180.00, cloud_data->idle_time_secs, 86, cloud_data->client_controller_data.motion,
+            supported_pids, cloud_data->distance_travelled, cloud_data->idle_time_secs, cloud_data->service_time, cloud_data->client_controller_data.motion,
             cloud_data->client_controller_data.voltage, cloud_data->client_controller_data.pto,
             cloud_data->client_controller_data.acc_x, cloud_data->client_controller_data.acc_y, cloud_data->client_controller_data.acc_x,
             cloud_data->can_data.rpm, cloud_data->can_data.temperature);
@@ -182,7 +182,13 @@ int get_single_column_value(char *column_name, char *sort_by, uint8_t *return_va
 
     if (step == SQLITE_ROW)
     {
-        strncpy((char *)return_value, (char *)sqlite3_column_text(res, 0), COLUMN_VALUE_MAX_LEN);
+        if ((char *)sqlite3_column_text(res, 0) != NULL)
+        {
+            strncpy((char *)return_value, (char *)sqlite3_column_text(res, 0), COLUMN_VALUE_MAX_LEN);
+        }
+        else{
+            printf("\n NULL FOUND \n");
+        }
     }
 
     sqlite3_finalize(res);
@@ -196,8 +202,8 @@ int get_single_column_value(char *column_name, char *sort_by, uint8_t *return_va
  *
  * Descriptoin: The get_last_two_lat_log function is for fetching last updated 2 latitude and lagitude values
  *
- * Input parameters: latitude : return last updated 2 latitude value 
- *                   longitude : return last updated 2 longitude value 
+ * Input parameters: latitude : return last updated 2 latitude value
+ *                   longitude : return last updated 2 longitude value
  *
  * Output parameters: int: returning sqlite success or error code
  */
@@ -216,7 +222,7 @@ int get_last_two_lat_log(double *latitude, double *longitude)
         return rc;
     }
 
-    sprintf(sql, "SELECT %s,%s from %s where %s<900 AND %s<900 order by  %s DESC limit 2;", LATITUDE, LONGITUDE, TELEMATICS, LATITUDE, LONGITUDE, creation_time);
+    sprintf(sql, "SELECT DISTINCT %s,%s from %s where %s<900 AND %s<900 order by  %s DESC limit 2;", LATITUDE, LONGITUDE, TELEMATICS, LATITUDE, LONGITUDE, creation_time);
 
     logger_info(DB_LOG_MODULE_ID, "SQL QUERY: %s\n", sql);
 
