@@ -12,10 +12,12 @@ DB_MODULE_DIR = $(SRC_DIR)/database
 GLOABL_DIR = $(SRC_DIR)/global
 UTILS_DIR = $(SRC_DIR)/utils
 C_JSON_DIR = $(UTILS_DIR)/c_json
+BLE_CAN_DIR =$(SRC_DIR)/bluetooth_can
 
 CFLAGS = -g -O2 -Wall -I
 CWFLAGS = -Werror
 LIBS = -lpthread
+BLE_LIB = -lbluetooth
 
 
 OUT=telematic
@@ -60,8 +62,14 @@ c_json.o:
 c_json_utils.o:
 	gcc -c $(CFLAGS) $(C_JSON_DIR) $(C_JSON_DIR)/cJSON_Utils.c -o $(SRC_DIR)/c_json_utils.o
 
-main: copy_lib serial_interface.o gps_module.o client_controller.o cloud_write.o global.o logger.o can_interface.o can_bus.o common_utils.o db_handler.o c_json.o c_json_utils.o
-	gcc $(CWFLAGS) $(CFLAGS) $(SRC_DIR) $(SRC_DIR)/*.o $(SRC_DIR)/main.c -o $(OUT) -lmqtt_demo_mutual_auth $(LIBS) -lm -lsqlite3
+bluetooth_interface.o:
+	gcc -c $(CFLAGS) $(BLE_CAN_DIR) $(BLE_CAN_DIR)/bluetooth_interface.c -o $(SRC_DIR)/bluetooth_interface.o $(BLE_LIB)
+
+bluetooth_can.o:
+	gcc -c $(CFLAGS) $(BLE_CAN_DIR) $(BLE_CAN_DIR)/bluetooth_can.c -o $(SRC_DIR)/bluetooth_can.o
+
+main: copy_lib serial_interface.o gps_module.o client_controller.o cloud_write.o global.o logger.o can_interface.o can_bus.o common_utils.o db_handler.o c_json.o c_json_utils.o bluetooth_interface.o bluetooth_can.o
+	gcc $(CWFLAGS) $(CFLAGS) $(SRC_DIR) $(SRC_DIR)/*.o $(SRC_DIR)/main.c -o $(OUT) -lmqtt_demo_mutual_auth $(LIBS) -lm -lsqlite3 $(BLE_LIB)
 
 clean:
 	rm $(SRC_DIR)/*.o $(OUT)

@@ -75,7 +75,7 @@ char *create_json_obj(struct cloud_data_struct *cloud_data)
 
     cJSON_AddNumberToObject(cjson_client_controller, "motion", cloud_data->client_controller_data.motion);
     cJSON_AddNumberToObject(cjson_client_controller, "pto", cloud_data->client_controller_data.pto);
-    cJSON_AddNumberToObject(cjson_client_controller, "battery", cloud_data->client_controller_data.voltage);
+    cJSON_AddNumberToObject(cjson_client_controller, "battery", cloud_data->can_data.battery);
     cJSON_AddNumberToObject(cjson_client_controller, "accX", cloud_data->client_controller_data.acc_x);
     cJSON_AddNumberToObject(cjson_client_controller, "accY", cloud_data->client_controller_data.acc_y);
     cJSON_AddNumberToObject(cjson_client_controller, "accZ", cloud_data->client_controller_data.acc_z);
@@ -116,7 +116,7 @@ void *write_to_cloud(void *arg)
         if (cloud_data != NULL)
         {
             if (cloud_data->gps_data.hdop >= GPS_ERROR_RANGE_BEGIN && cloud_data->gps_data.hdop <= GPS_ERROR_RANGE_END
-                && cloud_data->client_controller_data.acc_x <= CLIENT_CONTROLLER_ERROR_RANGE_BEGIN ) {
+                && cloud_data->client_controller_data.acc_x < CLIENT_CONTROLLER_ERROR_RANGE_BEGIN ) {
                 /*TBD: Test and note the min-max limits of Acceleration values and rectify the error code ranges accordingly*/
                 get_last_two_lat_log(cloud_data->prev_latitude, cloud_data->prev_longitude);
                 logger_info(CLOUD_LOG_MODULE_ID, "last(nth) updated value: latitude = %lf longitude = %lf", cloud_data->prev_latitude[0], cloud_data->prev_longitude[0]);
@@ -209,6 +209,7 @@ void initialize_cloud_data(struct cloud_data_struct *cloud_data)
     can_data.rpm = 0.0;
     can_data.temperature = 0;
     can_data.mode = 1;
+    can_data.battery=0;
     memset(can_data.supported_pids, '\0', CAN_PID_LENGTH * sizeof(uint8_t));
 
     cloud_data->gps_data = gps_data;
@@ -343,6 +344,10 @@ void handle_gps_signal_lost(struct cloud_data_struct* cloud_data)
     double bearing_theta;
     double X, Y;
     double x_distance = 0, y_distance = 0, z_distance = 0;
+    cloud_data->prev_latitude[0] = (cloud_data->prev_latitude[0] * PI) / 180;
+    cloud_data->prev_latitude[1] = (cloud_data->prev_latitude[1] * PI) / 180;
+    cloud_data->prev_longitude[0] = (cloud_data->prev_longitude[0] * PI) / 180;
+    cloud_data->prev_longitude[1] = (cloud_data->prev_longitude[0] * PI) / 180;
 
     /* calculate distance based on accx, accy and accz */
     x_distance = 0.5 * cloud_data->client_controller_data.acc_x * (1 / 3600) * (1 / 3600);
