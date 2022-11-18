@@ -173,3 +173,16 @@
 	76.58%   ../src/can_bus/can_bus.c
 	93.33%   ../src/utils/common_utils.c
 	96.55%   ../src/client_controller/client_controller.c
+
+	# BLUETOOTH CAN SETUP 
+
+	Install the bluetooth package using below command
+	sudo apt-get install libbluetooth3-dev
+
+	Run the telematics application using following command 
+
+	sudo ./telematic -c 8 
+
+	To use virtual can run  
+
+	sudo ./telematic

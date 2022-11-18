@@ -12,6 +12,7 @@
 #include "can_bus.h"
 #include "../../include/resource.h"
 #include "../logger/logger.h"
+#include "../utils/common_utils.h"
 
 /*
  * Name : get_request_frame
@@ -239,27 +240,6 @@ void vin_from_can_frame_data(struct can_frame *vin_frame, char *read_data)
 		j = j + 1;
 	}
 }
-
-/*
- * Name : add_binary_values
- *
- * Descriptoin: The add_binary_values function is for extracting VIN data from 3 can frames and converting into string value.
- *
- * Input parameters:
- *                  uint8_t *supported_binary: reference type, appedning all 32 PIDs binary data.
- *					int *index: referenc type, updating index value for supported_binary array index.
- *					char *binary: hex byte binary value, appending to supported_binary.
- * Output parameters: void
- */
-void add_binary_values(uint8_t *supported_binary, int *index, char *binary)
-{
-	for (size_t i = 0; i < 4; i++)
-	{
-		supported_binary[*index] = (binary[i] - '0');
-		*index = *index + 1;
-	}
-}
-
 /*
  * Name : hex_to_binary
  *
