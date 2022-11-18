@@ -37,6 +37,7 @@ void *read_from_ble_can(void *arg)
             sdp_close(&session);
         }
     }
+    return NULL;
 }
 
 int initialize_ELM(void)
@@ -164,7 +165,6 @@ void get_vin(void *arg)
     char hex_arr[25][10];
     int vin_dec[17];
     char vin[18];
-    char dec_ascii;
     uint8_t wmi[4];
 
     strcat(query, BLE_VIN_PID);
@@ -196,7 +196,7 @@ void get_vin(void *arg)
          else
          {
              vin_dec[k] = hex_to_decimal((uint8_t *)hex_arr[j]);
-             sprintf(&dec_ascii, "%c", vin_dec[k]);
+             char dec_ascii = vin_dec[k];
              vin[k]=dec_ascii;
              cloud_data->can_data.vin[k] = vin[k];
              k++;

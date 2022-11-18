@@ -22,8 +22,13 @@
 #define CLIENT_CONTROLLER "/dev/ttyACM0" /* Used for default path */
 #define GPS_MODULE "/dev/ttyUSB0" /* Used for default path */
 
+#define CC_DEVICE_LIST_LENGTH 2
 #define CC_MANUFACTURE_NAME "STM" /* Manufacture name */
+#define TEST_CC_MANUFACTURE_NAME "Prolific" /* Manufacture name */
+
+#define GPS_DEVICE_LIST_LENGTH 2
 #define GPS_MANUFACTURE_NAME "Silicon" /* Manufacture name */
+#define TEST_GPS_MANUFACTURE_NAME "Silicon" /* Manufacture name */
 
 #define AWS_CLIENT_ID "testclient"
 #define AWS_TOPIC "testclient/example/topic"

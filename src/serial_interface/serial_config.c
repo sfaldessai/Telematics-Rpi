@@ -89,8 +89,10 @@ int uart_start(struct uart_device_struct *device, bool canonical)
 	{
 		/* read() will block until at least one byte is available. */
 		tty->c_cc[VTIME] = 0;
-		tty->c_cc[VMIN] = 1;
+		tty->c_cc[VMIN] = 30; /* 3 second timeout */
 	}
+
+	tty->c_cc[VTIME] = 10;
 
 	/* Flush port. */
 	tcflush(fd, TCIFLUSH);
@@ -153,8 +155,11 @@ int uart_reads_chunk(struct uart_device_struct *device, char *buf, size_t buf_le
 		logger_error(SERIAL_LOG_MODULE_ID, "failed to open UART device - %s : %d\r\n", __func__, device->fd);
 		return rc;
 	}
+	printf("\nSTARTED TEST :::::::::::::::::::::::::::::::::: %d\n", rc);
 
 	rc = read(device->fd, buf, buf_len);
+
+	printf("\nTEST :::::::::::::::::::::::::::::::::: %d\n", rc);
 
 	if (rc <= 0)
 	{

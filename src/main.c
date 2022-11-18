@@ -25,11 +25,13 @@ int main(int argc, char *argv[])
     pthread_t client_controller_read_thread, gps_read_thread, serial_write_thread;
     pthread_t read_can_supported_thread, read_can_speed_thread, read_can_vin_thread, read_can_rpm_thread, read_can_temperature_thread, cloud_send_thread, read_ble_can_thread;
     int opt;
-    char *client_controller_path, *gps_device_path;
+    char *client_controller_path = NULL, *gps_device_path= NULL;
+    char *cc_device_list[CC_DEVICE_LIST_LENGTH] = {CC_MANUFACTURE_NAME, TEST_CC_MANUFACTURE_NAME};
+    char *gps_device_list[GPS_DEVICE_LIST_LENGTH] = {GPS_MANUFACTURE_NAME, TEST_GPS_MANUFACTURE_NAME};
     int can_server=0;
 
-    client_controller_path = get_device_path(CC_MANUFACTURE_NAME);
-    gps_device_path = get_device_path(GPS_MANUFACTURE_NAME);
+    client_controller_path = get_device_path(cc_device_list, CC_DEVICE_LIST_LENGTH);
+    gps_device_path = get_device_path(gps_device_list, GPS_DEVICE_LIST_LENGTH);
 
     if (client_controller_path == NULL || strlen(client_controller_path) <= 0)
     {

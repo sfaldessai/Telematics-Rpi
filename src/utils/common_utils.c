@@ -239,30 +239,38 @@ void trim(char *str)
  *
  * Output parameters: char *device_path : return connected dev path
  */
-char *get_device_path(char *device_name)
+char *get_device_path(char **device_name, int len)
 {
     char *device_path = malloc(sizeof(char) * PATH_BUF_SIZE);
     char cmd[PATH_BUF_SIZE];
     FILE *pipe;
     int linenr;
+    int i = 0;
 
-    /* Get a pipe where the output from the scripts comes in */
-    sprintf((char *)cmd, "bash ./usb-detect.sh %s", device_name);
-    pipe = popen(cmd, "r");
-    if (pipe == NULL)
-    {                /* check for errors */
-        return NULL; /* return with exit code indicating error */
-    }
-
-    /* Read script output from the pipe line by line */
-    linenr = 1;
-    while (fgets(device_path, PATH_BUF_SIZE, pipe) != NULL)
+    for (i = 0; i < len; i++)
     {
-        ++linenr;
-    }
+        /* Get a pipe where the output from the scripts comes in */
+        sprintf((char *)cmd, "bash ./usb-detect.sh %s", device_name[i]);
+        pipe = popen(cmd, "r");
+        if (pipe == NULL)
+        {                /* check for errors */
+            return NULL; /* return with exit code indicating error */
+        }
 
-    /* Once here, out of the loop, the script has ended. */
-    pclose(pipe);       /* Close the pipe */
-    trim(device_path);  
-    return device_path; /* return with exit code indicating success. */
+        /* Read script output from the pipe line by line */
+        linenr = 1;
+        while (fgets(device_path, PATH_BUF_SIZE, pipe) != NULL)
+        {
+            ++linenr;
+        }
+
+        /* Once here, out of the loop, the script has ended. */
+        pclose(pipe); /* Close the pipe */
+        trim(device_path);
+        if (device_path != NULL && strlen(device_path) > 0)
+        {
+            return device_path; /* return with exit code indicating success. */
+        }
+    }
+    return NULL;
 }
