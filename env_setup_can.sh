@@ -1,4 +1,4 @@
-REQUIRED_PKG="libsqlite3-dev gcc cmake libbluettoth3-dev git build-essential"
+REQUIRED_PKG="can-utils gcc"
 for i in $REQUIRED_PKG; do
 	PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $i|grep "install ok installed")
 	echo Checking for $i:$PKG_OK
@@ -7,5 +7,6 @@ for i in $REQUIRED_PKG; do
 		sudo apt-get --yes install $i
 	fi
 done
-sudo make main
-sudo ./telematic -m 6 -f 1
+sudo modprobe vcan &&
+sudo ip link add dev vcan0 type vcan &&
+sudo ip link set up vcan0
