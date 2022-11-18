@@ -89,7 +89,7 @@ int uart_start(struct uart_device_struct *device, bool canonical)
 	{
 		/* read() will block until at least one byte is available. */
 		tty->c_cc[VTIME] = 0;
-		tty->c_cc[VMIN] = 1;
+		tty->c_cc[VMIN] = 30; /* 3 second timeout */
 	}
 
 	tty->c_cc[VTIME] = 10;
