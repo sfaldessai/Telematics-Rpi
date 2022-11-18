@@ -19,8 +19,11 @@
 
 #define DEBUG
 
-#define CLIENT_CONTROLLER "/dev/ttyACM0"
-#define GPS_MODULE "/dev/ttyUSB0"
+#define CLIENT_CONTROLLER "/dev/ttyACM0" /* Used for default path */
+#define GPS_MODULE "/dev/ttyUSB0" /* Used for default path */
+
+#define CC_MANUFACTURE_NAME "STM" /* Manufacture name */
+#define GPS_MANUFACTURE_NAME "Silicon" /* Manufacture name */
 
 #define AWS_CLIENT_ID "testclient"
 #define AWS_TOPIC "testclient/example/topic"

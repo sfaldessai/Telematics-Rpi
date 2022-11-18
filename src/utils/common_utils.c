@@ -12,7 +12,9 @@
 #include <sys/socket.h>
 #include <string.h>
 #include <math.h>
+#include <stdlib.h>
 #include <linux/if.h>
+#include <ctype.h>
 #include "common_utils.h"
 #include "../logger/logger.h"
 
@@ -205,3 +207,62 @@ int verify_checksum(const char *sentence, int module_id, char start_char, char e
     }
 }
 
+/*
+ * Name : trim
+ *
+ * Description: The trim function is for removing new line and white space
+ *
+ * Input parameters:
+ *					char *str
+ *
+ * Output parameters: void
+ */
+void trim(char *str)
+{
+    char *p;
+    size_t len = strlen(str);
+    for (p = str + len - 1; isspace(*p); --p) /* nothing */
+        ;
+    p[1] = '\0';
+    for (p = str; isspace(*p); ++p) /* nothing */
+        ;
+    memmove(str, p, len - (size_t)(p - str) + 1);
+}
+
+/*
+ * Name : get_device_path
+ *
+ * Description: The get_device_path function is for converting hex into decimal value.
+ *
+ * Input parameters:
+ *					char *device_name : Manufacturer name
+ *
+ * Output parameters: char *device_path : return connected dev path
+ */
+char *get_device_path(char *device_name)
+{
+    char *device_path = malloc(sizeof(char) * PATH_BUF_SIZE);
+    char cmd[PATH_BUF_SIZE];
+    FILE *pipe;
+    int linenr;
+
+    /* Get a pipe where the output from the scripts comes in */
+    sprintf((char *)cmd, "bash ./usb-detect.sh %s", device_name);
+    pipe = popen(cmd, "r");
+    if (pipe == NULL)
+    {                /* check for errors */
+        return NULL; /* return with exit code indicating error */
+    }
+
+    /* Read script output from the pipe line by line */
+    linenr = 1;
+    while (fgets(device_path, PATH_BUF_SIZE, pipe) != NULL)
+    {
+        ++linenr;
+    }
+
+    /* Once here, out of the loop, the script has ended. */
+    pclose(pipe);       /* Close the pipe */
+    trim(device_path);  
+    return device_path; /* return with exit code indicating success. */
+}
