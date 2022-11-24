@@ -29,6 +29,7 @@ int main(int argc, char *argv[])
     char *cc_device_list[CC_DEVICE_LIST_LENGTH] = {CC_MANUFACTURE_NAME, TEST_CC_MANUFACTURE_NAME};
     char *gps_device_list[GPS_DEVICE_LIST_LENGTH] = {GPS_MANUFACTURE_NAME, TEST_GPS_MANUFACTURE_NAME};
     int can_server=0;
+    cloud_data.build_version = RELEASE_VERSION;
 
     client_controller_path = get_device_path(cc_device_list, CC_DEVICE_LIST_LENGTH);
     gps_device_path = get_device_path(gps_device_list, GPS_DEVICE_LIST_LENGTH);

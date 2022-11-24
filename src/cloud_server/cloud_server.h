@@ -19,6 +19,7 @@
 #define GPS_ERROR_RANGE_END 1000
 #define CLIENT_CONTROLLER_ERROR_RANGE_BEGIN 10001
 #define MAX_CAR_SPEED 255
+#define MAX_VERSION_LEN 10
 
 /* cloud_data_struct struct to holds STM32, GPS, and CAN bus data*/
 struct cloud_data_struct
@@ -31,6 +32,7 @@ struct cloud_data_struct
 	float distance_travelled;
 	uint64_t idle_time_secs;
 	double prev_latitude[2], prev_longitude[2];
+	uint8_t build_version[MAX_VERSION_LEN]
 };
 
 void *write_to_cloud(void *); /* pthread to display all serial data */

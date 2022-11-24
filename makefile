@@ -19,7 +19,7 @@ CWFLAGS = -Werror
 LIBS = -lpthread
 BLE_LIB = -lbluetooth
 
-
+RELEASE_VERSION = 1.0.0212
 OUT=telematic
 
 copy_lib:
@@ -69,7 +69,7 @@ bluetooth_can.o:
 	gcc -c $(CFLAGS) $(BLE_CAN_DIR) $(BLE_CAN_DIR)/bluetooth_can.c -o $(SRC_DIR)/bluetooth_can.o
 
 main: copy_lib serial_interface.o gps_module.o client_controller.o cloud_write.o global.o logger.o can_interface.o can_bus.o common_utils.o db_handler.o c_json.o c_json_utils.o bluetooth_interface.o bluetooth_can.o
-	gcc $(CWFLAGS) $(CFLAGS) $(SRC_DIR) $(SRC_DIR)/*.o $(SRC_DIR)/main.c -o $(OUT) -lmqtt_demo_mutual_auth $(LIBS) -lm -lsqlite3 $(BLE_LIB)
+	gcc $(CWFLAGS) $(CFLAGS) $(SRC_DIR) $(SRC_DIR)/*.o $(SRC_DIR)/main.c -D RELEASE_VERSION -o $(OUT) -lmqtt_demo_mutual_auth $(LIBS) -lm -lsqlite3 $(BLE_LIB) 
 
 clean:
 	rm $(SRC_DIR)/*.o $(OUT)
