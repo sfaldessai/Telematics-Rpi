@@ -169,11 +169,11 @@ int uart_reads_chunk(struct uart_device_struct *device, char *buf, size_t buf_le
 
 	rv = select((device->fd ) + 1, &set, NULL, NULL, &timeout);
 	if (rv == -1)
-		return rc;
+        return rc;
 	else if (rv == 0)
-		return rc; /* a timeout occured */
+        return rc; /* a timeout occured */
 	else
-	    rc = read(device->fd, buf, buf_len);
+        rc = read(device->fd, buf, buf_len);
 
 	printf("\nTEST :::::::::::::::::::::::::::::::::: %d\n", rc);
 
