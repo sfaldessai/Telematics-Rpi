@@ -150,3 +150,4 @@ TEST(CanBusTestGroup, readcanspeedpid)
 	/*assert*/
 	CHECK_EQUAL(1, Speedframe);
 }
+Test;
