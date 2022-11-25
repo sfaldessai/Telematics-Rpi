@@ -12,9 +12,10 @@
 #include <string.h>
 #include <math.h>
 #include <sys/time.h>
+#include <time.h>
 #include "cloud_server.h"
 #include "../logger/logger.h"
-#include "../database/db_handler.h" 
+#include "../database/db_handler.h"
 #include "../utils/c_json/cJSON.h"
 #include "mqtt_demo_mutual_auth.h"
 
@@ -75,7 +76,7 @@ char *create_json_obj(struct cloud_data_struct *cloud_data)
 
     cJSON_AddNumberToObject(cjson_client_controller, "motion", cloud_data->client_controller_data.motion);
     cJSON_AddNumberToObject(cjson_client_controller, "pto", cloud_data->client_controller_data.pto);
-    cJSON_AddNumberToObject(cjson_client_controller, "battery", cloud_data->client_controller_data.voltage);
+    cJSON_AddNumberToObject(cjson_client_controller, "battery", cloud_data->can_data.battery);
     cJSON_AddNumberToObject(cjson_client_controller, "accX", cloud_data->client_controller_data.acc_x);
     cJSON_AddNumberToObject(cjson_client_controller, "accY", cloud_data->client_controller_data.acc_y);
     cJSON_AddNumberToObject(cjson_client_controller, "accZ", cloud_data->client_controller_data.acc_z);
@@ -86,6 +87,8 @@ char *create_json_obj(struct cloud_data_struct *cloud_data)
     cJSON_AddNumberToObject(cjson_telematic, "serviceTime", (double)cloud_data->service_time);
     cJSON_AddNumberToObject(cjson_telematic, "distanceTravelled", (double)cloud_data->distance_travelled);
 
+    time_t seconds = time(NULL);
+    cJSON_AddNumberToObject(cjson_telematic, "timeStampInSeconds", seconds);
 
     cJSON_AddItemToObject(cjson_vehicle, "telematic", cjson_telematic);
 
@@ -210,6 +213,7 @@ void initialize_cloud_data(struct cloud_data_struct *cloud_data)
     can_data.rpm = 0.0;
     can_data.temperature = 0;
     can_data.mode = 1;
+    can_data.battery=0;
     memset(can_data.supported_pids, '\0', CAN_PID_LENGTH * sizeof(uint8_t));
 
     cloud_data->gps_data = gps_data;
@@ -236,18 +240,22 @@ void initialize_cloud_data(struct cloud_data_struct *cloud_data)
  * Input parameters: struct cloud_data_struct *
  * Output parameters: void
  */
-void calculate_service_time(struct cloud_data_struct* cloud_data) {
+void calculate_service_time(struct cloud_data_struct *cloud_data)
+{
     /* Start the Service time when the Either GPS or CAN speed is greater than 0 */
-    if (((cloud_data->can_data.speed > SPEED_THRESHOLD && cloud_data->can_data.speed < MAX_CAR_SPEED) &&
-        (cloud_data->gps_data.speed > SPEED_THRESHOLD && cloud_data->gps_data.speed > MAX_CAR_SPEED))) {
-        if (!service_timer_start) {
+    if (((cloud_data->can_data.speed > SPEED_THRESHOLD && cloud_data->can_data.speed < MAX_CAR_SPEED) ||
+         (cloud_data->gps_data.speed > SPEED_THRESHOLD && cloud_data->gps_data.speed > MAX_CAR_SPEED)))
+    {
+        if (!service_timer_start)
+        {
             service_timer_start = true;
             tval_start = time(NULL);
         }
     } /* Test and check if both CAN and GPS speed is required to handle stop timer when either of the modules malfunction */
     if (((cloud_data->can_data.speed == SPEED_THRESHOLD || cloud_data->can_data.speed > MAX_CAR_SPEED) &&
-        (cloud_data->gps_data.speed == SPEED_THRESHOLD || cloud_data->gps_data.speed > MAX_CAR_SPEED))
-        && service_timer_start) {
+         (cloud_data->gps_data.speed == SPEED_THRESHOLD || cloud_data->gps_data.speed > MAX_CAR_SPEED)) &&
+        service_timer_start)
+    {
         tval_stop = time(NULL);
         int tval_inServiceTime = (tval_stop - tval_start);
         cloud_data->service_time = cloud_data->service_time + tval_inServiceTime;
@@ -261,27 +269,35 @@ void calculate_service_time(struct cloud_data_struct* cloud_data) {
  * Input parameters: struct cloud_data_struct *
  * Output parameters: void
  */
-void calculate_distance_travelled(struct cloud_data_struct* cloud_data) {
-    if (cloud_data->can_data.speed > SPEED_THRESHOLD || cloud_data->can_data.speed < MAX_CAR_SPEED) {
+void calculate_distance_travelled(struct cloud_data_struct *cloud_data)
+{
+    if (cloud_data->can_data.speed > SPEED_THRESHOLD || cloud_data->can_data.speed < MAX_CAR_SPEED)
+    {
         distance_travelled_calculator(cloud_data, cloud_data->can_data.speed);
     }
-    else if (cloud_data->gps_data.speed > SPEED_THRESHOLD || cloud_data->gps_data.speed < MAX_CAR_SPEED) {
+    else if (cloud_data->gps_data.speed > SPEED_THRESHOLD || cloud_data->gps_data.speed < MAX_CAR_SPEED)
+    {
         distance_travelled_calculator(cloud_data, cloud_data->gps_data.speed);
     }
-    else {
+    else
+    {
         logger_error(CLOUD_LOG_MODULE_ID, "No speed data available");
     }
 }
 
-void distance_travelled_calculator(struct cloud_data_struct* cloud_data, int speed) {
-    if (speed > SPEED_THRESHOLD) {
-        if (!distance_timer_start) {
+void distance_travelled_calculator(struct cloud_data_struct *cloud_data, int speed)
+{
+    if (speed > SPEED_THRESHOLD)
+    {
+        if (!distance_timer_start)
+        {
             prev_speed = speed;
             distance_timer_start = true;
             dtval_start = time(NULL);
         }
     }
-    if (speed != prev_speed && distance_timer_start) {
+    if (speed != prev_speed && distance_timer_start)
+    {
         dtval_stop = time(NULL);
         int time_diff = (dtval_stop - dtval_start);
         prev_speed = KMPH_TO_MPS_CONVERTER * prev_speed;
@@ -337,7 +353,7 @@ void client_controller_error_codes(struct cloud_data_struct *cloud_data, int err
  * Input parameters: struct cloud_data_struct *
  * Output parameters: void
  */
-void handle_gps_signal_lost(struct cloud_data_struct* cloud_data)
+void handle_gps_signal_lost(struct cloud_data_struct *cloud_data)
 {
     double Lat2, Lon2 = 0;
     double distance = 0;
@@ -354,7 +370,7 @@ void handle_gps_signal_lost(struct cloud_data_struct* cloud_data)
     y_distance = 0.5 * cloud_data->client_controller_data.acc_y * (1 / 3600) * (1 / 3600);
     z_distance = 0.5 * cloud_data->client_controller_data.acc_z * (1 / 3600) * (1 / 3600);
     distance = sqrt(x_distance * x_distance + y_distance * y_distance + z_distance * z_distance);
-    logger_info(CLOUD_LOG_MODULE_ID, "The distance between source and destination is: %lf",distance);
+    logger_info(CLOUD_LOG_MODULE_ID, "The distance between source and destination is: %lf", distance);
 
     /* calculate bearing based on previous lat, lon */
     X = cos(cloud_data->prev_latitude[1]) * sin(cloud_data->prev_longitude[0] - cloud_data->prev_longitude[1]);
@@ -366,7 +382,7 @@ void handle_gps_signal_lost(struct cloud_data_struct* cloud_data)
     /* calculate unknown lat-Lon based on previous lat, lon, bearing angle and distance calculated based on Acceleration */
     Lat2 = asin(sin(cloud_data->prev_latitude[0]) * cos(distance / EARTH_RADIUS) + cos(cloud_data->prev_latitude[0]) * sin(distance / EARTH_RADIUS) * cos(bearing_theta));
     Lon2 = cloud_data->prev_longitude[0] + atan2(sin(bearing_theta) * sin(distance / EARTH_RADIUS) * cos(cloud_data->prev_latitude[0]),
-        cos(distance / EARTH_RADIUS) - sin(cloud_data->prev_latitude[0]) * sin(Lat2));
+                                                 cos(distance / EARTH_RADIUS) - sin(cloud_data->prev_latitude[0]) * sin(Lat2));
     cloud_data->gps_data.latitude = (Lat2 * 180) / PI;
     cloud_data->gps_data.longitude = (Lon2 * 180) / PI;
     logger_info(CLOUD_LOG_MODULE_ID, "Unknown Lat2 value is approx: %lf", cloud_data->gps_data.latitude);

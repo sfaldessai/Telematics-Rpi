@@ -12,7 +12,9 @@
 #include <sys/socket.h>
 #include <string.h>
 #include <math.h>
+#include <stdlib.h>
 #include <linux/if.h>
+#include <ctype.h>
 #include "common_utils.h"
 #include "../logger/logger.h"
 
@@ -94,6 +96,27 @@ uint16_t hex_to_decimal(uint8_t *read_data)
     }
     return decimal;
 }
+
+/*
+ * Name : add_binary_values
+ *
+ * Descriptoin: The add_binary_values function is for extracting VIN data from 3 can frames and converting into string value.
+ *
+ * Input parameters:
+ *                  uint8_t *supported_binary: reference type, appedning all 32 PIDs binary data.
+ *					int *index: referenc type, updating index value for supported_binary array index.
+ *					char *binary: hex byte binary value, appending to supported_binary.
+ * Output parameters: void
+ */
+void add_binary_values(uint8_t *supported_binary, int *index, char *binary)
+{
+	for (size_t i = 0; i < 4; i++)
+	{
+		supported_binary[*index] = (binary[i] - '0');
+		*index = *index + 1;
+	}
+}
+
 
 /*
  * Name : verify_checksum
@@ -182,4 +205,72 @@ int verify_checksum(const char *sentence, int module_id, char start_char, char e
             return GPS_NMEA_SENTENCE_CHECKSUM_ERROR;
         }
     }
+}
+
+/*
+ * Name : trim
+ *
+ * Description: The trim function is for removing new line and white space
+ *
+ * Input parameters:
+ *					char *str
+ *
+ * Output parameters: void
+ */
+void trim(char *str)
+{
+    char *p;
+    size_t len = strlen(str);
+    for (p = str + len - 1; isspace(*p); --p) /* nothing */
+        ;
+    p[1] = '\0';
+    for (p = str; isspace(*p); ++p) /* nothing */
+        ;
+    memmove(str, p, len - (size_t)(p - str) + 1);
+}
+
+/*
+ * Name : get_device_path
+ *
+ * Description: The get_device_path function is for converting hex into decimal value.
+ *
+ * Input parameters:
+ *					char *device_name : Manufacturer name
+ *
+ * Output parameters: char *device_path : return connected dev path
+ */
+char *get_device_path(char **device_name, int len)
+{
+    char *device_path = malloc(sizeof(char) * PATH_BUF_SIZE);
+    char cmd[PATH_BUF_SIZE];
+    FILE *pipe;
+    int linenr;
+    int i = 0;
+
+    for (i = 0; i < len; i++)
+    {
+        /* Get a pipe where the output from the scripts comes in */
+        sprintf((char *)cmd, "bash ./usb-detect.sh %s", device_name[i]);
+        pipe = popen(cmd, "r");
+        if (pipe == NULL)
+        {                /* check for errors */
+            return NULL; /* return with exit code indicating error */
+        }
+
+        /* Read script output from the pipe line by line */
+        linenr = 1;
+        while (fgets(device_path, PATH_BUF_SIZE, pipe) != NULL)
+        {
+            ++linenr;
+        }
+
+        /* Once here, out of the loop, the script has ended. */
+        pclose(pipe); /* Close the pipe */
+        trim(device_path);
+        if (device_path != NULL && strlen(device_path) > 0)
+        {
+            return device_path; /* return with exit code indicating success. */
+        }
+    }
+    return NULL;
 }
