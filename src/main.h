@@ -34,7 +34,7 @@
 #define AWS_TOPIC "testclient/example/topic"
 
 /* Update AWS IOT ENDPOINT */
-#define AWS_IOT_ENDPOINT "aws.iot.endpoint"
+#define AWS_IOT_ENDPOINT "a2b4nodx1n0ee2-ats.iot.us-east-1.amazonaws.com"
 
 /*BLE Device*/
 #define BLE_DEVICE_NAME "OBDII"
