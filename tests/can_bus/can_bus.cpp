@@ -89,3 +89,64 @@ TEST(CanBusTestGroup, readCaTemperaturePidTest)
     /*assert*/
     CHECK(cloud_data.can_data.speed > 0);
 }
+
+TEST(CanBusTestGroup, readcantemperaturepidrequestframe)
+{
+	/*arrange*/
+	unit8_t *arg = (unit8_t *)"5Y0";
+
+	/*act*/
+	bool can_frame	= readcantemperatureidrequestframe(arg);
+
+	/*assert*/
+	CHECK_EQUAL(1, temperature_frame);
+}
+
+TEST(CanBusTestGroup, readcanidtemperatureidrequestframe)
+{
+	/*arrange*/
+	char *result = (char *)"5YJ";
+
+	/*act*/
+	char *result_type = readcanidtemp(result);
+
+	/*assert*/
+	STRCMP_EQUAL("VehicleCanTemp", result);
+}
+
+TEST(CanBusTestGroup, readcansupportedpid)
+{
+	/*arrange*/
+	void *arg = (void *)"0";
+
+	/*act*/
+	bool *supportedframe = supportedframe(arg);
+
+	/*assert*/
+	CHECK_EQUAL(1, supported_frame);
+	CHECK_EQUAL(30, supported frame_1);
+}
+
+TEST(CanBusTestGroup, readcansupportedpid)
+{
+	/*arrange*/
+	unit16_t *requestframe = (uint16_t *)"0";
+
+	/*act*/
+	char *request = supported(request);
+
+	/*assert*/
+	STRCMP_EQUAL("Vehicle_type", request);
+}
+
+TEST(CanBusTestGroup, readcanspeedpid)
+{
+	/*arrange*/
+	void *arg = (void *)"";
+
+	/*act*/
+	char *speedframe = speedpid(arg);
+
+	/*assert*/
+	CHECK_EQUAL(1, Speedframe);
+}
