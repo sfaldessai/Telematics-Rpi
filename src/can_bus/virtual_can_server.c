@@ -14,12 +14,21 @@
 #include <net/if.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
 
 #include <linux/can.h>
 #include <linux/can/raw.h>
-#define PORT 9001
-#define IP "192.168.0.101"
+#define PORT 8080
+#define IP "192.168.218.234"
+#define SA struct sockaddr
 #define COMMA 0x2C
+#define MAX_LEN_VIN 17
+#define CAN_PID_LENGTH 32
+#define SPEED_PID 0x0D
+#define VIN_PID 0x02
+#define RPM_PID 0x0C
+#define SUPPORTED_PID 0x00
+#define TEMPERATURE_PID 0x05
 
  /*
   * virtual_can_server.c is using for accessing vcan0 (virtual can) and simulating odb2 data.
@@ -30,8 +39,19 @@ int speed_value = 40; /* default set to 40 */
 int rpm_byte_1 = 20;
 int rpm_byte_2 = 20;
 int temperature_value = 20;
+int sock_tcp_fd = 0, client_fd;
+int can_type = 0;
+struct can_data_struct_tcp
+{
+	uint8_t vin[MAX_LEN_VIN];
+	uint8_t supported_pids[CAN_PID_LENGTH];
+	uint8_t temperature;
+	uint16_t speed;
+	uint8_t rpm_byte_1;
+	uint8_t rpm_byte_2;
+};
 
-int sock_tcp_fd;
+struct can_data_struct_tcp tcp_can_data;
 
 uint8_t get_random_number(uint8_t lower, uint8_t upper)
 {
@@ -101,22 +121,41 @@ void* user_input(void* arg)
 	printf("Thread ID %ld EXIT\n", tid);
 }
 
-void* get_can_data(void* received_data)
+void get_can_data(char* received_data, struct can_data_struct_tcp* decoded_data, int pid)
 {
-	char* can_data[16] = NULL;
+	char* can_data = NULL;
+	char i;
+	int rpm1, rpm2;
 
-	if (received_data[2] == 'C' && received_data[3] == 'A' && received_data[4] == 'N')
+	if (received_data[1] == 'C' && received_data[2] == 'A' && received_data[3] == 'N')
 	{
-		for (i = 0; i < 16 ; i++) {
+		if (pid == SPEED_PID)
+		{
 			can_data = strchr(received_data, COMMA);
-			can_data->requested_data = can_data + 1;
-			return can_data;
+			decoded_data->speed = atoi(can_data + 1);
 		}
-		
-	}
-		
-}
 
+		else if (pid == RPM_PID)
+		{
+			can_data = strchr(received_data, COMMA);
+			decoded_data->rpm_byte_1 = atoi(can_data + 1);
+			can_data = strchr(received_data, COMMA);
+			decoded_data->rpm_byte_2 = atoi(can_data + 1);
+		}
+		else if (pid == SUPPORTED_PID)
+		{
+			for (i = 0;i < 4;i++) {
+				can_data = strchr(received_data, COMMA);
+				decoded_data->supported_pids[i] = atoi(can_data + 1);
+			}
+		}
+		else if (pid == TEMPERATURE_PID)
+		{
+			can_data = strchr(received_data, COMMA);
+			decoded_data->temperature = atoi(can_data + 1);
+		}
+	}
+}
 
 void* start_can_communication(void* arg)
 {
@@ -126,6 +165,7 @@ void* start_can_communication(void* arg)
 	struct sockaddr_can addr;
 	struct ifreq ifr;
 	struct can_frame frame, request_frame;
+	char received_data[80];
 
 	long tid;
 	tid = (long)arg;
@@ -145,33 +185,36 @@ void* start_can_communication(void* arg)
 	{
 		perror("Bind");
 	}
+
 	while (1)
 	{
 		nbytes = read(s, &request_frame, sizeof(struct can_frame));
 
-		/*
-		printf("\nRequest Receved: ");
-		for (i = 0; i < request_frame.can_dlc; i++)
-		{
-			printf(" %02X ", request_frame.data[i]);
-		}
-		printf("\n");
-		*/
 		if (nbytes > 0)
 		{
-			// convert PID HEX byte to string  
-			char* pid = (char*)request_frame.data[2];
-			write(sock_tcp_fd, pid, sizeof(pid));
-			sleep(1);
-			// *CAN,,,,,,,,,,,,,,,,,,# //
-			// SPEED => *CAN,255,,,,,,,,,,,,,,,,,# 
-			// RPM => *CAN,24,,,,,,,,,,,,,,,,,# 
-			// VIN => *CAN,255,12,13,ff,gg,dd,ee,44,55,66,dd,33,dd,,A,F,F,A,#
-			char received_data[80];
-			read(sockfd, received_data, sizeof(receive_data));
+			if (can_type == 1)
+			{
+				if (sock_tcp_fd >= 0)
+				{
+					char p[4];
+
+					/* Converting Hex to String */
+					sprintf(p, "%02X", request_frame.data[2]);
+
+					send(sock_tcp_fd, p, strlen(p), 0);
+
+					printf("sent");
+				}
+
+				sleep(1);
+				read(sock_tcp_fd, received_data, sizeof(received_data));
+			}
 			switch (request_frame.data[2])
 			{
 			case 0x0C: // RPM
+				if (can_type == 1) {
+					get_can_data(received_data, &tcp_can_data, RPM_PID);
+				}
 				frame.can_id = 0x7E8;
 				frame.can_dlc = 8;
 
@@ -179,8 +222,15 @@ void* start_can_communication(void* arg)
 				frame.data[1] = 41;
 				frame.data[2] = 0x0C;
 
-				frame.data[3] = (uint8_t)rpm_byte_1; // get_random_number(0, 40);
-				frame.data[4] = (uint8_t)rpm_byte_2; // get_random_number(0, 99);
+				if (can_type == 1) {
+					frame.data[3] = (uint8_t)tcp_can_data.rpm_byte_1; //get rpm data from TCP server
+					frame.data[4] = (uint8_t)tcp_can_data.rpm_byte_2; //get rpm data from TCP server
+				}
+				else {
+					frame.data[3] = (uint8_t)rpm_byte_1; // get_random_number(0, 40);
+					frame.data[4] = (uint8_t)rpm_byte_2; // get_random_number(0, 99);
+				}
+
 				frame.data[5] = 0xAA;
 				frame.data[6] = 0xAA;
 				frame.data[7] = 0xAA;
@@ -191,18 +241,21 @@ void* start_can_communication(void* arg)
 				break;
 
 			case 0x0D: // SPEED
-
-				// Extract speed value from receied_data
-				//int speed = 255; // (int) received_data of speed
-				int speed = get_can_data(received_data);
+				if (can_type == 1) {
+					get_can_data(received_data, &tcp_can_data, SPEED_PID);
+				}
 				frame.can_id = 0x7E8;
 				frame.can_dlc = 8;
 
 				frame.data[0] = 3;
 				frame.data[1] = 41;
 				frame.data[2] = 0x0D;
-
-				frame.data[3] = speed;//(uint8_t)speed_value; // get_random_number(0, 255);
+				if (can_type == 1) {
+					frame.data[3] = (uint8_t)tcp_can_data.speed; // get_random_speed_from_TCP(0, 255);
+				}
+				else {
+					frame.data[3] = (uint8_t)speed_value; // get_random_number(0, 255);
+				}
 				frame.data[4] = 0xAA;
 				frame.data[5] = 0xAA;
 				frame.data[6] = 0xAA;
@@ -213,17 +266,28 @@ void* start_can_communication(void* arg)
 				}
 				break;
 
-			case 0x00:
+			case 0x00: //SUPPORTED PID
+				if (can_type == 1) {
+					get_can_data(received_data, &tcp_can_data, SUPPORTED_PID);
+				}
 				frame.can_id = 0x7E8;
 				frame.can_dlc = 8;
 
 				frame.data[0] = 0x06;
 				frame.data[1] = 0x41;
 				frame.data[2] = 0x00;
-				frame.data[3] = get_random_number(0, 255);
-				frame.data[4] = get_random_number(0, 255);
-				frame.data[5] = get_random_number(0, 255);
-				frame.data[6] = get_random_number(0, 255);
+				if (can_type == 1) {
+					frame.data[3] = tcp_can_data.supported_pids[0];
+					frame.data[4] = tcp_can_data.supported_pids[0];
+					frame.data[5] = tcp_can_data.supported_pids[0];
+					frame.data[6] = tcp_can_data.supported_pids[0];
+				}
+				else {
+					frame.data[3] = 255;
+					frame.data[4] = 255;
+					frame.data[5] = 255;
+					frame.data[6] = 255;
+				}
 				frame.data[7] = 0xAA;
 				if (write(s, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame))
 				{
@@ -231,7 +295,8 @@ void* start_can_communication(void* arg)
 				}
 				break;
 
-			case 0x02:
+			case 0x02: //VIN
+
 				frame.can_id = 0x7E8;
 				frame.can_dlc = 8;
 
@@ -243,6 +308,7 @@ void* start_can_communication(void* arg)
 				frame.data[5] = 0x33;
 				frame.data[6] = 0x46;
 				frame.data[7] = 0x41;
+
 				if (write(s, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame))
 				{
 					perror("Write");
@@ -256,6 +322,7 @@ void* start_can_communication(void* arg)
 				frame.data[5] = 0x4A;
 				frame.data[6] = 0x32;
 				frame.data[7] = 0x42;
+
 				if (write(s, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame))
 				{
 					perror("Write");
@@ -269,12 +336,14 @@ void* start_can_communication(void* arg)
 				frame.data[5] = 0x39;
 				frame.data[6] = 0x31;
 				frame.data[7] = 0x33;
+
 				usleep(200000);
 				if (write(s, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame))
 				{
 					perror("Write");
 				}
 				break;
+
 			case 0x05: // TEMPERATURE
 				frame.can_id = 0x7E8;
 				frame.can_dlc = 8;
@@ -282,9 +351,14 @@ void* start_can_communication(void* arg)
 				frame.data[0] = 3;
 				frame.data[1] = 41;
 				frame.data[2] = 0x05;
-
-				frame.data[3] = (uint8_t)temperature_value; // get_random_number(0, 40);
-				frame.data[4] = 0xAA; // get_random_number(0, 99);
+				if (can_type == 1) {
+					printf("temp");
+					frame.data[3] = (uint8_t)tcp_can_data.temperature; //get_random temperature from TCP
+				}
+				else {
+					frame.data[3] = (uint8_t)temperature_value; // get_random_number(0, 40);
+				}
+				frame.data[4] = 0xAA;
 				frame.data[5] = 0xAA;
 				frame.data[6] = 0xAA;
 				frame.data[7] = 0xAA;
@@ -307,52 +381,67 @@ void* start_can_communication(void* arg)
 	printf("Thread ID %ld EXIT\n", tid);
 }
 
-int main(void)
+void* connect_tcp_server(void* arg)
 {
-	int connfd;
-	struct sockaddr_in servaddr, cli;
+	long tid;
+	tid = (long)arg;
 
-
-	// socket create and verification
-	sock_tcp_fd = socket(AF_INET, SOCK_STREAM, 0);
-	if (sockfd == -1) {
-		printf("socket creation failed...\n");
-		exit(0);
+	struct sockaddr_in serv_addr;
+	char buffer[1024] = { 0 };
+	if ((sock_tcp_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+	{
+		printf("\n Socket creation error \n");
+		return NULL;
 	}
-	else
-		printf("Socket successfully created..\n");
-	bzero(&servaddr, sizeof(servaddr));
 
+	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_port = htons(PORT);
 
-
-	// assign IP, PORT
-	servaddr.sin_family = AF_INET;
-	servaddr.sin_addr.s_addr = inet_addr(IP);
-	servaddr.sin_port = htons(PORT);
-
-
-
-	// connect the client socket to server socket
-	if (connect(sock_tcp_fd, (SA*)&servaddr, sizeof(servaddr))
-		!= 0) {
-		printf("connection with the server failed...\n");
-		exit(0);
+	if (inet_pton(AF_INET, IP, &serv_addr.sin_addr) <= 0)
+	{
+		printf("\nInvalid address/ Address not supported \n");
+		return NULL;
 	}
-	else
-		printf("connected to the server..\n");
+	client_fd = connect(sock_tcp_fd, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
+	printf("clientfd %d", client_fd);
 
+	if (client_fd < 0)
+	{
+		printf("\nConnection Failed \n");
+		return NULL;
+	}
+	printf("connected sucsessfully");
+	return NULL;
+}
 
+int main(int argc, char* argv[])
+{
+	int opt;
+	pthread_t input_thread, can_communication_thread, tcp_client_thread;
 
-	// close the socket
-	// close(sockfd);
-
-	pthread_t input_thread, can_communication_thread;
-
-	pthread_create(&input_thread, NULL, &user_input, NULL);
+	while ((opt = getopt(argc, argv, "t:")) != -1)
+	{
+		switch (opt)
+		{
+		case 't':
+			can_type = atoi(optarg);
+			break;
+		default:
+			break;
+		}
+	}
+	if (can_type != 1)
+	{
+		pthread_create(&input_thread, NULL, &user_input, NULL);
+	}
 	pthread_create(&can_communication_thread, NULL, &start_can_communication, NULL);
-
-	pthread_join(input_thread, NULL);
+	pthread_create(&tcp_client_thread, NULL, &connect_tcp_server, NULL);
+	if (can_type != 1)
+	{
+		pthread_join(input_thread, NULL);
+	}
 	pthread_join(can_communication_thread, NULL);
+	pthread_join(tcp_client_thread, NULL);
 
 	return 0;
 }
