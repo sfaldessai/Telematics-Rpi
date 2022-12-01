@@ -551,7 +551,7 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
     unsigned char number_buffer[26] = {0}; /* temporary buffer to print the number into */
     unsigned char decimal_point = get_decimal_point();
     double test = 0.0;
-
+    char *number_format=NULL;
     if (output_buffer == NULL)
     {
         return false;
@@ -566,6 +566,13 @@ else if(d == (double)item->valueint)
 {
 length = sprintf((char*)number_buffer, "%d", item->valueint);
 }
+  else if ((item->decimalplaces) && (ceil(d) != d))
+    {
+        /* create a format */
+        sprintf(number_format, "%%1.%df", item->decimalplaces);
+        /* Then convert it to string */
+        length = snprintf((char *)number_buffer, 26, number_format, d);
+    }
     else
     {
         /* Try 15 decimal places of precision to avoid nonsignificant nonzero digits */
@@ -2124,9 +2131,10 @@ CJSON_PUBLIC(cJSON*) cJSON_AddBoolToObject(cJSON * const object, const char * co
     return NULL;
 }
 
-CJSON_PUBLIC(cJSON*) cJSON_AddNumberToObject(cJSON * const object, const char * const name, const double number)
+CJSON_PUBLIC(cJSON*) cJSON_AddNumberToObject(cJSON * const object, const char * const name, const double number,int decimals)
 {
     cJSON *number_item = cJSON_CreateNumber(number);
+    number_item->decimalplaces=decimals;
     if (add_item_to_object(object, name, number_item, &global_hooks, false))
     {
         return number_item;
