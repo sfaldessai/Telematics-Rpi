@@ -16,8 +16,6 @@
 #include "mqtt_demo_mutual_auth.h"
 #include "main.h"
 
-#define RELEASE_VERSION "1.0.0212"
-
 int main(int argc, char *argv[])
 {
     struct uart_device_struct client_controller_device, gps_device;
