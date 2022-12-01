@@ -6,7 +6,7 @@
 #include <unistd.h>
 
 #define SIZE 4000
-#define RECORDS 100
+#define RECORDS 1024
 
 extern char *send_data;
 extern void *mqtt_send(void *arg);
