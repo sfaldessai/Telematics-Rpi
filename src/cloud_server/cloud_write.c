@@ -90,6 +90,8 @@ char *create_json_obj(struct cloud_data_struct *cloud_data)
     time_t seconds = time(NULL);
     cJSON_AddNumberToObject(cjson_telematic, "timeStampInSeconds", seconds);
 
+    cJSON_AddStringToObject(cjson_telematic, "build_version", cloud_data->build_version);
+
     cJSON_AddItemToObject(cjson_vehicle, "telematic", cjson_telematic);
 
     /* Prints all the data of the JSON object (the whole list) */
@@ -130,6 +132,7 @@ void *write_to_cloud(void *arg)
             calculate_distance_travelled(cloud_data);
             calculate_idle_time(cloud_data);
             send_data = create_json_obj(cloud_data);
+            insert_queue(send_data);
 
             if (rc == SQLITE_OK)
             {

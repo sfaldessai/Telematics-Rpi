@@ -31,6 +31,7 @@ struct cloud_data_struct
 	float distance_travelled;
 	uint64_t idle_time_secs;
 	double prev_latitude[2], prev_longitude[2];
+	char* build_version;
 };
 
 void *write_to_cloud(void *); /* pthread to display all serial data */
