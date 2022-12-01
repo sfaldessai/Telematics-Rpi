@@ -90,6 +90,8 @@ char *create_json_obj(struct cloud_data_struct *cloud_data)
     time_t seconds = time(NULL);
     cJSON_AddNumberToObject(cjson_telematic, "timeStampInSeconds", seconds);
 
+    cJSON_AddStringToObject(cjson_telematic, "build_version", cloud_data->build_version);
+
     cJSON_AddItemToObject(cjson_vehicle, "telematic", cjson_telematic);
 
     /* Prints all the data of the JSON object (the whole list) */
