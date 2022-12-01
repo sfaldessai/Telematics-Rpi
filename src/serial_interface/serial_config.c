@@ -159,7 +159,6 @@ int uart_reads_chunk(struct uart_device_struct *device, char *buf, size_t buf_le
 		logger_error(SERIAL_LOG_MODULE_ID, "failed to open UART device - %s : %d\r\n", __func__, device->fd);
 		return rc;
 	}
-	printf("\nSTARTED TEST :::::::::::::::::::::::::::::::::: %d\n", rc);
 
 	FD_ZERO(&set); /* clear the set */
 	FD_SET(device->fd, &set); /* add our file descriptor to the set */
@@ -175,8 +174,6 @@ int uart_reads_chunk(struct uart_device_struct *device, char *buf, size_t buf_le
 	} else {
             rc = read(device->fd, buf, buf_len);
 	}
-
-	printf("\nTEST :::::::::::::::::::::::::::::::::: %d\n", rc);
 
 	if (rc <= 0)
 	{
