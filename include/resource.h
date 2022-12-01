@@ -47,14 +47,14 @@ static const char error_codes[ERROR_CODE_STRING_LEN][ERROR_CODE_STRING_LEN] =
         {"923 = GPS INVALID QUALITY"},
 
         /* STM32 ERROR CODE */
-        {"1001 = FAILED TO OPEN STM32 DEVICE"},
-        {"1002 = STM32 CHECKSUM ERROR"},
-        {"1003 = MOTION READ ERROR"},
-        {"1004 = PTO READ ERROR"},
-        {"1005 = VOLTAGE READ ERROR"},
-        {"1006 = STM32 DEVICE DISCONNECTED"},
-        {"1007 = MEMS ERROR"},
-        {"1008 = STM32 INVALID DATA"},
+        {"10001 = FAILED TO OPEN STM32 DEVICE"},
+        {"10002 = STM32 CHECKSUM ERROR"},
+        {"10003 = MOTION READ ERROR"},
+        {"10004 = PTO READ ERROR"},
+        {"10005 = VOLTAGE READ ERROR"},
+        {"10006 = STM32 DEVICE DISCONNECTED"},
+        {"10007 = MEMS ERROR"},
+        {"10008 = STM32 INVALID DATA"},
 
         /* CAN ERROR CODE */
         {"801 = CAN SOCKET ERROR"},

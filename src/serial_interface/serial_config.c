@@ -12,6 +12,7 @@
 #include <termios.h>
 #include <errno.h>
 #include <limits.h>
+#include <sys/select.h>
 
 #include "serial_config.h"
 
@@ -89,8 +90,10 @@ int uart_start(struct uart_device_struct *device, bool canonical)
 	{
 		/* read() will block until at least one byte is available. */
 		tty->c_cc[VTIME] = 0;
-		tty->c_cc[VMIN] = 1;
+		tty->c_cc[VMIN] = 30; /* 3 second timeout */
 	}
+
+	tty->c_cc[VTIME] = 10;
 
 	/* Flush port. */
 	tcflush(fd, TCIFLUSH);
@@ -147,14 +150,33 @@ int uart_reads(struct uart_device_struct *device, char *buf, size_t buf_len)
 int uart_reads_chunk(struct uart_device_struct *device, char *buf, size_t buf_len)
 {
 	int rc = 0;
+	fd_set set;
+	struct timeval timeout;
+	int rv;
 
 	if (device->fd <= 0)
 	{
 		logger_error(SERIAL_LOG_MODULE_ID, "failed to open UART device - %s : %d\r\n", __func__, device->fd);
 		return rc;
 	}
+	printf("\nSTARTED TEST :::::::::::::::::::::::::::::::::: %d\n", rc);
 
-	rc = read(device->fd, buf, buf_len);
+	FD_ZERO(&set); /* clear the set */
+	FD_SET(device->fd, &set); /* add our file descriptor to the set */
+
+	timeout.tv_sec = 3;
+	timeout.tv_usec = 0;
+
+	rv = select((device->fd ) + 1, &set, NULL, NULL, &timeout);
+	if (rv == -1) {
+            return rc;
+	} else if (rv == 0) {
+            return rc; /* a timeout occured */
+	} else {
+            rc = read(device->fd, buf, buf_len);
+	}
+
+	printf("\nTEST :::::::::::::::::::::::::::::::::: %d\n", rc);
 
 	if (rc <= 0)
 	{
