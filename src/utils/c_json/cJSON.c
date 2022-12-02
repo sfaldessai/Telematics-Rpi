@@ -551,7 +551,7 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
     unsigned char number_buffer[26] = {0}; /* temporary buffer to print the number into */
     unsigned char decimal_point = get_decimal_point();
     double test = 0.0;
-    char *number_format=NULL;
+    char number_format[26]={0};
     if (output_buffer == NULL)
     {
         return false;
