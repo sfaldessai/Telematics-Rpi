@@ -20,10 +20,10 @@ int main(int argc, char *argv[])
 {
     struct uart_device_struct client_controller_device, gps_device;
     struct cloud_data_struct cloud_data;
-    struct aws_arg aws_arg_data;
+    //struct aws_arg aws_arg_data;
     struct arg_struct client_controller_args, gps_args;
     pthread_t client_controller_read_thread, gps_read_thread, serial_write_thread;
-    pthread_t read_can_supported_thread, read_can_speed_thread, read_can_vin_thread, read_can_rpm_thread, read_can_temperature_thread, cloud_send_thread, read_ble_can_thread;
+    pthread_t read_can_supported_thread, read_can_speed_thread, read_can_vin_thread, read_can_rpm_thread, read_can_temperature_thread, read_ble_can_thread;
     int opt;
     char *client_controller_path = NULL, *gps_device_path= NULL;
     char *cc_device_list[CC_DEVICE_LIST_LENGTH] = {CC_MANUFACTURE_NAME, TEST_CC_MANUFACTURE_NAME};
@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
     uart_setup(&client_controller_device, client_controller_path, B115200, true);
     uart_setup(&gps_device, gps_device_path, B9600, true);
 
-    while ((opt = getopt(argc, argv, "m:f:c:")) != -1)
+    while ((opt = getopt(argc, argv, "m:f:c:v")) != -1)
     {
         switch (opt)
         {
@@ -61,6 +61,9 @@ int main(int argc, char *argv[])
             break;
         case 'c':
             can_server = atoi(optarg);
+        case 'v':
+            printf("%s\n",RELEASE_VERSION);
+            return 0;
         default:
             break;
         }
@@ -99,10 +102,10 @@ int main(int argc, char *argv[])
     {
         read_from_can(&cloud_data, &read_can_supported_thread, &read_can_speed_thread, &read_can_vin_thread, &read_can_rpm_thread, &read_can_temperature_thread);
     }
-    aws_arg_data.client_id = AWS_CLIENT_ID;
-    aws_arg_data.topic = AWS_TOPIC;
-    aws_arg_data.aws_iot_endpoint = AWS_IOT_ENDPOINT;
-    pthread_create(&cloud_send_thread, NULL, &mqtt_send, &aws_arg_data);
+    // aws_arg_data.client_id = AWS_CLIENT_ID;
+    // aws_arg_data.topic = AWS_TOPIC;
+    // aws_arg_data.aws_iot_endpoint = AWS_IOT_ENDPOINT;
+    //pthread_create(&cloud_send_thread, NULL, &mqtt_send, &aws_arg_data);
 
     /* Thread Creation End */
 
