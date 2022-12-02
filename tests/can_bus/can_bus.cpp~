@@ -76,11 +76,11 @@ TEST(CanBusTestGroup, getManufacturerDetailInValidTest)
     STRCMP_EQUAL(NULL, vehicle_detail);
 }
 
-TEST(CanBusTestGroup, readCaTemperaturePidTest)
+TEST(CanBusTestGroup, readCanTemperaturePidTest)
 {
     /*arrange*/
     struct cloud_data_struct cloud_data; // = (struct cloud_data_struct)malloc(sizeof(struct cloud_data_struct));
-    cloud_data.can_data.mode = 0;
+     cloud_data.can_data.mode = 0;
     pthread_t read_can_supported_thread, read_can_speed_thread, read_can_vin_thread, read_can_rpm_thread, read_can_temperature_thread;
 
     /*act*/
@@ -89,65 +89,63 @@ TEST(CanBusTestGroup, readCaTemperaturePidTest)
     /*assert*/
     CHECK(cloud_data.can_data.speed > 0);
 }
-
-TEST(CanBusTestGroup, readcantemperaturepidrequestframe)
+TEST(CanBusTestGroup, read_can_supported_pid)
 {
-	/*arrange*/
-	unit8_t *arg = (unit8_t *)"5Y0";
+    /*arrange*/
+     struct cloud_data_struct cloud_data;
+     //struct can_frame = (struct )"0";
 
-	/*act*/
-	bool can_frame	= readcantemperatureidrequestframe(arg);
 
-	/*assert*/
-	CHECK_EQUAL(1, temperature_frame);
+
+   /*act*/
+   read_can_supported_pid(&cloud_data);
+
+
+
+   /*assert*/
+    //CHECK_EQUAL(1, supportedframe);
+    CHECK(cloud_data.can_data.supported_pids[0] >= 0);
 }
 
-TEST(CanBusTestGroup, readcanidtemperatureidrequestframe)
+
+
+TEST(CanBusTestGroup, read_can_speed_pid)
 {
-	/*arrange*/
-	char *result = (char *)"5YJ";
+    /*arrange*/
+    struct cloud_data_struct cloud_data;
 
-	/*act*/
-	char *result_type = readcanidtemp(result);
 
-	/*assert*/
-	STRCMP_EQUAL("VehicleCanTemp", result);
+
+   /*act*/
+    read_can_supported_pid(&cloud_data);
+
+
+
+   /*assert*/
+    CHECK(cloud_data.can_data.speed >= 0);
 }
 
-TEST(CanBusTestGroup, readcansupportedpid)
+
+
+TEST(CanBusTestGroup, read_can_rpm_pid)
 {
-	/*arrange*/
-	void *arg = (void *)"0";
-
-	/*act*/
-	bool *supportedframe = supportedframe(arg);
-
-	/*assert*/
-	CHECK_EQUAL(1, supported_frame);
-	CHECK_EQUAL(30, supported frame_1);
+    /*arrange*/
+    struct cloud_data_struct cloud_data;
+   /*act*/
+    read_can_supported_pid(&cloud_data);
+   /*assert*/
+    CHECK(cloud_data.can_data.rpm >= 0 );
 }
 
-TEST(CanBusTestGroup, readcansupportedpid)
+TEST(CanBusTestGroup, read_can_id_number)
 {
 	/*arrange*/
-	unit16_t *requestframe = (uint16_t *)"0";
+	struct cloud_data_struct cloud_data;
 
 	/*act*/
-	char *request = supported(request);
+	read_can_supported_pid(&cloud_data);
 
 	/*assert*/
-	STRCMP_EQUAL("Vehicle_type", request);
+/*	CHECK(cloud_data.can_data.vin >= 0);*/
 }
 
-TEST(CanBusTestGroup, readcanspeedpid)
-{
-	/*arrange*/
-	void *arg = (void *)"";
-
-	/*act*/
-	char *speedframe = speedpid(arg);
-
-	/*assert*/
-	CHECK_EQUAL(1, Speedframe);
-}
-Test;

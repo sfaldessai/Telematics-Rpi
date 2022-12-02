@@ -10,10 +10,34 @@ extern "C"
 #include "../src/serial_interface/serial_config.h"
 }
 
+/*TEST(UartTestGroup, uartsetuptest)
+{
+    struct uart_device_struct device;
+    device.file_name = (char *) "filename";
+    device.baud_rate = 9600;
+
+    return mock().expectOneCall("uart_setup").withParameterOfType("uartDeviceStruct", "device", (void*)&device).
+        withParameter("canonical", false).andReturnValue(0);
+
+    int result = uart_setup(&device, false);
+
+    CHECK_EQUAL(0, result);
+}*/
+
 int uart_start_test(struct uart_device_struct* device, bool canonical)
 {
     return mock().actualCall("uart_start").withParameterOfType("uartDeviceStruct", "device", (const void*)device).
         withParameter("canonical", canonical).returnIntValue();
+}
+
+int uart_reads_test(struct uart_device_struct* device, char* buf, size_t buf_len)
+{
+    return mock().actualCall(__func__).withParameterOfType("uartDeviceStruct", "device", (const void*)device).withParameter("buffer", buf).withParameter("buf_length", buf_len).returnIntValueOrDefault(-1);
+}
+
+int uart_readchunks_test(struct uart_device_struct* device, char* buf, size_t buf_len)
+{
+    return mock().actualCall(__func__).withParameterOfType("uartDeviceStruct", "device", (const void*)device).withParameter("buffer", buf).withParameter("buf_length", buf_len).returnIntValueOrDefault(0);
 }
 
 int uart_writen_test(struct uart_device_struct* device, char* buf, size_t buf_len)
@@ -29,10 +53,10 @@ int uart_writes_test(struct uart_device_struct* device, char* string)
         .withParameter("string", string).returnIntValue();
 }
 
-int uart_reads_test(struct uart_device_struct* device, char* buf, size_t buf_len)
+/*int uart_reads_test(struct uart_device_struct* device, char* buf, size_t buf_len)
 {
     return mock().actualCall(__func__).withParameterOfType("uartDeviceStruct", "device", (const void*)device).withParameter("buffer", buf).withParameter("buf_length", buf_len).returnIntValueOrDefault(-1);
-}
+}*/
 
 void uart_stop_test(struct uart_device_struct* device)
 {
@@ -119,3 +143,21 @@ TEST(UartTestGroup, uartreadsTest)
 
     CHECK_EQUAL(0, result);
 }
+
+/*TEST(UartTestGroup, uartsetupTest)
+{
+	struct uart_device_struct device;
+	device.file_name = (char*)"filename";
+	device.baud_rate = 9600;
+	char buf[] = "hello";
+
+      mock().expectOneCall("uart_setup").
+	withParameterOfType("uartDeviceStruct", "device", (void *) &device).
+	withParameter("buffer", buf).
+	withParameter("canonical", false).andReturnValue(0);
+
+	int result = uart_start(&device,false);
+
+	CHECK_EQUAL(-1, result);
+}
+*/
