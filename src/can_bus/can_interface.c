@@ -112,7 +112,6 @@ char *get_can_devicename()
 	fgets(output,1024,ls);
 	if (output != NULL && strlen(output)>0)
 	{
-		printf("\nTEST == %s\n", output);
 		return "can0";
 	}
 	free(output);
