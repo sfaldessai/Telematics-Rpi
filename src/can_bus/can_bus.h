@@ -38,7 +38,7 @@
 #define CAN_EMPTY_DATA 0xAA
 
 /* TOD: replace with real can name while using read can module */
-#define CAN_FILE "vcan0"
+//#define CAN_FILE "vcan0"
 #define CAN_REQUEST "CAN REQUEST"
 #define CAN_RESPONSE "CAN RESPONSE"
 #define VIN_DATA_FRAME 3

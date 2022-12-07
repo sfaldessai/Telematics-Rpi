@@ -101,6 +101,34 @@ int receive_can_data(int sockfd, struct can_frame *frame)
 	return nbytes;
 }
 
+//Checking for VCAN0/CAN0 option
+char *get_can_devicename()
+{
+	FILE *ls;
+	char *output = malloc(sizeof(char) * 1024);
+	memset( output, '\0', sizeof(char)* 1024);
+
+	ls = popen("sudo ip link show can0","r");
+	fgets(output,1024,ls);
+	if (output != NULL && strlen(output)>0)
+	{
+		printf("\nTEST == %s\n", output);
+		return "can0";
+	}
+	free(output);
+	output = malloc(sizeof(char) * 1024);
+	memset( output, '\0', sizeof(char)* 1024);
+	
+	ls = popen("sudo ip link show vcan0","r");
+	fgets(output,1024,ls);
+	if(output != NULL && strlen(output)>0)
+	{
+		return "vcan0";
+	}
+	pclose(ls);
+	return NULL;
+}
+
 /*
  * Name : setup_can_socket
  *
@@ -121,8 +149,10 @@ int setup_can_socket(int *sockfd)
 		logger_error(CAN_LOG_MODULE_ID, "Error: Socket Open- %s\r\n", __func__);
 		return 1;
 	}
-
-	strcpy(ifr.ifr_name, CAN_FILE);
+        char  *output = NULL;
+	output = get_can_devicename();
+	logger_info(CAN_LOG_MODULE_ID,"CAN DEVICE NAME : %s\n", output);
+	strcpy(ifr.ifr_name, output);
 	ioctl(*sockfd, SIOCGIFINDEX, &ifr);
 
 	/* setting receive time for 5 sec*/
