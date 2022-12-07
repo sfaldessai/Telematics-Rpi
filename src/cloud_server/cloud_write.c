@@ -61,34 +61,34 @@ char *create_json_obj(struct cloud_data_struct *cloud_data)
 
     cJSON_AddStringToObject(cjson_can, "vin", (char *)cloud_data->can_data.vin);
     cJSON_AddStringToObject(cjson_can, "vehicleType", (char *)cloud_data->can_data.vehicle_type);
-    cJSON_AddNumberToObject(cjson_can, "speed", cloud_data->can_data.speed);
-    cJSON_AddNumberToObject(cjson_can, "rpm", cloud_data->can_data.rpm);
+    cJSON_AddNumberToObject(cjson_can, "speed", cloud_data->can_data.speed,0);
+    cJSON_AddNumberToObject(cjson_can, "rpm", cloud_data->can_data.rpm,1);
     cJSON_AddStringToObject(cjson_can, "supportedPid", supported_pids);
-    cJSON_AddNumberToObject(cjson_can, "temperature", cloud_data->can_data.temperature);
+    cJSON_AddNumberToObject(cjson_can, "temperature", cloud_data->can_data.temperature,1);
     cJSON_AddItemToObject(cjson_telematic, "can", cjson_can);
 
-    cJSON_AddNumberToObject(cjson_location, "latitude", cloud_data->gps_data.latitude);
-    cJSON_AddNumberToObject(cjson_location, "longitude", cloud_data->gps_data.longitude);
-    cJSON_AddNumberToObject(cjson_location, "hdop", cloud_data->gps_data.hdop);
-    cJSON_AddNumberToObject(cjson_location, "vdop", cloud_data->gps_data.vdop);
-    cJSON_AddNumberToObject(cjson_location, "pdop", cloud_data->gps_data.pdop);
+    cJSON_AddNumberToObject(cjson_location, "latitude", cloud_data->gps_data.latitude,6);
+    cJSON_AddNumberToObject(cjson_location, "longitude", cloud_data->gps_data.longitude,6);
+    cJSON_AddNumberToObject(cjson_location, "hdop", cloud_data->gps_data.hdop,2);
+    cJSON_AddNumberToObject(cjson_location, "vdop", cloud_data->gps_data.vdop,2);
+    cJSON_AddNumberToObject(cjson_location, "pdop", cloud_data->gps_data.pdop,2);
     cJSON_AddItemToObject(cjson_telematic, "location", cjson_location);
 
-    cJSON_AddNumberToObject(cjson_client_controller, "motion", cloud_data->client_controller_data.motion);
-    cJSON_AddNumberToObject(cjson_client_controller, "pto", cloud_data->client_controller_data.pto);
-    cJSON_AddNumberToObject(cjson_client_controller, "battery", cloud_data->can_data.battery);
-    cJSON_AddNumberToObject(cjson_client_controller, "accX", cloud_data->client_controller_data.acc_x);
-    cJSON_AddNumberToObject(cjson_client_controller, "accY", cloud_data->client_controller_data.acc_y);
-    cJSON_AddNumberToObject(cjson_client_controller, "accZ", cloud_data->client_controller_data.acc_z);
+    cJSON_AddNumberToObject(cjson_client_controller, "motion", cloud_data->client_controller_data.motion,0);
+    cJSON_AddNumberToObject(cjson_client_controller, "pto", cloud_data->client_controller_data.pto,0);
+    cJSON_AddNumberToObject(cjson_client_controller, "battery", cloud_data->can_data.battery,2);
+    cJSON_AddNumberToObject(cjson_client_controller, "accX", cloud_data->client_controller_data.acc_x,0);
+    cJSON_AddNumberToObject(cjson_client_controller, "accY", cloud_data->client_controller_data.acc_y,0);
+    cJSON_AddNumberToObject(cjson_client_controller, "accZ", cloud_data->client_controller_data.acc_z,0);
     cJSON_AddItemToObject(cjson_telematic, "clientController", cjson_client_controller);
 
     cJSON_AddStringToObject(cjson_telematic, "serial", (char *)cloud_data->mac_address);
-    cJSON_AddNumberToObject(cjson_telematic, "idleTime", (double)cloud_data->idle_time_secs);
-    cJSON_AddNumberToObject(cjson_telematic, "serviceTime", (double)cloud_data->service_time);
-    cJSON_AddNumberToObject(cjson_telematic, "distanceTravelled", (double)cloud_data->distance_travelled);
+    cJSON_AddNumberToObject(cjson_telematic, "idleTime", (double)cloud_data->idle_time_secs,0);
+    cJSON_AddNumberToObject(cjson_telematic, "serviceTime", (double)cloud_data->service_time,0);
+    cJSON_AddNumberToObject(cjson_telematic, "distanceTravelled", (double)cloud_data->distance_travelled,0);
 
     time_t seconds = time(NULL);
-    cJSON_AddNumberToObject(cjson_telematic, "timeStampInSeconds", seconds);
+    cJSON_AddNumberToObject(cjson_telematic, "timeStampInSeconds", seconds,0);
 
     cJSON_AddStringToObject(cjson_telematic, "build_version", cloud_data->build_version);
 
