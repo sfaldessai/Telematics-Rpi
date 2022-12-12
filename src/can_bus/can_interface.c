@@ -59,6 +59,37 @@ void get_request_frame(struct can_frame *request_frame, int pid, int mode)
 }
 
 /*
+ * Name : get_control_flow_frame
+ *
+ * Descriptoin: The get_control_flow_frame function is for preparing a control flow frame for PID data.
+ *
+ * Input parameters:
+ *                  struct can_frame  *request_frame: for updating request frame and send back
+ *
+ * Output parameters: void
+ */
+void get_control_flow_frame(struct can_frame *request_frame)
+{
+	/* can request ID: 0x7DF for all request*/
+	request_frame->can_id = CAN_CONTROL_FLOW_ID;
+	/* Data length code: 0 .. 8 */
+	request_frame->can_dlc = CAN_FRAME_LENGTH;
+
+	/* CAN Data Fields */
+	/* #bytes using 0x02 for all PIDs */
+	request_frame->data[0] = 0x30;
+
+	/* Below bytes are not used and set to 0xAA */
+	request_frame->data[1] = CAN_EMPTY_DATA;
+	request_frame->data[2] = CAN_EMPTY_DATA;
+	request_frame->data[3] = CAN_EMPTY_DATA;
+	request_frame->data[4] = CAN_EMPTY_DATA;
+	request_frame->data[5] = CAN_EMPTY_DATA;
+	request_frame->data[6] = CAN_EMPTY_DATA;
+	request_frame->data[7] = CAN_EMPTY_DATA;
+}
+
+/*
  * Name : transmit_can_data
  *
  * Descriptoin: The transmit_can_data function is for sending can frame request to can module.

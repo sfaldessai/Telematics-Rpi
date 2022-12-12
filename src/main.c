@@ -25,11 +25,32 @@ int main(int argc, char *argv[])
     pthread_t client_controller_read_thread, gps_read_thread, serial_write_thread;
     pthread_t read_can_supported_thread, read_can_speed_thread, read_can_vin_thread, read_can_rpm_thread, read_can_temperature_thread, cloud_send_thread, read_ble_can_thread;
     int opt;
-    char *client_controller_path = NULL, *gps_device_path= NULL;
+    char *client_controller_path = NULL, *gps_device_path = NULL;
     char *cc_device_list[CC_DEVICE_LIST_LENGTH] = {CC_MANUFACTURE_NAME, TEST_CC_MANUFACTURE_NAME};
     char *gps_device_list[GPS_DEVICE_LIST_LENGTH] = {GPS_MANUFACTURE_NAME, TEST_GPS_MANUFACTURE_NAME};
-    int can_server=0;
+    int can_server = 0;
     cloud_data.build_version = RELEASE_VERSION;
+
+    while ((opt = getopt(argc, argv, "m:f:c:v")) != -1)
+    {
+        switch (opt)
+        {
+        case 'm':
+            module_flag = atoi(optarg);
+            break;
+        case 'f':
+            write_to_file = atoi(optarg);
+            break;
+        case 'c':
+            can_server = atoi(optarg);
+            break;
+        case 'v':
+            printf("%s", RELEASE_VERSION);
+            return 0;
+        default:
+            break;
+        }
+    }
 
     client_controller_path = get_device_path(cc_device_list, CC_DEVICE_LIST_LENGTH);
     gps_device_path = get_device_path(gps_device_list, GPS_DEVICE_LIST_LENGTH);
@@ -48,23 +69,6 @@ int main(int argc, char *argv[])
     /* uart set-up*/
     uart_setup(&client_controller_device, client_controller_path, B115200, true);
     uart_setup(&gps_device, gps_device_path, B9600, true);
-
-    while ((opt = getopt(argc, argv, "m:f:c:")) != -1)
-    {
-        switch (opt)
-        {
-        case 'm':
-            module_flag = atoi(optarg);
-            break;
-        case 'f':
-            write_to_file = atoi(optarg);
-            break;
-        case 'c':
-            can_server = atoi(optarg);
-        default:
-            break;
-        }
-    }
 
     /* Get Master (RPI) MAC Address and update cloud_data.mac_address */
     get_master_mac_address(cloud_data.mac_address);
@@ -93,7 +97,7 @@ int main(int argc, char *argv[])
     /* CAN Module Read Thread */
     if (can_server == BLE_CAN_MODULE_ID)
     {
-        pthread_create(&read_ble_can_thread,NULL,&read_from_ble_can,&cloud_data);
+        pthread_create(&read_ble_can_thread, NULL, &read_from_ble_can, &cloud_data);
     }
     else
     {
@@ -130,8 +134,9 @@ int main(int argc, char *argv[])
     pthread_join(read_can_vin_thread, NULL);
     pthread_join(read_can_rpm_thread, NULL);
     pthread_join(read_can_temperature_thread, NULL);
-    if (can_server == BLE_CAN_MODULE_ID){
-        pthread_join(read_ble_can_thread,NULL);
+    if (can_server == BLE_CAN_MODULE_ID)
+    {
+        pthread_join(read_ble_can_thread, NULL);
     }
     /* Join Thread End*/
 

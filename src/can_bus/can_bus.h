@@ -33,6 +33,7 @@
 #define RPM_PID 0x0C
 #define VIN_PID 0x02
 #define CAN_REQUEST_ID 0x7DF
+#define CAN_CONTROL_FLOW_ID 0x7E0
 #define VIN_MODE 0x09
 #define LIVE_DATA_MODE 0x01
 #define CAN_EMPTY_DATA 0xAA
@@ -92,6 +93,7 @@ char *get_manufacturer_detail(uint8_t *);
 bool validate_vin(char *);
 
 void get_request_frame(struct can_frame *, int, int);
+void get_control_flow_frame(struct can_frame *);
 int transmit_can_data(int, struct can_frame);
 int receive_can_data(int, struct can_frame *);
 int setup_can_socket(int *);

@@ -175,6 +175,18 @@ int can_request_response(struct can_frame *frame, size_t frame_length, struct ca
         }
         log_can_data(response_frame, CAN_RESPONSE);
         frame[i] = response_frame;
+
+        if (frame_length > 1)
+        {
+            struct can_frame vin_ack_frame;
+            get_control_flow_frame(&request_frame, VIN_PID, VIN_MODE);
+            int rc = transmit_can_data(sockfd, vin_ack_frame);
+
+            if (rc <= 0)
+            {
+                return CAN_WRITE_ERROR;
+            }
+        }
     }
 
     pthread_mutex_unlock(&can_module_lock);
