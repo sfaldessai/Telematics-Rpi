@@ -211,6 +211,16 @@ void *start_can_communication(void *arg)
 					perror("Write");
 				}
 				usleep(200000);
+				nbytes = read(s, &request_frame, sizeof(struct can_frame));
+
+				printf("\nRequest Receved: ");
+				for (int i = 0; i < request_frame.can_dlc; i++)
+				{
+					printf(" %02X ", request_frame.data[i]);
+				}
+				printf("\n");
+
+				usleep(200000);
 				frame.data[0] = 0x21;
 				frame.data[1] = 0x44;
 				frame.data[2] = 0x50;
@@ -247,7 +257,7 @@ void *start_can_communication(void *arg)
 				frame.data[2] = 0x05;
 
 				frame.data[3] = (uint8_t)temperature_value; // get_random_number(0, 40);
-				frame.data[4] = 0xAA; // get_random_number(0, 99);
+				frame.data[4] = 0xAA;						// get_random_number(0, 99);
 				frame.data[5] = 0xAA;
 				frame.data[6] = 0xAA;
 				frame.data[7] = 0xAA;

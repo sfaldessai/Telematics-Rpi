@@ -179,7 +179,7 @@ int can_request_response(struct can_frame *frame, size_t frame_length, struct ca
         if (frame_length > 1)
         {
             struct can_frame vin_ack_frame;
-            get_control_flow_frame(&request_frame, VIN_PID, VIN_MODE);
+            get_control_flow_frame(&vin_ack_frame);
             int rc = transmit_can_data(sockfd, vin_ack_frame);
 
             if (rc <= 0)
